@@ -115,12 +115,18 @@ Finish,12:14:51
 ### 8. Enum classes Group, Rank
 * 8.1. Данные групп по каждому `typeCompetition` берутся с конфигурационного файла
 
-### 9. Data class Team(name, list<Athlete>)
+### 9. Data class Team
+(name, list<Athlete>)
 
-### 10. Data class Athlete(surname, name, birthYear, rank: Rank, group: Group, team: String, timeStart: Date)
+### 10. class? Time
 
-### 11. Data class GroupAthletes(group: Group, athlete: list<Athlete>)
+### 11. Data class Athlete
+(surname, name, birthYear, rank: Rank, group: Group, 
+team: String, timeStart: Time, finishTime: Time, result: ?)
 
-### 12. `Toss` (Жеребьевка)
+### 12. Data class GroupAthletes
+(group: Group, athlete: list<Athlete>)
+
+### 13. Toss (Жеребьевка)
 * 12.1. Попробовать расширить GroupAthletes.athletes функцией с параметром жеребьевки
 
