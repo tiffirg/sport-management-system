@@ -1,3 +1,5 @@
+package ru.emkn.kotlin.sms
+
 import com.sksamuel.hoplite.ConfigLoader
 
 data class ConfigData(val sport: String, val groups: List<String>, val ranks: List<String>)

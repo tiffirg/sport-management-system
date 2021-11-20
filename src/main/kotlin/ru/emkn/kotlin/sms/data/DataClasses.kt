@@ -1,3 +1,6 @@
+package ru.emkn.kotlin.sms.data
+import ru.emkn.kotlin.sms.groups
+import ru.emkn.kotlin.sms.ranks
 import java.time.LocalDateTime
 
 class Group(groupName: String) {
