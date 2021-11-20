@@ -11,7 +11,7 @@
 #### Config:
 * 0.1. typeCompetition = run|ski|swim|cycle|orient
 * 0.2. Данные групп.
-* 0.3. Данные разрядов.
+* ###### 0.3. Данные разрядов.
 
 ### 1. Exit Codes
 
@@ -115,8 +115,7 @@ Finish,12:14:51
 ### 8. Enum classes Group, Rank
 * 8.1. Данные групп по каждому `typeCompetition` берутся с конфигурационного файла
 
-### 9. Data class Team
-(name, list<Athlete>)
+### 9. Data class Team(name, list<Athlete>)
 
 ### 10. class? Time
 
