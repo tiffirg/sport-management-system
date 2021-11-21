@@ -1,29 +1,90 @@
 sport:
   running
 
-groups:
-  - М10
-  - M12
-  - M14
-  - M16
-  - M18
-  - M20
-  - W10
-  - W12
-  - W14
-  - W16
-  - W18
-  - W20
 
 ranks:
-  - б/р
-  - 3ю
-  - 2ю
-  - 1ю
   - 3
   - 2
   - 1
   - КМС
   - МС
-  - ЗМС
-  - ЗМСМК
+
+
+groups:
+
+  - name: М10
+    distance: 2km
+    criteria:
+      - 00:24:00
+      - 00:21:00
+      - 00:18:00
+      - none
+      - none
+
+  - name: M14
+    distance: 4km
+    criteria:
+      - 00:44:00
+      - 00:41:00
+      - 00:34:00
+      - none
+      - none
+
+  - name: M18
+    distance: 7km
+    criteria:
+      - 00:24:00
+      - 00:21:00
+      - 00:18:00
+      - 00:16:50
+      - none
+
+  - name: M21
+    distance: 12km
+    criteria:
+        - 00:75:00
+        - 00:65:00
+        - 00:55:00
+        - 00:45:00
+        - 00:41:30
+
+  - name: W10
+    distance: 1km
+    criteria:
+      - 00:12:00
+      - 00:8:00
+      - 00:6:00
+      - none
+      - none
+
+
+  - name: W14
+    distance: 3km
+    criteria:
+      - 00:22:20
+      - 00:18:40
+      - 00:15:00
+      - none
+      - none
+
+  - name: W18
+    distance: 5km
+    criteria:
+      - 00:47:20
+      - 00:44:00
+      - 00:43:00
+      - 00:38:15
+      - none
+
+  - name: W21
+    distance: 10km
+    criteria:
+      - 00:75:20
+      - 00:66:00
+      - 00:58:40
+      - 00:54:13
+      - 00:48:15
+
+documents:
+  - health insurance
+  - medical survey
