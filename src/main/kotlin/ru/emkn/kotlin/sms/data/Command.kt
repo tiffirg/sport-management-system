@@ -2,8 +2,8 @@ package ru.emkn.kotlin.sms.data
 
 enum class TypeCommand {
     START,
-    CHECKPOINT,
-    RESULT
+    RESULTS_ATHLETE,
+    RESULTS_TEAM
 }
 
 data class Command(
