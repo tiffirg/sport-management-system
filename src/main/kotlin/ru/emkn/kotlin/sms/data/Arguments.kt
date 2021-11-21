@@ -4,7 +4,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 data class Arguments(
-    val type: String,
     val title: String,
     val date: LocalDate,
     val command: Command
