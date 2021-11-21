@@ -1,17 +1,17 @@
 package ru.emkn.kotlin.sms.data
-import ru.emkn.kotlin.sms.groups
-import ru.emkn.kotlin.sms.ranks
+import ru.emkn.kotlin.sms.GROUP_NAMES
+import ru.emkn.kotlin.sms.RANKS
 import java.time.LocalDateTime
 
 class Group(groupName: String) {
     init {
-        require(groups.contains(groupName)) { "group name must be mentioned in config file" }
+        require(GROUP_NAMES.contains(groupName)) { "group name must be mentioned in config file" }
     }
 }
 
 class Rank(rankName: String) {
     init {
-        require(ranks.contains(rankName)) { "rank name must be mentioned in config file" }
+        require(RANKS.contains(rankName)) { "rank name must be mentioned in config file" }
     }
 }
 
