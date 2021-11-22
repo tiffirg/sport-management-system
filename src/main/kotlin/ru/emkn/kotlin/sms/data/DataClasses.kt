@@ -3,13 +3,14 @@ import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.RANKS
 import java.time.LocalDateTime
 
-class Group(groupName: String) {
+data class Group(val groupName: String) {
     init {
         require(GROUP_NAMES.contains(groupName)) { "group name must be mentioned in config file" }
     }
 }
 
-class Rank(rankName: String) {
+
+data class Rank(val rankName: String) {
     init {
         require(RANKS.contains(rankName)) { "rank name must be mentioned in config file" }
     }
@@ -25,4 +26,3 @@ data class Athlete(
 data class Team(val teamName: String, val athletes: List<Athlete>)
 
 data class AthletesGroup(val group: Group, val athletes: List<Athlete>)
-
