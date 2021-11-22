@@ -1,7 +1,5 @@
 import kotlinx.cli.ExperimentalCli
-import ru.emkn.kotlin.sms.data.Arguments
-import ru.emkn.kotlin.sms.data.Command
-import ru.emkn.kotlin.sms.data.Path
+import ru.emkn.kotlin.sms.data.*
 import ru.emkn.kotlin.sms.data.TypeCommand.*
 import ru.emkn.kotlin.sms.services.ArgumentsHandler
 import kotlin.test.Test
@@ -17,12 +15,8 @@ internal class Test1 {
             Arguments(
                 title = "SportRegion",
                 date = Arguments.transformDate("20.03.2021"),
-                command = Command(
-                    type = START,
+                command = CommandStart(
                     pathsRequests = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
-                    pathsProtocolsStart = null,
-                    pathsProtocolsCheckpoint = null,
-                    pathsResults = null
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -37,12 +31,9 @@ internal class Test1 {
             Arguments(
                 title = "SportRegion",
                 date = Arguments.transformDate("20.03.2021"),
-                command = Command(
-                    type = RESULTS_ATHLETE,
-                    pathsRequests = null,
+                command = CommandResultsAthlete(
                     pathsProtocolsStart = listOf(),
                     pathsProtocolsCheckpoint = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
-                    pathsResults = null
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -57,12 +48,9 @@ internal class Test1 {
             Arguments(
                 title = "SportRegion",
                 date = Arguments.transformDate("20.03.2021"),
-                command = Command(
-                    type = RESULTS_ATHLETE,
-                    pathsRequests = null,
+                command = CommandResultsAthlete(
                     pathsProtocolsStart = listOf(),
                     pathsProtocolsCheckpoint = listOf(),
-                    pathsResults = null
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -87,12 +75,9 @@ internal class Test1 {
         val result = Arguments(
             title = "SportRegion",
             date = Arguments.transformDate("20.03.2021"),
-            command = Command(
-                type = RESULTS_ATHLETE,
-                pathsRequests = null,
+            command = CommandResultsAthlete(
                 pathsProtocolsStart = listOf(Path(path = "pathPS1"), Path(path = "pathPS2")),
                 pathsProtocolsCheckpoint = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
-                pathsResults = null
             )
         )
         assertEquals(
@@ -113,11 +98,7 @@ internal class Test1 {
             Arguments(
                 title = "SportRegion",
                 date = Arguments.transformDate("20.03.2021"),
-                command = Command(
-                    type = RESULTS_TEAM,
-                    pathsRequests = null,
-                    pathsProtocolsStart = null,
-                    pathsProtocolsCheckpoint = null,
+                command = CommandResults(
                     pathsResults = listOf()
                 )
             ),
@@ -133,11 +114,7 @@ internal class Test1 {
             Arguments(
                 title = "SportRegion",
                 date = Arguments.transformDate("20.03.2021"),
-                command = Command(
-                    type = RESULTS_TEAM,
-                    pathsRequests = null,
-                    pathsProtocolsStart = null,
-                    pathsProtocolsCheckpoint = null,
+                command = CommandResults(
                     pathsResults = listOf(Path(path = "path1"), Path(path = "path2")),
                 )
             ),

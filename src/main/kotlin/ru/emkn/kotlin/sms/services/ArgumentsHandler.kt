@@ -1,10 +1,7 @@
 package ru.emkn.kotlin.sms.services
 
 import kotlinx.cli.*
-import ru.emkn.kotlin.sms.data.Arguments
-import ru.emkn.kotlin.sms.data.Command
-import ru.emkn.kotlin.sms.data.Path
-import ru.emkn.kotlin.sms.data.TypeCommand.*
+import ru.emkn.kotlin.sms.data.*
 
 fun getPathsProtocolsStart(): List<Path> {
     TODO()  // Exception, если не найдены
@@ -22,10 +19,13 @@ fun readStream(): List<Path> {
 object ArgumentsHandler {
     private const val programName = "сompetition"
 
-    class ProtocolsStart : Subcommand("protocolStart", "Get start protocols") {
+    abstract class MySubcommand(name: String, actionDescription: String) : Subcommand(name, actionDescription) {
+        var use = false
+    }
+
+    class ProtocolsStart : MySubcommand("protocolStart", "Get start protocols") {
         private val pathsRequests by argument(ArgType.String, description = "Paths to requests lists").vararg()
         var result: List<Path>? = null
-        var use = false
 
         override fun execute() {
             use = true
@@ -33,7 +33,7 @@ object ArgumentsHandler {
         }
     }
 
-    class ResultsAthlete : Subcommand("resultsAthlete", "Get results for each athlete") {
+    class ResultsAthlete : MySubcommand("resultsAthlete", "Get results for each athlete") {
         private val pathsProtocolsCheckpoint by argument(
             ArgType.String,
             description = "Paths to checkpoint protocols"
@@ -47,7 +47,6 @@ object ArgumentsHandler {
 
         var result: List<Path>? = null
         var resultsPathsProtocolsStart: List<Path>? = null
-        var use = false
 
         override fun execute() {
             use = true
@@ -56,11 +55,10 @@ object ArgumentsHandler {
         }
     }
 
-    class ResultsTeam : Subcommand("resultsTeam", "Get results for each team") {
+    class ResultsTeam : MySubcommand("resultsTeam", "Get results for each team") {
         private val pathsResults by argument(ArgType.String, description = "Paths to results for each athlete").vararg()
             .optional()
         var result: List<Path>? = null
-        var use = false
 
         override fun execute() {
             use = true
@@ -82,41 +80,18 @@ object ArgumentsHandler {
             title = title,
             date = Arguments.transformDate(date),
             command = when {
-                protocolsStart.use -> processCommandStart(protocolsStart)
-                resultsAthlete.use -> processCommandResultsAthlete(resultsAthlete)
-                resultsTeam.use -> processCommandResultsTeam(resultsTeam)
+                protocolsStart.use -> CommandStart(
+                    pathsRequests = protocolsStart.result
+                )
+                resultsAthlete.use -> CommandResultsAthlete(
+                    pathsProtocolsStart = resultsAthlete.resultsPathsProtocolsStart,
+                    pathsProtocolsCheckpoint = resultsAthlete.result,
+                )
+                resultsTeam.use -> CommandResults(
+                    pathsResults = resultsTeam.result,
+                )
                 else -> throw Exception()  // Exit Code UNDEFINED_COMMAND
             }
-        )
-    }
-
-    private fun processCommandStart(protocolsStart: ProtocolsStart): Command {
-        return Command(
-            START,
-            pathsRequests = protocolsStart.result,
-            null,
-            null,
-            null
-        )
-    }
-
-    private fun processCommandResultsAthlete(resultsAthlete: ResultsAthlete): Command {
-        return Command(
-            RESULTS_ATHLETE,
-            null,
-            pathsProtocolsStart = resultsAthlete.resultsPathsProtocolsStart,
-            pathsProtocolsCheckpoint = resultsAthlete.result,
-            null
-        )
-    }
-
-    private fun processCommandResultsTeam(resultsTeam: ResultsTeam): Command {
-        return Command(
-            RESULTS_TEAM,
-            null,
-            null,
-            null,
-            pathsResults = resultsTeam.result,
         )
     }
 }
