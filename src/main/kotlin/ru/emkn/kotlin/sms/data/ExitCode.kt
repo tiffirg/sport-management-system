@@ -5,9 +5,7 @@ enum class ExitCode(val exitCode: Int) {
     HELP(1),
     INVALID_DATE(2),
     UNDEFINED_COMMAND(3),
-    UNDEFINED_FILE(4),
-    EMPTY_DATA(5),
-    READ_ERROR(6),
-    INCORRECT_DATA(7),
-    INCORRECT_CHECKPOINT(8)
+    INVALID_FILE(4),
+    INCORRECT_DATA(5),
+    INCORRECT_CHECKPOINT(6)
 }
