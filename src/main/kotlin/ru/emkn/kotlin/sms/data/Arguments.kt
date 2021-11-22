@@ -1,16 +1,16 @@
 package ru.emkn.kotlin.sms.data
 
+import ru.emkn.kotlin.sms.utils.transformDate
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 data class Arguments(
     val title: String,
     val date: LocalDate,
     val command: Command
 ) {
-    companion object {
-        fun transformDate(date: String): LocalDate {
-            return LocalDate.parse(date, DateTimeFormatter.ofPattern("dd.MM.yyyy"))  // Exception: INVALID_DATE
-        }
-    }
+   companion object {
+       fun checkDate(date: String): LocalDate {
+           return transformDate(date)?: throw Exception() // Exception: INVALID_DATE
+       }
+   }
 }

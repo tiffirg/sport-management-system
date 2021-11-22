@@ -2,18 +2,7 @@ package ru.emkn.kotlin.sms.services
 
 import kotlinx.cli.*
 import ru.emkn.kotlin.sms.data.*
-
-fun getPathsProtocolsStart(): List<Path> {
-    TODO()  // Exception, если не найдены
-}
-
-fun getPathsResults(): List<Path> {
-    TODO()  // Exception, если не найдены
-}
-
-fun readStream(): List<Path> {
-    TODO()
-}
+import ru.emkn.kotlin.sms.utils.transformDate
 
 @ExperimentalCli
 object ArgumentsHandler {
@@ -78,7 +67,7 @@ object ArgumentsHandler {
         parser.parse(args)
         return Arguments(
             title = title,
-            date = Arguments.transformDate(date),
+            date = Arguments.checkDate(date),
             command = when {
                 protocolsStart.use -> CommandStart(
                     pathsRequests = protocolsStart.result

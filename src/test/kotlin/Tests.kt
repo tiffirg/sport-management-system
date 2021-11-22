@@ -2,6 +2,7 @@ import kotlinx.cli.ExperimentalCli
 import ru.emkn.kotlin.sms.data.*
 import ru.emkn.kotlin.sms.data.TypeCommand.*
 import ru.emkn.kotlin.sms.services.ArgumentsHandler
+import ru.emkn.kotlin.sms.utils.transformDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -14,7 +15,7 @@ internal class Test1 {
         assertEquals(
             Arguments(
                 title = "SportRegion",
-                date = Arguments.transformDate("20.03.2021"),
+                date = Arguments.checkDate("20.03.2021"),
                 command = CommandStart(
                     pathsRequests = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
                 )
@@ -30,7 +31,7 @@ internal class Test1 {
         assertEquals(
             Arguments(
                 title = "SportRegion",
-                date = Arguments.transformDate("20.03.2021"),
+                date = Arguments.checkDate("20.03.2021"),
                 command = CommandResultsAthlete(
                     pathsProtocolsStart = listOf(),
                     pathsProtocolsCheckpoint = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
@@ -47,7 +48,7 @@ internal class Test1 {
         assertEquals(
             Arguments(
                 title = "SportRegion",
-                date = Arguments.transformDate("20.03.2021"),
+                date = Arguments.checkDate("20.03.2021"),
                 command = CommandResultsAthlete(
                     pathsProtocolsStart = listOf(),
                     pathsProtocolsCheckpoint = listOf(),
@@ -74,7 +75,7 @@ internal class Test1 {
         )
         val result = Arguments(
             title = "SportRegion",
-            date = Arguments.transformDate("20.03.2021"),
+            date = Arguments.checkDate("20.03.2021"),
             command = CommandResultsAthlete(
                 pathsProtocolsStart = listOf(Path(path = "pathPS1"), Path(path = "pathPS2")),
                 pathsProtocolsCheckpoint = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
@@ -97,7 +98,7 @@ internal class Test1 {
         assertEquals(
             Arguments(
                 title = "SportRegion",
-                date = Arguments.transformDate("20.03.2021"),
+                date = Arguments.checkDate("20.03.2021"),
                 command = CommandResults(
                     pathsResults = listOf()
                 )
@@ -113,7 +114,7 @@ internal class Test1 {
         assertEquals(
             Arguments(
                 title = "SportRegion",
-                date = Arguments.transformDate("20.03.2021"),
+                date = Arguments.checkDate("20.03.2021"),
                 command = CommandResults(
                     pathsResults = listOf(Path(path = "path1"), Path(path = "path2")),
                 )
