@@ -19,7 +19,7 @@ data class Rank(val rankName: String) {
 data class Athlete(
     val surname: String, val name: String, val birthYear: Int,
     val group: Group, val rank: Rank,
-    val athleteNumber: Int, val startTime: LocalDateTime,
+    var athleteNumber: Int?, var startTime: LocalDateTime?,
     val teamName: String
 )
 
