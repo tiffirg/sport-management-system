@@ -2,11 +2,20 @@ package ru.emkn.kotlin.sms
 
 import com.sksamuel.hoplite.ConfigLoader
 
-data class GroupData(val name: String, val distance: String, val criteria: List<String>)
-data class ConfigData(val sport: String, val ranks: List<String>, val groups: List<GroupData>, val documents: List<String>)
+data class GroupData(
+    val group: String,
+    val distance: String
+)
+data class CriteriaData(
+    val distance: String,
+    val checkpoints: List<String>
+)
+data class ConfigData(
+    val eventName: String, val eventDate: String, val eventSport: String,
+    val ranks: List<String>,
+    val groups: List<GroupData>,
+    val criteria: List<CriteriaData>)
 
 val config = ConfigLoader().loadConfigOrThrow<ConfigData>("/config.yaml")
-val SPORT = config.sport
 val RANKS = config.ranks
-val GROUP_NAMES = config.groups.map { it.name }
-val DOCUMENTS_LIST = config.documents
+val GROUP_NAMES = config.groups.map { it.group }

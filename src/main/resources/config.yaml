@@ -1,8 +1,17 @@
-sport:
-  running
+eventName:
+  Первенство Пятой Бани
+
+eventDate:
+  20.20.2022
+
+eventSport:
+  orienteering
 
 
 ranks:
+  - 3ю
+  - 2ю
+  - 1ю
   - 3
   - 2
   - 1
@@ -11,80 +20,190 @@ ranks:
 
 
 groups:
-
-  - name: М10
-    distance: 2km
-    criteria:
-      - 00:24:00
-      - 00:21:00
-      - 00:18:00
-      - none
-      - none
-
-  - name: M14
-    distance: 4km
-    criteria:
-      - 00:44:00
-      - 00:41:00
-      - 00:34:00
-      - none
-      - none
-
-  - name: M18
-    distance: 7km
-    criteria:
-      - 00:24:00
-      - 00:21:00
-      - 00:18:00
-      - 00:16:50
-      - none
-
-  - name: M21
-    distance: 12km
-    criteria:
-        - 00:75:00
-        - 00:65:00
-        - 00:55:00
-        - 00:45:00
-        - 00:41:30
-
-  - name: W10
-    distance: 1km
-    criteria:
-      - 00:12:00
-      - 00:8:00
-      - 00:6:00
-      - none
-      - none
+  - group: М10
+    distance: МЖ9 10
+  - group: М12
+    distance: М12
+  - group: М14
+    distance: М14
+  - group: М16
+    distance: М16 Ж60
+  - group: М18
+    distance: М18 21 40 50
+  - group: М21
+    distance: М18 21 40 50
+  - group: М40
+    distance: М18 21 40 50
+  - group: М60
+    distance: Ж21 40 М60
+  - group: Ж10
+    distance: МЖ9 10
+  - group: Ж12
+    distance: Ж12
+  - group: Ж14
+    distance: Ж14
+  - group: Ж16
+    distance: Ж16
+  - group: Ж18
+    distance: Ж21 40 М60
+  - group: Ж21
+    distance: Ж21 40 М60
+  - group: Ж40
+    distance: Ж21 40 М60
+  - group: Ж60
+    distance: М16 Ж60
+  - group: Мстуд
+    distance: Ж16 студенты
+  - group: Жстуд
+    distance: Ж16 студенты
+  - group: VIP
+    distance: МЖ9 10
 
 
-  - name: W14
-    distance: 3km
-    criteria:
-      - 00:22:20
-      - 00:18:40
-      - 00:15:00
-      - none
-      - none
-
-  - name: W18
-    distance: 5km
-    criteria:
-      - 00:47:20
-      - 00:44:00
-      - 00:43:00
-      - 00:38:15
-      - none
-
-  - name: W21
-    distance: 10km
-    criteria:
-      - 00:75:20
-      - 00:66:00
-      - 00:58:40
-      - 00:54:13
-      - 00:48:15
-
-documents:
-  - health insurance
-  - medical survey
+criteria:
+  - distance: М18 21 40 50
+    checkpoints:
+    - 31
+    - 32
+    - 33
+    - 34
+    - 35
+    - 36
+    - 37
+    - 38
+    - 39
+    - 40
+    - 41
+    - 39
+    - 42
+    - 43
+    - 44
+    - 45
+    - 46
+    - 47
+    - 48
+    - 49
+    - 50
+    - 51
+    - 49
+    - 52
+    - 53
+  - distance: МЖ9 10
+    checkpoints:
+    - 32
+    - 46
+    - 34
+    - 33
+    - 53
+  - distance: Ж14
+    checkpoints:
+    - 47
+    - 46
+    - 45
+    - 34
+    - 33
+    - 32
+    - 48
+    - 52
+    - 51
+    - 50
+    - 49
+    - 53
+  - distance: Ж12
+    checkpoints:
+    - 32
+    - 46
+    - 33
+    - 47
+    - 48
+    - 52
+    - 51
+    - 50
+    - 49
+    - 53
+  - distance: М12
+    checkpoints:
+    - 32
+    - 46
+    - 34
+    - 35
+    - 45
+    - 33
+    - 47
+    - 48
+    - 52
+    - 49
+    - 53
+  - distance: М14
+    checkpoints:
+    - 31
+    - 32
+    - 33
+    - 34
+    - 35
+    - 36
+    - 37
+    - 44
+    - 45
+    - 46
+    - 47
+    - 48
+    - 53
+  - distance: Ж21 40 М60
+    checkpoints:
+    - 33
+    - 34
+    - 35
+    - 36
+    - 43
+    - 42
+    - 39
+    - 40
+    - 38
+    - 37
+    - 44
+    - 45
+    - 46
+    - 32
+    - 48
+    - 49
+    - 50
+    - 51
+    - 49
+    - 52
+    - 53
+  - distance: М16 Ж60
+    checkpoints:
+    - 31
+    - 32
+    - 33
+    - 34
+    - 35
+    - 36
+    - 43
+    - 37
+    - 44
+    - 45
+    - 46
+    - 47
+    - 48
+    - 49
+    - 51
+    - 52
+    - 53
+  - distance: Ж16  студенты
+    checkpoints:
+    - 32
+    - 33
+    - 34
+    - 44
+    - 36
+    - 37
+    - 35
+    - 45
+    - 46
+    - 47
+    - 48
+    - 49
+    - 52
+    - 53
