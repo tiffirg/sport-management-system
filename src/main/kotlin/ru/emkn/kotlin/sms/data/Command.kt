@@ -2,7 +2,7 @@ package ru.emkn.kotlin.sms.data
 
 enum class TypeCommand {
     START,
-    RESULTS_ATHLETE,
+    RESULTS_GROUP,
     RESULTS_TEAM
 }
 
@@ -20,7 +20,7 @@ data class CommandResultsGroup(
     val pathProtocolCheckpoint: String?,
     val isCheckpointAthlete: Boolean
 ) : Command {
-    override val type = TypeCommand.RESULTS_ATHLETE
+    override val type = TypeCommand.RESULTS_GROUP
 }
 
 data class CommandResults(val pathResultsAthlete: String?) : Command {

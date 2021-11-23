@@ -33,13 +33,13 @@ class App(val title: String, val date: LocalDate) {
         if (command.pathProtocolCheckpoint.isNullOrEmpty() || command.pathProtocolStart.isNullOrEmpty()) {
             checkExistDir()
         }
-        if (command.pathProtocolCheckpoint.isNullOrEmpty()) {
-            val dataCheckpoints = processStream()
+        val dataCheckpoint = if (command.pathProtocolCheckpoint.isNullOrEmpty()) {
+            processStream()
         } else {
-            TODO("Распарсить pathsProtocolsCheckpoint по путям")
+            CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete)
         }
 
-        if (command.pathProtocolStart.isNullOrEmpty()) {
+        val dataStart: List<AthletesGroup> = if (command.pathProtocolStart.isNullOrEmpty()) {
             TODO("Распарсить command.pathsProtocolsStart из папки")
         } else {
             TODO("Распарсить command.pathsProtocolsStart по путям")
@@ -47,14 +47,14 @@ class App(val title: String, val date: LocalDate) {
 
     }
 
-    private fun processCommandResultsTeam(command: CommandResults) {
+    private fun processCommandResultsTeam(command: CommandResults): List<String> {
         TODO()
     }
 
     private fun processStream() {
         val input = mutableListOf<String>()
         var line = readLine()
-        while (line != null){
+        while (line != null) {
             input.add(line)
             line = readLine()
         }
