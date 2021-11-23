@@ -6,10 +6,12 @@ import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.printMessageAboutCancelCompetition
 import java.io.File
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class App(val title: String, val date: LocalDate) {
-    private val nameDirectory: String = "$title|$date"
-    private val dir = File(nameDirectory)
+    private val pathDirectory = File(PATH_CONFIG).resolve("${title}_$date").path
+    private val pathProtocolStart = File(pathDirectory).resolve("ps_${title}_$date.csv").path
+    private val dir = File(pathDirectory)
 
     fun run(command: Command) {
         when (command) {
@@ -33,16 +35,16 @@ class App(val title: String, val date: LocalDate) {
         if (command.pathProtocolCheckpoint.isNullOrEmpty() || command.pathProtocolStart.isNullOrEmpty()) {
             checkExistDir()
         }
-        val dataCheckpoint = if (command.pathProtocolCheckpoint.isNullOrEmpty()) {
-            processStream()
+        val dataProtocolStart: Map<Int, Athlete> = if (command.pathProtocolStart.isNullOrEmpty()) {
+            CsvHandler.parseProtocolStart(pathProtocolStart)
         } else {
-            CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete)
+            CsvHandler.parseProtocolStart(command.pathProtocolStart)
         }
 
-        val dataStart: List<AthletesGroup> = if (command.pathProtocolStart.isNullOrEmpty()) {
-            TODO("Распарсить command.pathsProtocolsStart из папки")
+        val dataCheckpoint = if (command.pathProtocolCheckpoint.isNullOrEmpty()) {
+            processStream(command.isCheckpointAthlete, dataProtocolStart)
         } else {
-            TODO("Распарсить command.pathsProtocolsStart по путям")
+            CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete, dataProtocolStart)
         }
 
     }
@@ -51,19 +53,41 @@ class App(val title: String, val date: LocalDate) {
         TODO()
     }
 
-    private fun processStream() {
-        val input = mutableListOf<String>()
+    private fun processStream(isCheckpointAthlete: Boolean, dataProtocolStart: Map<Int, Athlete>): List<Athlete> {
         var line = readLine()
-        while (line != null) {
-            input.add(line)
-            line = readLine()
+        var splits: List<String>
+        if (isCheckpointAthlete) {
+            TODO("Реализация по участнику")
         }
-
+        else {
+            var isWait = true
+            var athlete: Athlete? = null
+            var numberAthlete: Int? = null
+            val checkpoints = mutableListOf<CheckpointTime>()
+            while (line != null) {  // TODO(Добавить эксепшен)
+                line = line.trim()
+                if (isWait) {
+                    if (numberAthlete != null && athlete != null) {
+                        dataProtocolStart[numberAthlete]!!.checkpoints = checkpoints
+                        checkpoints.clear()
+                    }
+                    numberAthlete = line.toInt()
+                    athlete = dataProtocolStart[numberAthlete]!! // TODO(Exception)
+                    isWait = false
+                }
+                else {
+                    splits = line.split(" ")
+                    checkpoints.add(CheckpointTime(splits[0], LocalDateTime.parse(splits[1])))
+                }
+                line = readLine()
+            }
+        }
+        return dataProtocolStart.values.toList()
     }
 
     private fun checkExistDir() {
         if (!dir.exists()) {
-            throw InvalidFileException(nameDirectory)
+            throw InvalidFileException(pathDirectory)
         }
     }
 

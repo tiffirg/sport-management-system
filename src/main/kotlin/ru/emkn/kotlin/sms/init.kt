@@ -1,6 +1,7 @@
 package ru.emkn.kotlin.sms
 
 import com.sksamuel.hoplite.ConfigLoader
+const val PATH_CONFIG = "/config.yaml"
 
 data class GroupData(
     val group: String,
@@ -19,7 +20,7 @@ data class ConfigData(
     val criteria: List<CriteriaData>
 )
 
-val config = ConfigLoader().loadConfigOrThrow<ConfigData>("/config.yaml")
+val config = ConfigLoader().loadConfigOrThrow<ConfigData>()
 
 val RANKS = config.ranks
 val GROUP_NAMES = config.groups.map { it.group }

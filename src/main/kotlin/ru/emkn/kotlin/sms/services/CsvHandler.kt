@@ -2,6 +2,7 @@ package ru.emkn.kotlin.sms.services
 
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
+import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.data.*
 import ru.emkn.kotlin.sms.utils.InvalidFileException
@@ -31,7 +32,7 @@ object CsvHandler {
         }
     }
 
-    private fun parseProtocolStart(path: String): Map<Int, Athlete> {
+    fun parseProtocolStart(path: String): Map<Int, Athlete> {
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
@@ -62,18 +63,39 @@ object CsvHandler {
         return athletes
     }
 
-    fun parseCheckpoints(path: String, isCheckpointAthlete: Boolean): List<Athlete> {
+    fun parseCheckpoints(
+        path: String,
+        isCheckpointAthlete: Boolean,
+        dataProtocolStart: Map<Int, Athlete>
+    ): List<Athlete> { // TODO(Добавить эксепшен)
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
         }
-        val athletes = mutableListOf<Athlete>()
+        dataProtocolStart.forEach { it.value.checkpoints = mutableListOf() }
         if (isCheckpointAthlete) {
-            TODO()
+            TODO("Реализация по участнику")
         } else {
-            TODO()
+            val data = csvReader().readAll(file)
+            var checkpoint = data[0][0]
+            var unit: List<String>
+            var numberAthlete: Int
+            for (i in 1 until data.size) {
+                unit = data[i]
+                if (DISTANCE_CRITERIA.contains(unit[0])) {  // TODO("SAD!. Добавить эксепшен")
+                    checkpoint = unit[0]
+                } else {
+                    numberAthlete = unit[0].toInt()  // TODO(Exception)
+                    dataProtocolStart[numberAthlete]!!.checkpoints!!.add(
+                        CheckpointTime(
+                            checkpoint,
+                            LocalDateTime.parse(unit[1])
+                        )
+                    )  // TODO(Exception)
+                }
+            }
         }
-
+        return dataProtocolStart.values.toList()
     }
 
     fun generationResultsGroup() {
