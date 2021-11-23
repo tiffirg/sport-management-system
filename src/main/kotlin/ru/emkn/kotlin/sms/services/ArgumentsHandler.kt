@@ -3,7 +3,7 @@ package ru.emkn.kotlin.sms.services
 import kotlinx.cli.*
 import ru.emkn.kotlin.sms.data.Arguments
 import ru.emkn.kotlin.sms.data.CommandResults
-import ru.emkn.kotlin.sms.data.CommandResultsAthlete
+import ru.emkn.kotlin.sms.data.CommandResultsGroup
 import ru.emkn.kotlin.sms.data.CommandStart
 import ru.emkn.kotlin.sms.utils.UndefinedCommandException
 
@@ -23,11 +23,16 @@ object ArgumentsHandler {
         val pathsRequests by argument(ArgType.String, description = "Paths to requests lists").vararg()
     }
 
-    class ResultsAthlete : MySubcommand("resultsAthlete", "Get results for each athlete") {
+    class ResultsGroup : MySubcommand("resultsGroup", "Get results for each group") {
         val pathProtocolCheckpoint by argument(
             ArgType.String,
             description = "Path to checkpoint protocol"
         ).optional()
+        val isCheckpointAthlete by option(
+            ArgType.Boolean,
+            fullName = "checkpointAthlete",
+            shortName = "cp",
+            description = "Checkpoints data by athlete").default(false)
         val pathProtocolStart by option(
             ArgType.String,
             fullName = "protocolStart",
@@ -37,7 +42,7 @@ object ArgumentsHandler {
     }
 
     class ResultsTeam : MySubcommand("resultsTeam", "Get results for each team") {
-        val pathResultsAthlete by argument(ArgType.String, description = "Path to results for each athlete").optional()
+        val pathResultsGroup by argument(ArgType.String, description = "Path to results for each group").optional()
     }
 
     fun apply(args: Array<String>): Arguments {
@@ -46,9 +51,9 @@ object ArgumentsHandler {
         val date by parser.argument(ArgType.String, description = "Date of the competition")
 
         val protocolsStart = ProtocolsStart()
-        val resultsAthlete = ResultsAthlete()
+        val resultsGroup = ResultsGroup()
         val resultsTeam = ResultsTeam()
-        parser.subcommands(protocolsStart, resultsAthlete, resultsTeam)
+        parser.subcommands(protocolsStart, resultsGroup, resultsTeam)
         parser.parse(args)
         return Arguments(
             title = title,
@@ -57,12 +62,13 @@ object ArgumentsHandler {
                 protocolsStart.use -> CommandStart(
                     pathsRequests = protocolsStart.pathsRequests
                 )
-                resultsAthlete.use -> CommandResultsAthlete(
-                    pathProtocolStart = resultsAthlete.pathProtocolStart,
-                    pathProtocolCheckpoint = resultsAthlete.pathProtocolCheckpoint,
+                resultsGroup.use -> CommandResultsGroup(
+                    pathProtocolStart = resultsGroup.pathProtocolStart,
+                    pathProtocolCheckpoint = resultsGroup.pathProtocolCheckpoint,
+                    isCheckpointAthlete = resultsGroup.isCheckpointAthlete
                 )
                 resultsTeam.use -> CommandResults(
-                    pathResultsAthlete = resultsTeam.pathResultsAthlete,
+                    pathResultsAthlete = resultsTeam.pathResultsGroup,
                 )
                 else -> throw UndefinedCommandException()
             }

@@ -14,8 +14,8 @@ class App(val title: String, val date: LocalDate) {
     fun run(command: Command) {
         when (command) {
             is CommandStart -> processCommandStart(command)
-            is CommandResultsAthlete -> processCommandResultsAthlete(command)
-            is CommandResults -> processCommandResults(command)
+            is CommandResultsGroup -> processCommandResultsGroup(command)
+            is CommandResults -> processCommandResultsTeam(command)
         }
     }
 
@@ -29,7 +29,7 @@ class App(val title: String, val date: LocalDate) {
         TODO("Распределение по группам и жеребьвка")
     }
 
-    private fun processCommandResultsAthlete(command: CommandResultsAthlete) {
+    private fun processCommandResultsGroup(command: CommandResultsGroup) {
         if (command.pathProtocolCheckpoint.isNullOrEmpty() || command.pathProtocolStart.isNullOrEmpty()) {
             checkExistDir()
         }
@@ -47,7 +47,7 @@ class App(val title: String, val date: LocalDate) {
 
     }
 
-    private fun processCommandResults(command: CommandResults) {
+    private fun processCommandResultsTeam(command: CommandResults) {
         TODO()
     }
 

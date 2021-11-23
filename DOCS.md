@@ -9,7 +9,7 @@
 | title                    | title              | Название соревнования                      |
 | date                     | date               | Дата соревнования                          |
 | protocolStart            | protocolStart      | Команда: Получить протоколы старта         |
-| resultsAthlete           | resultsAthlete     | Команда: Получить результаты для участника |
+| resultsAthlete           | resultsGroup       | Команда: Получить результаты для групп     |
 | resultsTeam              | resultsTeam        | Команда: Получить результаты команд        |
 
 
@@ -28,19 +28,19 @@ competition <title> <date> protocolStart path1, path2...
 ### Получить результаты соревнования для каждого участника
 
 ```
-1. competition <title> <date> resultsAthlete path1
+1. competition <title> <date> resultsGroup path1
 ```
 
 ```
-2. competition <title> <date> resultsAthlete <InputStream>
+2. competition <title> <date> resultsGroup <InputStream>
 ```
 
 ```
-3. competition <title> <date> resultsAthlete path  --protocolsStart path
+3. competition <title> <date> resultsGroup path  --protocolsStart path
 ```
 
 ```
-4. competition <title> <date> resultsAthlete <InputStream> --protocolsStart path
+4. competition <title> <date> resultsGroup <InputStream> --protocolsStart path
 ```
 
 

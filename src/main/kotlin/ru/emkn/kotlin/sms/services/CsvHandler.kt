@@ -22,23 +22,26 @@ object CsvHandler {
         TODO()
     }
 
-    fun parseProtocolsStart(paths: List<String>): List<AthletesGroup> {
-        val protocols = mutableListOf<AthletesGroup>()
-        for (path in paths) {
-            protocols.add(parseProtocolStart(path) ?: continue)
+    private fun parseProtocolStart(path: String): AthletesGroup? {
+        val file = File(path)
+        if (!File(path).exists()) {
+            return null
         }
-        return protocols
+        val result = mutableListOf<Athlete>()
+        val data = csvReader().readAll(file)
+        TODO()
+//        return AthletesGroup(groupName, result)
     }
 
     fun parseCheckpoints(paths: List<String>) {
         TODO()
     }
 
-    fun generationResultsAthlete() {
+    fun generationResultsGroup() {
         TODO()
     }
 
-    fun parseResultsAthlete(paths: List<String>) {
+    fun parseResultsGroup(paths: List<String>) {
         TODO()
     }
 
@@ -77,35 +80,5 @@ object CsvHandler {
             return null
         }
         return Team(teamName, result)
-    }
-
-    private fun parseProtocolStart(path: String): AthletesGroup? {
-        val file = File(path)
-        if (!File(path).exists()) {
-            return null
-        }
-        val result = mutableListOf<Athlete>()
-        val data = csvReader().readAll(file)
-        val groupName = Group(data[0][0])
-        var unit: List<String>
-        for (i in 1 until data.size) {
-            unit = data[i]
-            result.add(
-                Athlete(
-                    unit[1],
-                    unit[2],
-                    unit[3].toInt(),
-                    groupName,
-                    Rank(unit[4]),
-                    unit[5],
-                    unit[0].toInt(),
-                    LocalDateTime.parse(unit[6])
-                )
-            )
-        }
-        if (result.isEmpty()) {
-            return null
-        }
-        return AthletesGroup(groupName, result)
     }
 }

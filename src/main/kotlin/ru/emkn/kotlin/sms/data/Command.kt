@@ -15,9 +15,10 @@ data class CommandStart(val pathsRequests: List<String>) : Command {
 
 }
 
-data class CommandResultsAthlete(
+data class CommandResultsGroup(
     val pathProtocolStart: String?,
-    val pathProtocolCheckpoint: String?
+    val pathProtocolCheckpoint: String?,
+    val isCheckpointAthlete: Boolean
 ) : Command {
     override val type = TypeCommand.RESULTS_ATHLETE
 }
@@ -25,12 +26,3 @@ data class CommandResultsAthlete(
 data class CommandResults(val pathResultsAthlete: String?) : Command {
     override val type = TypeCommand.RESULTS_TEAM
 }
-
-
-//data class Command(
-//    val type: TypeCommand,
-//    val pathsRequests: List<Path>?,
-//    val pathsProtocolsStart: List<Path>?,
-//    val pathsProtocolsCheckpoint: List<Path>?,
-//    val pathsResults: List<Path>?
-//)

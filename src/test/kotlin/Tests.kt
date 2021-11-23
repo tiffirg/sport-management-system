@@ -1,5 +1,8 @@
 import kotlinx.cli.ExperimentalCli
-import ru.emkn.kotlin.sms.data.*
+import ru.emkn.kotlin.sms.data.Arguments
+import ru.emkn.kotlin.sms.data.CommandResults
+import ru.emkn.kotlin.sms.data.CommandResultsGroup
+import ru.emkn.kotlin.sms.data.CommandStart
 import ru.emkn.kotlin.sms.services.ArgumentsHandler
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,15 +27,16 @@ internal class Test1 {
 
     @ExperimentalCli
     @Test
-    fun testParserResultsAthlete1() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsAthlete", "path")
+    fun testParserResultsGroup1() {
+        val args = arrayOf("SportRegion", "20.03.2021", "resultsGroup", "path")
         assertEquals(
             Arguments(
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
-                command = CommandResultsAthlete(
+                command = CommandResultsGroup(
                     pathProtocolStart = null,
-                    pathProtocolCheckpoint = "path"
+                    pathProtocolCheckpoint = "path",
+                    false
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -41,15 +45,16 @@ internal class Test1 {
 
     @ExperimentalCli
     @Test
-    fun testParserResultsAthlete2() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsAthlete")
+    fun testParserResultsGroup2() {
+        val args = arrayOf("SportRegion", "20.03.2021", "resultsGroup")
         assertEquals(
             Arguments(
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
-                command = CommandResultsAthlete(
+                command = CommandResultsGroup(
                     pathProtocolStart = null,
-                    pathProtocolCheckpoint = null
+                    pathProtocolCheckpoint = null,
+                    false
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -58,13 +63,31 @@ internal class Test1 {
 
     @ExperimentalCli
     @Test
-    fun testParserResultsAthlete3() {
+    fun testParserResultsGroup4() {
+        val args = arrayOf("SportRegion", "20.03.2021", "resultsGroup", "-cp")
+        assertEquals(
+            Arguments(
+                title = "SportRegion",
+                date = Arguments.checkDate("20.03.2021"),
+                command = CommandResultsGroup(
+                    pathProtocolStart = null,
+                    pathProtocolCheckpoint = null,
+                    true
+                )
+            ),
+            ArgumentsHandler.apply(args)
+        )
+    }
+
+    @ExperimentalCli
+    @Test
+    fun testParserResultsGroup3() {
         val args1 =
-            arrayOf("SportRegion", "20.03.2021", "resultsAthlete", "path", "-ps", "pathPS")
+            arrayOf("SportRegion", "20.03.2021", "resultsGroup", "path", "-ps", "pathPS")
         val args2 = arrayOf(
             "SportRegion",
             "20.03.2021",
-            "resultsAthlete",
+            "resultsGroup",
             "path",
             "--protocolStart",
             "pathPS"
@@ -72,9 +95,10 @@ internal class Test1 {
         val result = Arguments(
             title = "SportRegion",
             date = Arguments.checkDate("20.03.2021"),
-            command = CommandResultsAthlete(
+            command = CommandResultsGroup(
                 pathProtocolStart = "pathPS",
-                pathProtocolCheckpoint = "path"
+                pathProtocolCheckpoint = "path",
+                false
             )
         )
         assertEquals(
