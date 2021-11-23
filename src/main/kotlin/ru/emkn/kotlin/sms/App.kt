@@ -1,7 +1,7 @@
 package ru.emkn.kotlin.sms
 
 import ru.emkn.kotlin.sms.data.*
-import ru.emkn.kotlin.sms.services.CsvParser
+import ru.emkn.kotlin.sms.services.CsvHandler
 import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.printMessageAboutCancelCompetition
 import java.io.File
@@ -20,7 +20,7 @@ class App(val title: String, val date: LocalDate) {
     }
 
     private fun processCommandStart(command: CommandStart) {
-        val data = CsvParser.parseRequests(command.pathsRequests)
+        val data = CsvHandler.parseRequests(command.pathsRequests)
         if (data.isEmpty()) {
             printMessageAboutCancelCompetition()
             return
