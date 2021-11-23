@@ -1,4 +1,5 @@
 package ru.emkn.kotlin.sms.data
+
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.RANKS
 import java.time.LocalDateTime
@@ -24,9 +25,22 @@ data class CheckpointTime(val checkpoint: String, val time: LocalDateTime) {
 data class Athlete(
     val surname: String, val name: String, val birthYear: Int,
     val group: Group, val rank: Rank, val teamName: String,
-    var checkpoints: List<CheckpointTime>?, var removed: Boolean = false,
-    var athleteNumber: Int?, var startTime: LocalDateTime?,
-)
+    var checkpoints: List<CheckpointTime>? = null, var removed: Boolean = false,
+    var athleteNumber: Int? = null, var startTime: LocalDateTime? = null,
+) {
+    val listForProtocolStart: List<String>
+        get() {
+            return listOf(
+                athleteNumber.toString(),
+                surname,
+                name,
+                birthYear.toString(),
+                rank.rankName,
+                teamName,
+                startTime.toString()
+            )
+        }
+}
 
 data class Team(val teamName: String, val athletes: List<Athlete>)
 
