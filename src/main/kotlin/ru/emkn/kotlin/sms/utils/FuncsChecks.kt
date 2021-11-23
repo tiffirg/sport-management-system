@@ -12,9 +12,3 @@ fun transformDate(date: String): LocalDate? {
         null
     }
 }
-
-fun checkExistFile(file: File) {
-    if (!file.exists()) {
-        throw InvalidFileException(file.name)
-    }
-}

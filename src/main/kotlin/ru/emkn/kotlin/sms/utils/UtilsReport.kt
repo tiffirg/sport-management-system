@@ -33,3 +33,8 @@ class IncorrectCheckpointException(file: String) : ExceptionWithExitCode("$file:
     override val exitCode = INCORRECT_CHECKPOINT.exitCode
 }
 
+fun printMessageAboutMissTeam(nameFile: String) = println("$nameFile: No such request file or directory")
+
+fun printMessageAboutMissAthleteRequest(request: String, team: String) = println("'$team' $request: Not allowed to compete")
+
+fun printMessageAboutCancelCompetition() = println("Cancellation of the competition ")
