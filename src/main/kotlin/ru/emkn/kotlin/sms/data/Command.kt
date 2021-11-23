@@ -10,19 +10,19 @@ interface Command {
     val type: TypeCommand
 }
 
-data class CommandStart(val pathsRequests: List<Path>? = null) : Command {
+data class CommandStart(val pathsRequests: List<String>) : Command {
     override val type = TypeCommand.START
 
 }
 
 data class CommandResultsAthlete(
-    val pathsProtocolsStart: List<Path>? = null,
-    val pathsProtocolsCheckpoint: List<Path>? = null
+    val pathsProtocolsStart: List<String>,
+    val pathsProtocolsCheckpoint: List<String>
 ) : Command {
     override val type = TypeCommand.RESULTS_ATHLETE
 }
 
-data class CommandResults(val pathsResults: List<Path>? = null) : Command {
+data class CommandResults(val pathsResults: List<String>) : Command {
     override val type = TypeCommand.RESULTS_TEAM
 }
 

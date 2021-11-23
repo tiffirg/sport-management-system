@@ -17,7 +17,7 @@ internal class Test1 {
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandStart(
-                    pathsRequests = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
+                    pathsRequests = listOf("path1", "path2", "path3"),
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -34,7 +34,7 @@ internal class Test1 {
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandResultsAthlete(
                     pathsProtocolsStart = listOf(),
-                    pathsProtocolsCheckpoint = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
+                    pathsProtocolsCheckpoint = listOf("path1", "path2", "path3"),
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -77,8 +77,8 @@ internal class Test1 {
             title = "SportRegion",
             date = Arguments.checkDate("20.03.2021"),
             command = CommandResultsAthlete(
-                pathsProtocolsStart = listOf(Path(path = "pathPS1"), Path(path = "pathPS2")),
-                pathsProtocolsCheckpoint = listOf(Path(path = "path1"), Path(path = "path2"), Path(path = "path3")),
+                pathsProtocolsStart = listOf("pathPS1", "pathPS2"),
+                pathsProtocolsCheckpoint = listOf("path1", "path2", "path3"),
             )
         )
         assertEquals(
@@ -116,7 +116,7 @@ internal class Test1 {
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandResults(
-                    pathsResults = listOf(Path(path = "path1"), Path(path = "path2")),
+                    pathsResults = listOf("path1", "path2"),
                 )
             ),
             ArgumentsHandler.apply(args)

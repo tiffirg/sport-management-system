@@ -1,5 +1,6 @@
 package ru.emkn.kotlin.sms.data
 
+import ru.emkn.kotlin.sms.utils.InvalidDateException
 import ru.emkn.kotlin.sms.utils.transformDate
 import java.time.LocalDate
 
@@ -10,7 +11,7 @@ data class Arguments(
 ) {
    companion object {
        fun checkDate(date: String): LocalDate {
-           return transformDate(date)?: throw Exception() // Exception: INVALID_DATE
+           return transformDate(date)?: throw InvalidDateException(date)
        }
    }
 }

@@ -20,7 +20,7 @@ class InvalidDateException(date: String) : ExceptionWithExitCode("$date: Invalid
 }
 
 
-class UndefinedCommandException() : ExceptionWithExitCode("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`") {
+class UndefinedCommandException : ExceptionWithExitCode("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`") {
     override val exitCode = UNDEFINED_COMMAND.exitCode
 }
 

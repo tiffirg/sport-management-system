@@ -1,58 +1,44 @@
 package ru.emkn.kotlin.sms.services
 
 import kotlinx.cli.*
-import ru.emkn.kotlin.sms.data.*
-import ru.emkn.kotlin.sms.utils.transformDate
+import ru.emkn.kotlin.sms.data.Arguments
+import ru.emkn.kotlin.sms.data.CommandResults
+import ru.emkn.kotlin.sms.data.CommandResultsAthlete
+import ru.emkn.kotlin.sms.data.CommandStart
+import ru.emkn.kotlin.sms.utils.UndefinedCommandException
 
 @ExperimentalCli
 object ArgumentsHandler {
-    private const val programName = "сompetition"
+    private const val programName = "Competition"
 
     abstract class MySubcommand(name: String, actionDescription: String) : Subcommand(name, actionDescription) {
         var use = false
-    }
-
-    class ProtocolsStart : MySubcommand("protocolStart", "Get start protocols") {
-        private val pathsRequests by argument(ArgType.String, description = "Paths to requests lists").vararg()
-        var result: List<Path>? = null
 
         override fun execute() {
             use = true
-            result = pathsRequests.map { Path(it) }
         }
     }
 
+    class ProtocolsStart : MySubcommand("protocolStart", "Get start protocols") {
+        val result by argument(ArgType.String, description = "Paths to requests lists").vararg()
+    }
+
     class ResultsAthlete : MySubcommand("resultsAthlete", "Get results for each athlete") {
-        private val pathsProtocolsCheckpoint by argument(
+        val result by argument(
             ArgType.String,
             description = "Paths to checkpoint protocols"
         ).vararg().optional()
-        private val pathsProtocolsStart by option(
+        val resultsPathsProtocolsStart by option(
             ArgType.String,
             fullName = "protocolsStart",
             shortName = "ps",
             description = "Paths to start protocols or nothing"
         ).delimiter(" ")
-
-        var result: List<Path>? = null
-        var resultsPathsProtocolsStart: List<Path>? = null
-
-        override fun execute() {
-            use = true
-            result = pathsProtocolsCheckpoint.map { Path(it) }
-            resultsPathsProtocolsStart = pathsProtocolsStart.map { Path(it) }
-        }
     }
 
     class ResultsTeam : MySubcommand("resultsTeam", "Get results for each team") {
-        private val pathsResults by argument(ArgType.String, description = "Paths to results for each athlete").vararg()
+        val result by argument(ArgType.String, description = "Paths to results for each athlete").vararg()
             .optional()
-        var result: List<Path>? = null
-
-        override fun execute() {
-            use = true
-            result = pathsResults.map { Path(it) }
-        }
     }
 
     fun apply(args: Array<String>): Arguments {
@@ -79,7 +65,7 @@ object ArgumentsHandler {
                 resultsTeam.use -> CommandResults(
                     pathsResults = resultsTeam.result,
                 )
-                else -> throw Exception()  // Exit Code UNDEFINED_COMMAND
+                else -> throw UndefinedCommandException()
             }
         )
     }
