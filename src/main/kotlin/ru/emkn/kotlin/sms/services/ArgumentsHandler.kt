@@ -20,25 +20,24 @@ object ArgumentsHandler {
     }
 
     class ProtocolsStart : MySubcommand("protocolStart", "Get start protocols") {
-        val result by argument(ArgType.String, description = "Paths to requests lists").vararg()
+        val pathsRequests by argument(ArgType.String, description = "Paths to requests lists").vararg()
     }
 
     class ResultsAthlete : MySubcommand("resultsAthlete", "Get results for each athlete") {
-        val result by argument(
+        val pathProtocolCheckpoint by argument(
             ArgType.String,
-            description = "Paths to checkpoint protocols"
-        ).vararg().optional()
-        val resultsPathsProtocolsStart by option(
+            description = "Path to checkpoint protocol"
+        ).optional()
+        val pathProtocolStart by option(
             ArgType.String,
-            fullName = "protocolsStart",
+            fullName = "protocolStart",
             shortName = "ps",
-            description = "Paths to start protocols or nothing"
-        ).delimiter(" ")
+            description = "Path to start protocol or nothing"
+        )
     }
 
     class ResultsTeam : MySubcommand("resultsTeam", "Get results for each team") {
-        val result by argument(ArgType.String, description = "Paths to results for each athlete").vararg()
-            .optional()
+        val pathResultsAthlete by argument(ArgType.String, description = "Path to results for each athlete").optional()
     }
 
     fun apply(args: Array<String>): Arguments {
@@ -56,14 +55,14 @@ object ArgumentsHandler {
             date = Arguments.checkDate(date),
             command = when {
                 protocolsStart.use -> CommandStart(
-                    pathsRequests = protocolsStart.result
+                    pathsRequests = protocolsStart.pathsRequests
                 )
                 resultsAthlete.use -> CommandResultsAthlete(
-                    pathsProtocolsStart = resultsAthlete.resultsPathsProtocolsStart,
-                    pathsProtocolsCheckpoint = resultsAthlete.result,
+                    pathProtocolStart = resultsAthlete.pathProtocolStart,
+                    pathProtocolCheckpoint = resultsAthlete.pathProtocolCheckpoint,
                 )
                 resultsTeam.use -> CommandResults(
-                    pathsResults = resultsTeam.result,
+                    pathResultsAthlete = resultsTeam.pathResultsAthlete,
                 )
                 else -> throw UndefinedCommandException()
             }

@@ -30,16 +30,16 @@ class App(val title: String, val date: LocalDate) {
     }
 
     private fun processCommandResultsAthlete(command: CommandResultsAthlete) {
-        if (command.pathsProtocolsCheckpoint.isNotEmpty() || command.pathsProtocolsStart.isNotEmpty()) {
+        if (command.pathProtocolCheckpoint.isNullOrEmpty() || command.pathProtocolStart.isNullOrEmpty()) {
             checkExistDir()
         }
-        if (command.pathsProtocolsCheckpoint.isEmpty()) {
+        if (command.pathProtocolCheckpoint.isNullOrEmpty()) {
             val dataCheckpoints = processStream()
         } else {
             TODO("Распарсить pathsProtocolsCheckpoint по путям")
         }
 
-        if (command.pathsProtocolsStart.isEmpty()) {
+        if (command.pathProtocolStart.isNullOrEmpty()) {
             TODO("Распарсить command.pathsProtocolsStart из папки")
         } else {
             TODO("Распарсить command.pathsProtocolsStart по путям")

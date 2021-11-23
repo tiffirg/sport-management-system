@@ -30,7 +30,6 @@ object CsvHandler {
         return protocols
     }
 
-
     fun parseCheckpoints(paths: List<String>) {
         TODO()
     }

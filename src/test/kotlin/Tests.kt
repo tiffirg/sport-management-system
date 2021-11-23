@@ -1,8 +1,6 @@
 import kotlinx.cli.ExperimentalCli
 import ru.emkn.kotlin.sms.data.*
-import ru.emkn.kotlin.sms.data.TypeCommand.*
 import ru.emkn.kotlin.sms.services.ArgumentsHandler
-import ru.emkn.kotlin.sms.utils.transformDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -17,7 +15,7 @@ internal class Test1 {
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandStart(
-                    pathsRequests = listOf("path1", "path2", "path3"),
+                    pathsRequests = listOf("path1", "path2", "path3")
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -27,14 +25,14 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsAthlete1() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsAthlete", "path1", "path2", "path3")
+        val args = arrayOf("SportRegion", "20.03.2021", "resultsAthlete", "path")
         assertEquals(
             Arguments(
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandResultsAthlete(
-                    pathsProtocolsStart = listOf(),
-                    pathsProtocolsCheckpoint = listOf("path1", "path2", "path3"),
+                    pathProtocolStart = null,
+                    pathProtocolCheckpoint = "path"
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -50,8 +48,8 @@ internal class Test1 {
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandResultsAthlete(
-                    pathsProtocolsStart = listOf(),
-                    pathsProtocolsCheckpoint = listOf(),
+                    pathProtocolStart = null,
+                    pathProtocolCheckpoint = null
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -62,23 +60,21 @@ internal class Test1 {
     @Test
     fun testParserResultsAthlete3() {
         val args1 =
-            arrayOf("SportRegion", "20.03.2021", "resultsAthlete", "path1", "path2", "path3", "-ps", "pathPS1 pathPS2")
+            arrayOf("SportRegion", "20.03.2021", "resultsAthlete", "path", "-ps", "pathPS")
         val args2 = arrayOf(
             "SportRegion",
             "20.03.2021",
             "resultsAthlete",
-            "path1",
-            "path2",
-            "path3",
-            "--protocolsStart",
-            "pathPS1 pathPS2"
+            "path",
+            "--protocolStart",
+            "pathPS"
         )
         val result = Arguments(
             title = "SportRegion",
             date = Arguments.checkDate("20.03.2021"),
             command = CommandResultsAthlete(
-                pathsProtocolsStart = listOf("pathPS1", "pathPS2"),
-                pathsProtocolsCheckpoint = listOf("path1", "path2", "path3"),
+                pathProtocolStart = "pathPS",
+                pathProtocolCheckpoint = "path"
             )
         )
         assertEquals(
@@ -100,7 +96,7 @@ internal class Test1 {
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandResults(
-                    pathsResults = listOf()
+                    pathResultsAthlete = null
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -110,13 +106,13 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsTeam2() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsTeam", "path1", "path2")
+        val args = arrayOf("SportRegion", "20.03.2021", "resultsTeam", "path")
         assertEquals(
             Arguments(
                 title = "SportRegion",
                 date = Arguments.checkDate("20.03.2021"),
                 command = CommandResults(
-                    pathsResults = listOf("path1", "path2"),
+                    pathResultsAthlete = "path"
                 )
             ),
             ArgumentsHandler.apply(args)

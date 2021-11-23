@@ -28,7 +28,7 @@ competition <title> <date> protocolStart path1, path2...
 ### Получить результаты соревнования для каждого участника
 
 ```
-1. competition <title> <date> resultsAthlete path1, path2...
+1. competition <title> <date> resultsAthlete path1
 ```
 
 ```
@@ -36,11 +36,11 @@ competition <title> <date> protocolStart path1, path2...
 ```
 
 ```
-3. competition <title> <date> resultsAthlete path1, path2... --protocolsStart path1 path2...
+3. competition <title> <date> resultsAthlete path  --protocolsStart path
 ```
 
 ```
-4. competition <title> <date> resultsAthlete <InputStream> --protocolsStart path1 path2...
+4. competition <title> <date> resultsAthlete <InputStream> --protocolsStart path
 ```
 
 
@@ -51,7 +51,7 @@ competition <title> <date> protocolStart path1, path2...
 ```
 
 ```
-2. competition <title> <date> resultsTeam path1, path2...
+2. competition <title> <date> resultsTeam path
 ```
 
 

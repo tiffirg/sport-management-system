@@ -16,13 +16,13 @@ data class CommandStart(val pathsRequests: List<String>) : Command {
 }
 
 data class CommandResultsAthlete(
-    val pathsProtocolsStart: List<String>,
-    val pathsProtocolsCheckpoint: List<String>
+    val pathProtocolStart: String?,
+    val pathProtocolCheckpoint: String?
 ) : Command {
     override val type = TypeCommand.RESULTS_ATHLETE
 }
 
-data class CommandResults(val pathsResults: List<String>) : Command {
+data class CommandResults(val pathResultsAthlete: String?) : Command {
     override val type = TypeCommand.RESULTS_TEAM
 }
 
