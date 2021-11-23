@@ -9,7 +9,6 @@ data class Group(val groupName: String) {
     }
 }
 
-
 data class Rank(val rankName: String) {
     init {
         require(RANKS.contains(rankName)) { "rank name must be mentioned in config file" }
@@ -18,9 +17,8 @@ data class Rank(val rankName: String) {
 
 data class Athlete(
     val surname: String, val name: String, val birthYear: Int,
-    val group: Group, val rank: Rank,
+    val group: Group, val rank: Rank, val teamName: String,
     var athleteNumber: Int?, var startTime: LocalDateTime?,
-    val teamName: String
 )
 
 data class Team(val teamName: String, val athletes: List<Athlete>)
