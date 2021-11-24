@@ -27,8 +27,11 @@ class App(val title: String, val date: LocalDate) {
             printMessageAboutCancelCompetition()
             return
         }
+        // генерирование стартовых списков
+        val startLists: List<AthletesGroup> = startProtocolsGeneration(data)
+        // записывание данных в csv
+        CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
         dir.mkdir()
-        TODO("Распределение по группам и жеребьвка")
     }
 
     private fun processCommandResultsGroup(command: CommandResultsGroup) {
