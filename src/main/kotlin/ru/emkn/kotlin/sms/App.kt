@@ -9,7 +9,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class App(val title: String, val date: LocalDate) {
-    private val pathDirectory = File(PATH_CONFIG).resolve("${title}_$date").path
+    private val pathDirectory = File(PATH_CONFIG).resolveSibling("${title}_$date").path
     private val pathProtocolStart = File(pathDirectory).resolve("ps_${title}_$date.csv").path
     private val dir = File(pathDirectory)
 
