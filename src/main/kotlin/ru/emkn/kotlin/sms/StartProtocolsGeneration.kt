@@ -2,7 +2,8 @@ package ru.emkn.kotlin.sms
 
 import ru.emkn.kotlin.sms.data.*
 import java.time.LocalDateTime
-
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 
 fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
@@ -17,7 +18,8 @@ fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
     // распределение времени старта между группами
     fun generateStartTimes() {
 
-        var currentStartTime = LocalDateTime.parse("12:00:00")
+        val firstStartTime = LocalTime.parse("12:00:00")
+        var currentStartTime = LocalDateTime.of(COMPETITION_DATE, firstStartTime)
         var currentGroupIndex = 1
 
         // жеребьевка внутри каждой группы
@@ -39,4 +41,13 @@ fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
 
     generateStartTimes()
     return groupLists.map { (group, athleteList) -> AthletesGroup(group, athleteList) }
+}
+
+fun main() {
+    val date = COMPETITION_DATE
+    println(date)
+    val time = LocalTime.parse("12:00:00")
+    println(time)
+    val currentStartTime = LocalDateTime.of(date, time)
+    println(currentStartTime)
 }
