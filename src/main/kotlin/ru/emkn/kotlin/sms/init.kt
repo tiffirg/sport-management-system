@@ -2,8 +2,6 @@ package ru.emkn.kotlin.sms
 
 import com.sksamuel.hoplite.ConfigLoader
 import ru.emkn.kotlin.sms.utils.transformDate
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 const val PATH_CONFIG = "/config.yaml"
@@ -33,5 +31,4 @@ val GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.grou
 val DISTANCE_CRITERIA =
     config.criteria.associate { criteriaData -> Pair(criteriaData.distance, criteriaData.checkpoints) }
 
-val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 val COMPETITION_DATE = transformDate(config.eventDate)
