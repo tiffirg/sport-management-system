@@ -20,7 +20,7 @@ data class ConfigData(
     val criteria: List<CriteriaData>
 )
 
-val config = ConfigLoader().loadConfigOrThrow<ConfigData>()
+val config = ConfigLoader().loadConfigOrThrow<ConfigData>(PATH_CONFIG)
 
 val RANKS = config.ranks
 val GROUP_NAMES = config.groups.map { it.group }
