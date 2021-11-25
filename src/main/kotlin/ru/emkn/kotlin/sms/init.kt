@@ -2,8 +2,6 @@ package ru.emkn.kotlin.sms
 
 import com.sksamuel.hoplite.ConfigLoader
 import ru.emkn.kotlin.sms.utils.transformDate
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 const val PATH_CONFIG = "/config.yaml"

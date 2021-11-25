@@ -9,7 +9,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class App(val title: String, val date: LocalDate) {
-    private val pathDirectory = File(PATH_CONFIG).resolveSibling("${title}_$date").path
+    private val pathDirectory = File("src/main/resources/").resolve("${title}_$date").path
     private val pathProtocolStart = File(pathDirectory).resolve("ps_${title}_$date.csv").path
     private val dir = File(pathDirectory)
 
@@ -29,9 +29,9 @@ class App(val title: String, val date: LocalDate) {
         }
         // генерирование стартовых списков
         val startLists: List<AthletesGroup> = startProtocolsGeneration(data)
-        // записывание данных в csv
-        CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
+        // записывание данных в
         dir.mkdir()
+        CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
 
     private fun processCommandResultsGroup(command: CommandResultsGroup) {
