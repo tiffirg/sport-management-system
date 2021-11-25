@@ -10,6 +10,7 @@ import ru.emkn.kotlin.sms.utils.printMessageAboutMissAthleteRequest
 import ru.emkn.kotlin.sms.utils.printMessageAboutMissTeam
 import java.io.File
 import java.time.LocalDateTime
+import kotlin.String as String
 
 
 object CsvHandler {
@@ -102,8 +103,70 @@ object CsvHandler {
         TODO()
     }
 
-    fun parseResultsGroup(paths: List<String>) {
-        TODO()
+    // Block of funcs for fun parseResultsGroup()
+    fun rankToRankOrNull(string: String): Rank?{
+        return  when(string){
+            "" -> null
+            else -> Rank(string)
+        }
+    }
+
+    fun resultToLocalDateTimeOrNull(string: String): LocalDateTime?{
+        return  when(string){
+            "снят." -> null
+            else -> null    // !!!HERE SHOULD BE String -> LocalDateTime. Not null
+        }
+    }
+
+    fun placeToINtOrNull(string: String): Int?{
+        return  when(string){
+            "" -> null
+            else -> string.toInt()
+        }
+    }
+
+    fun parseResultsGroup(path: String): MutableList<AthleteResults> {
+        val file = File(path)
+        if (!File(path).exists()) {
+            throw InvalidFileException(path)
+        }
+        val linesFromResultsCsv: List<List<String>> = csvReader().readAll(file)
+        var listOfAthletes: MutableList<MedalTable> = mutableListOf()
+        val listOfGroups: MutableList<AthleteResults> = mutableListOf()
+
+        var rank: Rank?
+        var result: LocalDateTime?
+        var place: Int?
+        var group = ""
+        val systemData: List<String> =
+            "№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание".split(',')
+        var unit: List<String>
+        for(i in 1 until linesFromResultsCsv.size) {
+            unit = linesFromResultsCsv[i]
+            if (unit == systemData){
+                continue
+            }
+            if(GROUP_NAMES.contains(unit[0])) {
+                if (listOfAthletes.isNotEmpty()) {      // = we've already written down first group of Athletes
+                    listOfGroups.add(AthleteResults(Group(group), listOfAthletes))
+                    listOfAthletes = mutableListOf()    // .clear() causes troubles
+                }
+                group = unit[0]
+            }
+            else {
+
+                rank =  rankToRankOrNull(unit[5])
+                result = resultToLocalDateTimeOrNull(unit[7])
+                place = placeToINtOrNull(unit[8])
+
+                listOfAthletes.add(MedalTable(  unit[0].toInt(), unit[1].toInt(),
+                    unit[2], unit[3], unit[4].toInt(),
+                    rank,  unit[6], result,      // actually, result = unit[7]
+                    place, unit[9]  ))
+            }
+        }
+        listOfGroups.add(AthleteResults(Group(group), listOfAthletes))      // writing down the last group of Athletes
+        return listOfGroups
     }
 
     fun generationResultsTeam() {
