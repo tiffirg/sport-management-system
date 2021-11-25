@@ -41,12 +41,3 @@ fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
     generateStartTimes()
     return groupLists.map { (group, athleteList) -> AthletesGroup(group, athleteList) }
 }
-
-fun main() {
-    val date = COMPETITION_DATE
-    println(date)
-    val time = LocalTime.parse("12:00:00")
-    println(time)
-    val currentStartTime = LocalDateTime.of(date, time)
-    println(currentStartTime)
-}
