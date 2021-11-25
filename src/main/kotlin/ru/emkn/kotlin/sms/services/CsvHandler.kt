@@ -104,21 +104,21 @@ object CsvHandler {
     }
 
     // Block of funcs for fun parseResultsGroup()
-    fun rankToRankOrNull(string: String): Rank?{
+    fun toRankOrNull(string: String): Rank?{
         return  when(string){
             "" -> null
             else -> Rank(string)
         }
     }
 
-    fun resultToLocalDateTimeOrNull(string: String): LocalDateTime?{
+    fun toLocalDateTimeOrNull(string: String): LocalDateTime?{
         return  when(string){
             "снят." -> null
             else -> null    // !!!HERE SHOULD BE String -> LocalDateTime. Not null
         }
     }
 
-    fun placeToINtOrNull(string: String): Int?{
+    fun stringToIntOrNull(string: String): Int?{
         return  when(string){
             "" -> null
             else -> string.toInt()
@@ -134,35 +134,22 @@ object CsvHandler {
         var listOfAthletes: MutableList<MedalTable> = mutableListOf()
         val listOfGroups: MutableList<AthleteResults> = mutableListOf()
 
-        var rank: Rank?
-        var result: LocalDateTime?
-        var place: Int?
         var group = ""
-        val systemData: List<String> =
-            "№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание".split(',')
         var unit: List<String>
         for(i in 1 until linesFromResultsCsv.size) {
             unit = linesFromResultsCsv[i]
-            if (unit == systemData){
-                continue
-            }
             if(GROUP_NAMES.contains(unit[0])) {
-                if (listOfAthletes.isNotEmpty()) {      // = we've already written down first group of Athletes
+                if (listOfAthletes.isNotEmpty()) {      // = we've already written down the first group of Athletes
                     listOfGroups.add(AthleteResults(Group(group), listOfAthletes))
                     listOfAthletes = mutableListOf()    // .clear() causes troubles
                 }
                 group = unit[0]
             }
-            else {
-
-                rank =  rankToRankOrNull(unit[5])
-                result = resultToLocalDateTimeOrNull(unit[7])
-                place = placeToINtOrNull(unit[8])
-
+            else if (unit[0].toIntOrNull() != null){   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
                 listOfAthletes.add(MedalTable(  unit[0].toInt(), unit[1].toInt(),
                     unit[2], unit[3], unit[4].toInt(),
-                    rank,  unit[6], result,      // actually, result = unit[7]
-                    place, unit[9]  ))
+                    toRankOrNull(unit[5]),  unit[6], toLocalDateTimeOrNull(unit[7]),
+                    stringToIntOrNull(unit[8]), unit[9]  ))
             }
         }
         listOfGroups.add(AthleteResults(Group(group), listOfAthletes))      // writing down the last group of Athletes
