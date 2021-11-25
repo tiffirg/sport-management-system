@@ -3,7 +3,6 @@ package ru.emkn.kotlin.sms
 import ru.emkn.kotlin.sms.data.*
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 
 fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
@@ -13,7 +12,7 @@ fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
         (applications.flatMap { team -> team.athletes }).groupByTo(mutableMapOf()) { athlete -> athlete.group }
 
     // количество номеров, предусмотренных для участников из одной группы
-    val maxGroupSize = (groupLists.maxOf { it.value.size } / 10) * 10
+    val maxGroupSize = ((groupLists.maxOf { it.value.size } / 10 + 1) * 10)
 
     // распределение времени старта между группами
     fun generateStartTimes() {
@@ -26,7 +25,7 @@ fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
         fun tossGroup(participants: MutableList<Athlete>) {
             participants.shuffle()
             participants.forEachIndexed { numberInGroup, athlete ->
-                athlete.athleteNumber = currentGroupIndex * maxGroupSize + numberInGroup
+                athlete.athleteNumber = currentGroupIndex * maxGroupSize + numberInGroup + 1
                 athlete.startTime = currentStartTime
                 currentStartTime = currentStartTime.plusMinutes(1)
             }

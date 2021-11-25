@@ -31,5 +31,4 @@ val GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.grou
 val DISTANCE_CRITERIA =
     config.criteria.associate { criteriaData -> Pair(criteriaData.distance, criteriaData.checkpoints) }
 
-val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 val COMPETITION_DATE = transformDate(config.eventDate)
