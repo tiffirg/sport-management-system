@@ -35,7 +35,7 @@ object App {
         CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
 
-    private fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
+    internal fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
 
         // формирование списков участников по группам
         val groupLists: Map<Group, MutableList<Athlete>> =
