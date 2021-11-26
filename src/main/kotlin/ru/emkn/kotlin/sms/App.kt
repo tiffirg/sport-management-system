@@ -4,6 +4,7 @@ import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.services.CsvHandler
 import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.printMessageAboutCancelCompetition
+import ru.emkn.kotlin.sms.utils.transformDate
 import java.io.File
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -23,8 +24,6 @@ object App {
 
     private fun processCommandStart(command: CommandStart) {
         val data = CsvHandler.parseRequests(command.pathsRequests)
-        println(pathDirectory)
-        println(pathProtocolStart)
         if (data.isEmpty()) {
             printMessageAboutCancelCompetition()
             return
@@ -33,7 +32,6 @@ object App {
         val startLists: List<AthletesGroup> = startProtocolsGeneration(data)
         // записывание данных в
         dir.mkdir()
-
         CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
 
@@ -50,7 +48,7 @@ object App {
         fun generateStartTimes() {
 
             val firstStartTime = LocalTime.parse("12:00:00")
-            var currentStartTime = LocalDateTime.of(COMPETITION_DATE, firstStartTime)
+            var currentStartTime = LocalDateTime.of(transformDate(EVENT_DATE), firstStartTime)
             var currentGroupIndex = 1
 
             // жеребьевка внутри каждой группы
@@ -119,7 +117,7 @@ object App {
                     isWait = false
                 }
                 else {
-                    splits = line.split(" ")
+                    splits = line.split(" " )
                     checkpoints.add(CheckpointTime(splits[0], LocalDateTime.parse(splits[1])))
                 }
                 line = readLine()

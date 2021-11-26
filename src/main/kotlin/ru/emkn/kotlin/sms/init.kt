@@ -16,8 +16,6 @@ var GROUP_NAMES: List<String> = listOf()
 var GROUP_DISTANCES: Map<String, String> = mapOf()
 var DISTANCE_CRITERIA: Map<String, List<String>> = mapOf()
 
-var COMPETITION_DATE = transformDate(EVENT_DATE)
-
 
 data class GroupData(
     val group: String,
@@ -46,6 +44,11 @@ fun initConfig(pathConfig: String) {
         EVENT_NAME = config.eventName
         EVENT_DATE = config.eventDate
         EVENT_SPORT = config.eventSport
+        RANKS = config.ranks
+        GROUP_NAMES = config.groups.map { it.group }
+        GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
+        DISTANCE_CRITERIA =
+            config.criteria.associate { criteriaData -> Pair(criteriaData.distance, criteriaData.checkpoints) }
     }
     catch(e: Exception) {
         // TODO(Проверить конкретную ошибку и в случае чего: println(e))
