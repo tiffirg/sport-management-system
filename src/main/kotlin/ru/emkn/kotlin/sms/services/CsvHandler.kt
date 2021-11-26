@@ -4,7 +4,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.GROUP_NAMES
-import ru.emkn.kotlin.sms.data.*
+import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.printMessageAboutMissAthleteRequest
 import ru.emkn.kotlin.sms.utils.printMessageAboutMissTeam

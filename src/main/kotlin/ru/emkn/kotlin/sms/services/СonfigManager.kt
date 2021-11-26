@@ -1,7 +1,7 @@
 package ru.emkn.kotlin.sms.services
 
-import ru.emkn.kotlin.sms.data.Group
-import ru.emkn.kotlin.sms.data.Rank
+import ru.emkn.kotlin.sms.classes.Group
+import ru.emkn.kotlin.sms.classes.Rank
 
 fun getCriteriaByGroup(group: Group): Map<Rank, String> {
     // change criteria type to time?

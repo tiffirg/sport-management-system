@@ -1,4 +1,4 @@
-package ru.emkn.kotlin.sms.data
+package ru.emkn.kotlin.sms.classes
 
 enum class TypeCommand {
     START,

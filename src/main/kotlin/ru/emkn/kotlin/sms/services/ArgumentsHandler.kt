@@ -1,10 +1,10 @@
 package ru.emkn.kotlin.sms.services
 
 import kotlinx.cli.*
-import ru.emkn.kotlin.sms.data.Arguments
-import ru.emkn.kotlin.sms.data.CommandResults
-import ru.emkn.kotlin.sms.data.CommandResultsGroup
-import ru.emkn.kotlin.sms.data.CommandStart
+import ru.emkn.kotlin.sms.classes.Arguments
+import ru.emkn.kotlin.sms.classes.CommandResults
+import ru.emkn.kotlin.sms.classes.CommandResultsGroup
+import ru.emkn.kotlin.sms.classes.CommandStart
 import ru.emkn.kotlin.sms.utils.UndefinedCommandException
 
 @ExperimentalCli

@@ -1,8 +1,8 @@
 import kotlinx.cli.ExperimentalCli
-import ru.emkn.kotlin.sms.data.Arguments
-import ru.emkn.kotlin.sms.data.CommandResults
-import ru.emkn.kotlin.sms.data.CommandResultsGroup
-import ru.emkn.kotlin.sms.data.CommandStart
+import ru.emkn.kotlin.sms.classes.Arguments
+import ru.emkn.kotlin.sms.classes.CommandResults
+import ru.emkn.kotlin.sms.classes.CommandResultsGroup
+import ru.emkn.kotlin.sms.classes.CommandStart
 import ru.emkn.kotlin.sms.services.ArgumentsHandler
 import kotlin.test.Test
 import kotlin.test.assertEquals
