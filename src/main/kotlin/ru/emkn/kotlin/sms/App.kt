@@ -47,8 +47,7 @@ object App {
         // распределение времени старта между группами
         fun generateStartTimes() {
 
-            val firstStartTime = LocalTime.parse("12:00:00")  // TODO(Начальное время запихать в конфиг)
-            var currentStartTime = LocalTime.of(firstStartTime)
+            var currentStartTime = LocalTime.parse("12:00:00") // TODO(Начальное время запихать в конфиг)
             var currentGroupIndex = 1
 
             // жеребьевка внутри каждой группы
