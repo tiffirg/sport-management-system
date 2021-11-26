@@ -3,12 +3,12 @@ package ru.emkn.kotlin.sms
 import com.sksamuel.hoplite.ConfigLoader
 import ru.emkn.kotlin.sms.utils.InvalidConfigException
 import ru.emkn.kotlin.sms.utils.InvalidFormatConfigException
-import ru.emkn.kotlin.sms.utils.existPathFile
 import java.io.File
 
 var PATH_CONFIG = ""
 var EVENT_NAME = ""
 var EVENT_DATE = ""
+var EVENT_TIME = ""
 var EVENT_SPORT = ""
 var RANKS: List<String> = listOf()
 var GROUP_NAMES: List<String> = listOf()
@@ -27,14 +27,14 @@ data class CriteriaData(
 )
 
 data class ConfigData(
-    val eventName: String, val eventDate: String, val eventSport: String,
+    val eventName: String, val eventDate: String, val eventTime: String, val eventSport: String,
     val ranks: List<String>,
     val groups: List<GroupData>,
     val criteria: List<CriteriaData>
 )
 
 fun initConfig(pathConfig: String) {
-    if (!existPathFile(pathConfig)) {
+    if (!File(pathConfig).exists()) {
         throw InvalidConfigException(pathConfig)
     }
     try {
@@ -42,14 +42,14 @@ fun initConfig(pathConfig: String) {
         PATH_CONFIG = File(pathConfig).absolutePath
         EVENT_NAME = config.eventName
         EVENT_DATE = config.eventDate
+        EVENT_TIME = config.eventTime
         EVENT_SPORT = config.eventSport
         RANKS = config.ranks
         GROUP_NAMES = config.groups.map { it.group }
         GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
         DISTANCE_CRITERIA =
             config.criteria.associate { criteriaData -> Pair(criteriaData.distance, criteriaData.checkpoints) }
-    }
-    catch(e: Exception) {
+    } catch (e: Exception) {
         // TODO(Проверить конкретную ошибку и в случае чего: println(e))
         throw InvalidFormatConfigException(pathConfig)
     }

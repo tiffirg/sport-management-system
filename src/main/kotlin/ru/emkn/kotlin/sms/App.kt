@@ -3,9 +3,11 @@ package ru.emkn.kotlin.sms
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.services.CsvHandler
 import ru.emkn.kotlin.sms.utils.InvalidFileException
+import ru.emkn.kotlin.sms.utils.InvalidTimeException
 import ru.emkn.kotlin.sms.utils.printMessageAboutCancelCompetition
-import ru.emkn.kotlin.sms.utils.transformDate
+import ru.emkn.kotlin.sms.utils.toLocalTime
 import java.io.File
+import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -47,7 +49,7 @@ object App {
         // распределение времени старта между группами
         fun generateStartTimes() {
 
-            var currentStartTime = LocalTime.parse("12:00:00") // TODO(Начальное время запихать в конфиг)
+            var currentStartTime = EVENT_TIME.toLocalTime() ?: throw InvalidTimeException(EVENT_TIME) // TODO(Перенести в init)
             var currentGroupIndex = 1
 
             // жеребьевка внутри каждой группы
@@ -80,8 +82,6 @@ object App {
         } else {
             CsvHandler.parseProtocolStart(command.pathProtocolStart)
         }
-        println(dataProtocolStart)
-
         val dataCheckpoint = if (command.pathProtocolCheckpoint.isNullOrEmpty()) {
             processStream(command.isCheckpointAthlete, dataProtocolStart)
         } else {
@@ -118,7 +118,7 @@ object App {
                 }
                 else {
                     splits = line.split(" " )
-                    checkpoints.add(CheckpointTime(splits[0], LocalDateTime.parse(splits[1])))
+                    checkpoints.add(CheckpointTime(splits[0], splits[1].toLocalTime()?: throw Exception() ))  // TODO(Сделать нормальный)
                 }
                 line = readLine()
             }

@@ -3,12 +3,12 @@ package ru.emkn.kotlin.sms.services
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
+import ru.emkn.kotlin.sms.GROUP_DISTANCES
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 
 object CsvHandler {
@@ -62,7 +62,8 @@ object CsvHandler {
                         toRank(unit[4]),
                         unit[5],
                         athleteNumber = number,
-                        startTime = LocalTime.parse(unit[6], TimeFormatter)
+                        startTime = unit[6].toLocalTime(),
+                        checkpoints = mutableListOf()
                     )
                 }
             }
@@ -82,27 +83,29 @@ object CsvHandler {
         if (!File(path).exists()) {
             throw InvalidFileException(path)
         }
-        dataProtocolStart.forEach { it.value.checkpoints = mutableListOf() }
         if (isCheckpointAthlete) {
             TODO("Реализация по участнику")
         } else {
-            val data = csvReader().readAll(file)
-            var checkpoint = data[0][0]
-            var unit: List<String>
-            var numberAthlete: Int
-            for (i in 1 until data.size) {
-                unit = data[i]
-                if (DISTANCE_CRITERIA.contains(unit[0])) {  // TODO("SAD!. Добавить эксепшен")
-                    checkpoint = unit[0]
-                } else {
-                    numberAthlete = unit[0].toInt()  // TODO(Exception)
-                    dataProtocolStart[numberAthlete]!!.checkpoints!!.add(
-                        CheckpointTime(
-                            checkpoint,
-                            LocalDateTime.parse(unit[1])
-                        )
-                    )  // TODO(Exception)
+            try {
+                val data = csvReader().readAll(file)
+                var checkpoint = data[0][0]
+                var unit: List<String>
+                var numberAthlete: Int
+                for (i in 1 until data.size) {
+                    unit = data[i]
+                    if (unit[0].isNotBlank() && unit[1].isBlank()) {  // TODO(Сделать список всех чекпоинтов. Добавить эксепшен")
+                        checkpoint = unit[0]
+                    } else {
+                        numberAthlete = unit[0].toInt()  // TODO(Exception)
+                        dataProtocolStart[numberAthlete]!!.checkpoints!!.add(
+                            CheckpointTime(
+                                checkpoint, unit[1].toLocalTime()?: throw Exception() // TODO(Сделать нормальный)
+                            )
+                        )  // TODO(Exception)
+                    }
                 }
+            } catch (e: Exception) {
+                println(e)
             }
         }
         return dataProtocolStart.values.toList()
@@ -116,13 +119,6 @@ object CsvHandler {
         return when (string) {
             "снят." -> null
             else -> null    // !!!HERE SHOULD BE String -> LocalDateTime. Not null
-        }
-    }
-
-    fun stringToIntOrNull(string: String): Int? {
-        return when (string) {
-            "" -> null
-            else -> string.toInt()
         }
     }
 
@@ -152,7 +148,7 @@ object CsvHandler {
                             unit[0].toInt(), unit[1].toInt(),
                             unit[2], unit[3], unit[4].toInt(),
                             toRank(unit[5]), unit[6], toLocalDateTimeOrNull(unit[7]),
-                            stringToIntOrNull(unit[8]), unit[9]
+                            unit[8].toIntOrNull(), unit[9]
                         )
                     )
                 }
@@ -187,7 +183,7 @@ object CsvHandler {
                     Athlete(
                         unit[1],
                         unit[2],
-                        unit[3].toIntOrNull()?: throw IncorrectBirthYearException(unit[3]),
+                        unit[3].toIntOrNull() ?: throw IncorrectBirthYearException(unit[3]),
                         Group(unit[0]),
                         toRank(unit[4]),
                         teamName
@@ -206,5 +202,5 @@ object CsvHandler {
         return Team(teamName, athletes)
     }
 
-    private fun toRank(rank: String)= Rank(rank.ifBlank { null })
+    private fun toRank(rank: String) = Rank(rank.ifBlank { null })
 }

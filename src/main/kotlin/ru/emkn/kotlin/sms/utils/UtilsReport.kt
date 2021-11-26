@@ -16,9 +16,10 @@ class IncorrectDataException(file: String) : Exception("$file: Invalid data form
 
 class IncorrectCheckpointException(file: String) : Exception("$file: Invalid checkpoint date")
 
-// Date
+// Date and Time
 class InvalidDateException(date: String) : Exception("$date: Invalid date format")
 
+class InvalidTimeException(time: String) : Exception("$time: Invalid time format")
 
 // Check data
 interface ExceptionData
