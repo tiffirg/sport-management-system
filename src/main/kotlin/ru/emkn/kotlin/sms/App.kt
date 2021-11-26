@@ -5,12 +5,11 @@ import ru.emkn.kotlin.sms.services.CsvHandler
 import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.printMessageAboutCancelCompetition
 import java.io.File
-import java.time.LocalDate
 import java.time.LocalDateTime
 
-class App(val title: String, val date: LocalDate) {
-    private val pathDirectory = File("src/main/resources/").resolve("${title}_$date").path
-    private val pathProtocolStart = File(pathDirectory).resolve("ps_${title}_$date.csv").path
+object App {
+    private val pathDirectory = File(PATH_CONFIG).resolveSibling("${EVENT_NAME}_$EVENT_DATE").path
+    private val pathProtocolStart = File(pathDirectory).resolve("ps_${EVENT_NAME}_$EVENT_DATE.csv").path
     private val dir = File(pathDirectory)
 
     fun run(command: Command) {
@@ -23,6 +22,8 @@ class App(val title: String, val date: LocalDate) {
 
     private fun processCommandStart(command: CommandStart) {
         val data = CsvHandler.parseRequests(command.pathsRequests)
+        println(pathDirectory)
+        println(pathProtocolStart)
         if (data.isEmpty()) {
             printMessageAboutCancelCompetition()
             return
@@ -31,6 +32,7 @@ class App(val title: String, val date: LocalDate) {
         val startLists: List<AthletesGroup> = startProtocolsGeneration(data)
         // записывание данных в
         dir.mkdir()
+
         CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
 
@@ -66,13 +68,13 @@ class App(val title: String, val date: LocalDate) {
             var isWait = true
             var athlete: Athlete? = null
             var numberAthlete: Int? = null
-            val checkpoints = mutableListOf<CheckpointTime>()
+            var checkpoints = mutableListOf<CheckpointTime>()
             while (line != null) {  // TODO(Добавить эксепшен)
                 line = line.trim()
                 if (isWait) {
                     if (numberAthlete != null && athlete != null) {
                         dataProtocolStart[numberAthlete]!!.checkpoints = checkpoints
-                        checkpoints.clear()
+                        checkpoints = mutableListOf()
                     }
                     numberAthlete = line.toInt()
                     athlete = dataProtocolStart[numberAthlete]!! // TODO(Exception)

@@ -7,8 +7,8 @@ import ru.emkn.kotlin.sms.services.ArgumentsHandler
 fun main(args: Array<String>) {
     try {
         val argsParsed = ArgumentsHandler.apply(args)
-        val app = App(argsParsed.title, argsParsed.date)
-        app.run(argsParsed.command)
+        initConfig(argsParsed.pathConfig)
+        App.run(argsParsed.command)
     } catch (exception: Exception) {
         println(exception)
     }

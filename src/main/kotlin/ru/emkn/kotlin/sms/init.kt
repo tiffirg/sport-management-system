@@ -1,10 +1,23 @@
 package ru.emkn.kotlin.sms
 
 import com.sksamuel.hoplite.ConfigLoader
+import ru.emkn.kotlin.sms.utils.InvalidConfigException
+import ru.emkn.kotlin.sms.utils.InvalidFormatConfigException
+import ru.emkn.kotlin.sms.utils.existPathFile
 import ru.emkn.kotlin.sms.utils.transformDate
-import java.time.format.DateTimeFormatter
+import java.io.File
 
-const val PATH_CONFIG = "/config.yaml"
+var PATH_CONFIG = ""
+var EVENT_NAME = ""
+var EVENT_DATE = ""
+var EVENT_SPORT = ""
+var RANKS: List<String> = listOf()
+var GROUP_NAMES: List<String> = listOf()
+var GROUP_DISTANCES: Map<String, String> = mapOf()
+var DISTANCE_CRITERIA: Map<String, List<String>> = mapOf()
+
+var COMPETITION_DATE = transformDate(EVENT_DATE)
+
 
 data class GroupData(
     val group: String,
@@ -23,12 +36,19 @@ data class ConfigData(
     val criteria: List<CriteriaData>
 )
 
-val config = ConfigLoader().loadConfigOrThrow<ConfigData>(PATH_CONFIG)
-
-val RANKS = config.ranks
-val GROUP_NAMES = config.groups.map { it.group }
-val GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
-val DISTANCE_CRITERIA =
-    config.criteria.associate { criteriaData -> Pair(criteriaData.distance, criteriaData.checkpoints) }
-
-val COMPETITION_DATE = transformDate(config.eventDate)
+fun initConfig(pathConfig: String) {
+    if (!existPathFile(pathConfig)) {
+        throw InvalidConfigException(pathConfig)
+    }
+    try {
+        val config = ConfigLoader().loadConfigOrThrow<ConfigData>(pathConfig)
+        PATH_CONFIG = pathConfig
+        EVENT_NAME = config.eventName
+        EVENT_DATE = config.eventDate
+        EVENT_SPORT = config.eventSport
+    }
+    catch(e: Exception) {
+        // TODO(Проверить конкретную ошибку и в случае чего: println(e))
+        throw InvalidFormatConfigException(pathConfig)
+    }
+}

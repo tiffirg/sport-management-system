@@ -19,7 +19,7 @@ object ArgumentsHandler {
         }
     }
 
-    class ProtocolsStart : MySubcommand("protocolStart", "Get start protocols") {
+    class ProtocolsStart : MySubcommand("protocolStart", "Get start protocol") {
         val pathsRequests by argument(ArgType.String, description = "Paths to requests lists").vararg()
     }
 
@@ -47,8 +47,7 @@ object ArgumentsHandler {
 
     fun apply(args: Array<String>): Arguments {
         val parser = ArgParser(programName, strictSubcommandOptionsOrder = true)
-        val title by parser.argument(ArgType.String, description = "Name of the competition")
-        val date by parser.argument(ArgType.String, description = "Date of the competition")
+        val pathConfig by parser.argument(ArgType.String, description = "Path to config")
 
         val protocolsStart = ProtocolsStart()
         val resultsGroup = ResultsGroup()
@@ -56,8 +55,7 @@ object ArgumentsHandler {
         parser.subcommands(protocolsStart, resultsGroup, resultsTeam)
         parser.parse(args)
         return Arguments(
-            title = title,
-            date = Arguments.checkDate(date),
+            pathConfig = pathConfig,
             command = when {
                 protocolsStart.use -> CommandStart(
                     pathsRequests = protocolsStart.pathsRequests

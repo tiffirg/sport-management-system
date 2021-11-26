@@ -12,3 +12,7 @@ fun transformDate(date: String): LocalDate? {
         null
     }
 }
+
+fun existPathFile(path: String): Boolean {
+    return File(path).exists()
+}

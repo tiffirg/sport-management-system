@@ -1,6 +1,10 @@
 package ru.emkn.kotlin.sms.utils
+// Config
+class InvalidConfigException(pathConfig: String): Exception("$pathConfig: No such config")
 
+class InvalidFormatConfigException(pathConfig: String): Exception("$pathConfig: Invalid config format")
 
+// Data
 class InvalidFileException(file: String) : Exception("$file: No such file or directory")
 
 

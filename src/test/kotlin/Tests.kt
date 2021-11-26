@@ -12,11 +12,10 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserProtocolStart() {
-        val args = arrayOf("SportRegion", "20.03.2021", "protocolStart", "path1", "path2", "path3")
+        val args = arrayOf("/config.yaml", "protocolStart", "path1", "path2", "path3")
         assertEquals(
             Arguments(
-                title = "SportRegion",
-                date = Arguments.checkDate("20.03.2021"),
+                pathConfig = "/config.yaml",
                 command = CommandStart(
                     pathsRequests = listOf("path1", "path2", "path3")
                 )
@@ -28,11 +27,10 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsGroup1() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsGroup", "path")
+        val args = arrayOf("/config.yaml", "resultsGroup", "path")
         assertEquals(
             Arguments(
-                title = "SportRegion",
-                date = Arguments.checkDate("20.03.2021"),
+                pathConfig = "/config.yaml",
                 command = CommandResultsGroup(
                     pathProtocolStart = null,
                     pathProtocolCheckpoint = "path",
@@ -46,11 +44,10 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsGroup2() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsGroup")
+        val args = arrayOf("/config.yaml", "resultsGroup")
         assertEquals(
             Arguments(
-                title = "SportRegion",
-                date = Arguments.checkDate("20.03.2021"),
+                pathConfig = "/config.yaml",
                 command = CommandResultsGroup(
                     pathProtocolStart = null,
                     pathProtocolCheckpoint = null,
@@ -64,11 +61,10 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsGroup4() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsGroup", "-cp")
+        val args = arrayOf("/config.yaml", "resultsGroup", "-cp")
         assertEquals(
             Arguments(
-                title = "SportRegion",
-                date = Arguments.checkDate("20.03.2021"),
+                pathConfig = "/config.yaml",
                 command = CommandResultsGroup(
                     pathProtocolStart = null,
                     pathProtocolCheckpoint = null,
@@ -83,18 +79,16 @@ internal class Test1 {
     @Test
     fun testParserResultsGroup3() {
         val args1 =
-            arrayOf("SportRegion", "20.03.2021", "resultsGroup", "path", "-ps", "pathPS")
+            arrayOf("/config.yaml", "resultsGroup", "path", "-ps", "pathPS")
         val args2 = arrayOf(
-            "SportRegion",
-            "20.03.2021",
+            "/config.yaml",
             "resultsGroup",
             "path",
             "--protocolStart",
             "pathPS"
         )
         val result = Arguments(
-            title = "SportRegion",
-            date = Arguments.checkDate("20.03.2021"),
+            pathConfig = "/config.yaml",
             command = CommandResultsGroup(
                 pathProtocolStart = "pathPS",
                 pathProtocolCheckpoint = "path",
@@ -114,11 +108,10 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsTeam1() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsTeam")
+        val args = arrayOf("/config.yaml", "resultsTeam")
         assertEquals(
             Arguments(
-                title = "SportRegion",
-                date = Arguments.checkDate("20.03.2021"),
+                pathConfig = "/config.yaml",
                 command = CommandResults(
                     pathResultsAthlete = null
                 )
@@ -130,11 +123,10 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsTeam2() {
-        val args = arrayOf("SportRegion", "20.03.2021", "resultsTeam", "path")
+        val args = arrayOf("/config.yaml", "resultsTeam", "path")
         assertEquals(
             Arguments(
-                title = "SportRegion",
-                date = Arguments.checkDate("20.03.2021"),
+                pathConfig = "/config.yaml",
                 command = CommandResults(
                     pathResultsAthlete = "path"
                 )
