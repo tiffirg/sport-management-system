@@ -1,4 +1,6 @@
 import ru.emkn.kotlin.sms.App
+import ru.emkn.kotlin.sms.initConfig
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -6,6 +8,7 @@ internal class TestStartProcessing {
 
     @Test
     fun smallTest1() {
+        initConfig("src/test/resources/config.yaml")
         val applications = listOf(MoscowTeam, VyborgTeam)
         val protocols = App.startProtocolsGeneration(applications)
         //val protocols = startProtocolsGeneration(applications)
