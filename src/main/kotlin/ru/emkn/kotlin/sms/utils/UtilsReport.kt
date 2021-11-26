@@ -1,4 +1,7 @@
 package ru.emkn.kotlin.sms.utils
+
+import java.util.concurrent.ExecutionException
+
 // Config
 class InvalidConfigException(pathConfig: String): Exception("$pathConfig: No such config")
 
@@ -19,8 +22,15 @@ class IncorrectCheckpointException(file: String) : Exception("$file: Invalid che
 class InvalidDateException(date: String) : Exception("$date: Invalid date format")
 
 
-class UndefinedCommandException : Exception("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`")
+// Data classes
+interface ExceptionDataClass
 
+class IncorrectGroupException(group: String) : Exception("$group: Incorrect group"), ExceptionDataClass
+
+
+class IncorrectRankException(rank: String) : Exception("$rank: Incorrect rank"), ExceptionDataClass
+
+class MissCommandException : Exception("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`")
 
 fun printMessageAboutMissTeam(nameFile: String) = println("$nameFile: No such request file or incorrect data format")
 

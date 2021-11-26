@@ -4,7 +4,6 @@ import com.sksamuel.hoplite.ConfigLoader
 import ru.emkn.kotlin.sms.utils.InvalidConfigException
 import ru.emkn.kotlin.sms.utils.InvalidFormatConfigException
 import ru.emkn.kotlin.sms.utils.existPathFile
-import ru.emkn.kotlin.sms.utils.transformDate
 import java.io.File
 
 var PATH_CONFIG = ""

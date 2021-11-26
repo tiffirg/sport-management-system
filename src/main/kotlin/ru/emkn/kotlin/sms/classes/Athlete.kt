@@ -15,7 +15,7 @@ data class Athlete(
                 surname,
                 name,
                 birthYear.toString(),
-                rank.rankName,
+                rank.rankName ?: "",
                 teamName,
                 startTime?.format(TimeFormatter) ?: ""
             )

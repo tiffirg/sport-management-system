@@ -5,7 +5,7 @@ import ru.emkn.kotlin.sms.classes.Arguments
 import ru.emkn.kotlin.sms.classes.CommandResults
 import ru.emkn.kotlin.sms.classes.CommandResultsGroup
 import ru.emkn.kotlin.sms.classes.CommandStart
-import ru.emkn.kotlin.sms.utils.UndefinedCommandException
+import ru.emkn.kotlin.sms.utils.MissCommandException
 
 @ExperimentalCli
 object ArgumentsHandler {
@@ -68,7 +68,7 @@ object ArgumentsHandler {
                 resultsTeam.use -> CommandResults(
                     pathResultsAthlete = resultsTeam.pathResultsGroup,
                 )
-                else -> throw UndefinedCommandException()
+                else -> throw MissCommandException()
             }
         )
     }

@@ -196,11 +196,14 @@ object CsvHandler {
                         unit[2],
                         unit[3].toInt(),
                         Group(unit[0]),
-                        Rank(unit[4]),
+                        Rank(transformEmptyRank(unit[4])),
                         teamName
                     )
                 )
-            } catch (e: Exception) {
+            } catch (exception: Exception) {
+                if (exception is ExceptionDataClass) {
+                    println(exception)
+                }
                 printMessageAboutMissAthleteRequest(unit.joinToString(" "), teamName)
             }
         }
@@ -208,5 +211,12 @@ object CsvHandler {
             return null
         }
         return Team(teamName, athletes)
+    }
+
+    private fun transformEmptyRank(rank: String): String? {
+        if (rank.isBlank()) {
+            return null
+        }
+        return rank
     }
 }

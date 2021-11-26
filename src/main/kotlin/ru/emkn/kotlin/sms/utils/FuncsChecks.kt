@@ -1,5 +1,6 @@
 package ru.emkn.kotlin.sms.utils
 
+import ru.emkn.kotlin.sms.classes.Rank
 import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
