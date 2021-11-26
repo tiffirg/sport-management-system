@@ -42,7 +42,7 @@ fun initConfig(pathConfig: String) {
     }
     try {
         val config = ConfigLoader().loadConfigOrThrow<ConfigData>(File(pathConfig))
-        PATH_CONFIG = pathConfig
+        PATH_CONFIG = File(pathConfig).absolutePath
         EVENT_NAME = config.eventName
         EVENT_DATE = config.eventDate
         EVENT_SPORT = config.eventSport

@@ -5,19 +5,22 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.utils.InvalidFileException
-import ru.emkn.kotlin.sms.utils.printMessageAboutMissAthleteRequest
-import ru.emkn.kotlin.sms.utils.printMessageAboutMissTeam
+import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.LocalDateTime
-import kotlin.String as String
 
 
 object CsvHandler {
     fun parseRequests(paths: List<String>): List<Team> {
         val teams = mutableListOf<Team>()
+        var request: Team?
         for (path in paths) {
-            teams.add(parseRequest(path) ?: continue)
+            request = parseRequest(path)
+            if (request == null) {
+                printMessageAboutMissTeam(path)
+                continue
+            }
+            teams.add(request)
         }
         return teams
     }
@@ -35,31 +38,35 @@ object CsvHandler {
 
     fun parseProtocolStart(path: String): Map<Int, Athlete> {
         val file = File(path)
-        if (!File(path).exists()) {
+        if (!file.exists()) {
             throw InvalidFileException(path)
         }
         val athletes = mutableMapOf<Int, Athlete>()
-        val data = csvReader().readAll(file)
-        var group = Group(data[0][0])
-        var unit: List<String>
-        var number: Int
-        for (i in 1 until data.size) {
-            unit = data[i]
-            if (GROUP_NAMES.contains(unit[0])) {  // TODO("Сделать функцию у Group. Добавить эксепшен")
-                group = Group(unit[0])
-            } else {
-                number = unit[0].toInt()
-                athletes[number] = Athlete(
-                    unit[1],
-                    unit[2],
-                    unit[3].toInt(),
-                    group,
-                    Rank(unit[4]),
-                    unit[5],
-                    athleteNumber = number,
-                    startTime = LocalDateTime.parse(unit[6])
-                )
+        try {
+            val data = csvReader().readAll(file)
+            var group = Group(data[0][0])
+            var unit: List<String>
+            var number: Int
+            for (i in 1 until data.size) {
+                unit = data[i]
+                if (GROUP_NAMES.contains(unit[0])) {
+                    group = Group(unit[0])
+                } else {
+                    number = unit[0].toInt()
+                    athletes[number] = Athlete(
+                        unit[1],
+                        unit[2],
+                        unit[3].toInt(),
+                        group,
+                        Rank(unit[4]),
+                        unit[5],
+                        athleteNumber = number,
+                        startTime = LocalDateTime.parse(unit[6])
+                    )
+                }
             }
+        } catch (e: Exception) {
+            throw IncorrectProtocolStartException(path)
         }
         return athletes
     }
@@ -104,22 +111,22 @@ object CsvHandler {
     }
 
     // Block of funcs for fun parseResultsGroup()
-    fun toRankOrNull(string: String): Rank?{
-        return  when(string){
+    fun toRankOrNull(string: String): Rank? {
+        return when (string) {
             "" -> null
             else -> Rank(string)
         }
     }
 
-    fun toLocalDateTimeOrNull(string: String): LocalDateTime?{
-        return  when(string){
+    fun toLocalDateTimeOrNull(string: String): LocalDateTime? {
+        return when (string) {
             "снят." -> null
             else -> null    // !!!HERE SHOULD BE String -> LocalDateTime. Not null
         }
     }
 
-    fun stringToIntOrNull(string: String): Int?{
-        return  when(string){
+    fun stringToIntOrNull(string: String): Int? {
+        return when (string) {
             "" -> null
             else -> string.toInt()
         }
@@ -136,21 +143,29 @@ object CsvHandler {
 
         var group = ""
         var unit: List<String>
-        for(i in 1 until linesFromResultsCsv.size) {
-            unit = linesFromResultsCsv[i]
-            if(GROUP_NAMES.contains(unit[0])) {
-                if (listOfAthletes.isNotEmpty()) {      // = we've already written down the first group of Athletes
-                    listOfGroups.add(AthleteResults(Group(group), listOfAthletes))
-                    listOfAthletes = mutableListOf()    // .clear() causes troubles
+        try {
+            for (i in 1 until linesFromResultsCsv.size) {
+                unit = linesFromResultsCsv[i]
+                if (GROUP_NAMES.contains(unit[0])) {
+                    if (listOfAthletes.isNotEmpty()) {      // = we've already written down the first group of Athletes
+                        listOfGroups.add(AthleteResults(Group(group), listOfAthletes))
+                        listOfAthletes = mutableListOf()    // .clear() causes troubles
+                    }
+                    group = unit[0]
+                } else if (unit[0].toIntOrNull() != null) {   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
+                    listOfAthletes.add(
+                        MedalTable(
+                            unit[0].toInt(), unit[1].toInt(),
+                            unit[2], unit[3], unit[4].toInt(),
+                            toRankOrNull(unit[5]), unit[6], toLocalDateTimeOrNull(unit[7]),
+                            stringToIntOrNull(unit[8]), unit[9]
+                        )
+                    )
                 }
-                group = unit[0]
             }
-            else if (unit[0].toIntOrNull() != null){   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
-                listOfAthletes.add(MedalTable(  unit[0].toInt(), unit[1].toInt(),
-                    unit[2], unit[3], unit[4].toInt(),
-                    toRankOrNull(unit[5]),  unit[6], toLocalDateTimeOrNull(unit[7]),
-                    stringToIntOrNull(unit[8]), unit[9]  ))
-            }
+        }
+        catch (e: Exception) {
+            throw IncorrectResultsGroupException(path)
         }
         listOfGroups.add(AthleteResults(Group(group), listOfAthletes))      // writing down the last group of Athletes
         return listOfGroups
@@ -162,12 +177,14 @@ object CsvHandler {
 
     private fun parseRequest(path: String): Team? {
         val file = File(path)
-        if (!File(path).exists()) {
-            printMessageAboutMissTeam(file.name)
+        if (!file.exists()) {
             return null
         }
         val athletes = mutableListOf<Athlete>()
         val data = csvReader().readAll(file)
+        if (data.isEmpty() || data[0].isEmpty()) {
+            return null
+        }
         val teamName = data[0][0]
         var unit: List<String>
         for (i in 2 until data.size) {
@@ -180,10 +197,7 @@ object CsvHandler {
                         unit[3].toInt(),
                         Group(unit[0]),
                         Rank(unit[4]),
-                        teamName,
-                        checkpoints = null,
-                        athleteNumber = null,
-                        startTime = null
+                        teamName
                     )
                 )
             } catch (e: Exception) {
