@@ -8,6 +8,7 @@ import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 
 object CsvHandler {
@@ -28,7 +29,7 @@ object CsvHandler {
     fun generationProtocolsStart(path: String, data: List<AthletesGroup>) {
         csvWriter().open(path) {
             data.forEach { (group, athletes) ->
-                writeRow(group.groupName)
+                writeRow(listOf(group.groupName, "", "", "", "", "", ""))
                 athletes.forEach {
                     writeRow(it.listForProtocolStart)
                 }
@@ -58,14 +59,15 @@ object CsvHandler {
                         unit[2],
                         unit[3].toInt(),
                         group,
-                        Rank(unit[4]),
+                        toRank(unit[4]),
                         unit[5],
                         athleteNumber = number,
-                        startTime = LocalDateTime.parse(unit[6])
+                        startTime = LocalTime.parse(unit[6], TimeFormatter)
                     )
                 }
             }
         } catch (e: Exception) {
+            println(e)
             throw IncorrectProtocolStartException(path)
         }
         return athletes
@@ -110,14 +112,6 @@ object CsvHandler {
         TODO()
     }
 
-    // Block of funcs for fun parseResultsGroup()
-    fun toRankOrNull(string: String): Rank? {
-        return when (string) {
-            "" -> null
-            else -> Rank(string)
-        }
-    }
-
     fun toLocalDateTimeOrNull(string: String): LocalDateTime? {
         return when (string) {
             "снят." -> null
@@ -157,14 +151,13 @@ object CsvHandler {
                         MedalTable(
                             unit[0].toInt(), unit[1].toInt(),
                             unit[2], unit[3], unit[4].toInt(),
-                            toRankOrNull(unit[5]), unit[6], toLocalDateTimeOrNull(unit[7]),
+                            toRank(unit[5]), unit[6], toLocalDateTimeOrNull(unit[7]),
                             stringToIntOrNull(unit[8]), unit[9]
                         )
                     )
                 }
             }
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             throw IncorrectResultsGroupException(path)
         }
         listOfGroups.add(AthleteResults(Group(group), listOfAthletes))      // writing down the last group of Athletes
@@ -194,17 +187,17 @@ object CsvHandler {
                     Athlete(
                         unit[1],
                         unit[2],
-                        unit[3].toInt(),
+                        unit[3].toIntOrNull()?: throw IncorrectBirthYearException(unit[3]),
                         Group(unit[0]),
-                        Rank(transformEmptyRank(unit[4])),
+                        toRank(unit[4]),
                         teamName
                     )
                 )
             } catch (exception: Exception) {
-                if (exception is ExceptionDataClass) {
+                printMessageAboutMissAthleteRequest(unit.joinToString(" "), teamName)
+                if (exception is ExceptionData) {
                     println(exception)
                 }
-                printMessageAboutMissAthleteRequest(unit.joinToString(" "), teamName)
             }
         }
         if (athletes.isEmpty()) {
@@ -213,10 +206,5 @@ object CsvHandler {
         return Team(teamName, athletes)
     }
 
-    private fun transformEmptyRank(rank: String): String? {
-        if (rank.isBlank()) {
-            return null
-        }
-        return rank
-    }
+    private fun toRank(rank: String)= Rank(rank.ifBlank { null })
 }

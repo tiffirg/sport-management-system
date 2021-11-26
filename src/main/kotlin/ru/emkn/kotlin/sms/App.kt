@@ -47,8 +47,8 @@ object App {
         // распределение времени старта между группами
         fun generateStartTimes() {
 
-            val firstStartTime = LocalTime.parse("12:00:00")
-            var currentStartTime = LocalDateTime.of(transformDate(EVENT_DATE), firstStartTime)
+            val firstStartTime = LocalTime.parse("12:00:00")  // TODO(Начальное время запихать в конфиг)
+            var currentStartTime = LocalTime.of(firstStartTime)
             var currentGroupIndex = 1
 
             // жеребьевка внутри каждой группы
@@ -81,13 +81,14 @@ object App {
         } else {
             CsvHandler.parseProtocolStart(command.pathProtocolStart)
         }
+        println(dataProtocolStart)
 
         val dataCheckpoint = if (command.pathProtocolCheckpoint.isNullOrEmpty()) {
             processStream(command.isCheckpointAthlete, dataProtocolStart)
         } else {
             CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete, dataProtocolStart)
         }
-
+        print(dataCheckpoint)
     }
 
     private fun processCommandResultsTeam(command: CommandResults): List<String> {

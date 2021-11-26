@@ -1,14 +1,12 @@
 package ru.emkn.kotlin.sms.utils
 
-import java.util.concurrent.ExecutionException
-
 // Config
 class InvalidConfigException(pathConfig: String): Exception("$pathConfig: No such config")
 
 class InvalidFormatConfigException(pathConfig: String): Exception("$pathConfig: Invalid config format")
 
 // Data
-class InvalidFileException(file: String) : Exception("$file: No such file or directory")
+class InvalidFileException(path: String) : Exception("$path: No such file or directory")
 
 class IncorrectProtocolStartException(pathProtocolStart: String) : Exception("$pathProtocolStart: Invalid start protocol format")
 
@@ -22,13 +20,17 @@ class IncorrectCheckpointException(file: String) : Exception("$file: Invalid che
 class InvalidDateException(date: String) : Exception("$date: Invalid date format")
 
 
-// Data classes
-interface ExceptionDataClass
+// Check data
+interface ExceptionData
 
-class IncorrectGroupException(group: String) : Exception("$group: Incorrect group"), ExceptionDataClass
+class IncorrectGroupException(group: String) : Exception("$group: Incorrect group"), ExceptionData
+
+class IncorrectRankException(rank: String) : Exception("$rank: Incorrect rank"), ExceptionData
+
+class IncorrectBirthYearException(birthYear: String) : Exception("$birthYear: Not integer"), ExceptionData
 
 
-class IncorrectRankException(rank: String) : Exception("$rank: Incorrect rank"), ExceptionDataClass
+
 
 class MissCommandException : Exception("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`")
 
