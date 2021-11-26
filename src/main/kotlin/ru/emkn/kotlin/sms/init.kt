@@ -5,6 +5,7 @@ import ru.emkn.kotlin.sms.utils.InvalidConfigException
 import ru.emkn.kotlin.sms.utils.InvalidFormatConfigException
 import ru.emkn.kotlin.sms.utils.existPathFile
 import ru.emkn.kotlin.sms.utils.transformDate
+import java.io.File
 
 var PATH_CONFIG = ""
 var EVENT_NAME = ""
@@ -40,7 +41,7 @@ fun initConfig(pathConfig: String) {
         throw InvalidConfigException(pathConfig)
     }
     try {
-        val config = ConfigLoader().loadConfigOrThrow<ConfigData>(pathConfig)
+        val config = ConfigLoader().loadConfigOrThrow<ConfigData>(File(pathConfig))
         PATH_CONFIG = pathConfig
         EVENT_NAME = config.eventName
         EVENT_DATE = config.eventDate
