@@ -1,5 +1,6 @@
 package ru.emkn.kotlin.sms.classes
 
+import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.utils.TimeFormatter
 import java.time.LocalTime
 
@@ -27,9 +28,16 @@ data class Athlete(
             removed = false
             return
         }
-        checkpoints?.let {
-            for (i in 1 until it.size) {
-                if (it[i - 1].time >= it[i].time) {
+        val orderedCheckpoints = DISTANCE_CRITERIA[group.distance]!!
+        checkpoints?.let { data ->
+            if (data.mapTo(mutableSetOf()) {it.checkpoint } != orderedCheckpoints.toSet()) {
+                removed = false
+                return
+            }
+            val sortedData = data.sortedBy { el -> orderedCheckpoints.indexOfFirst { el.checkpoint == it} }
+            checkpoints = sortedData as MutableList<CheckpointTime>?
+            for (i in 1 until sortedData.size) {
+                if (sortedData[i - 1].time >= sortedData[i].time) {
                     removed = false
                     return
                 }

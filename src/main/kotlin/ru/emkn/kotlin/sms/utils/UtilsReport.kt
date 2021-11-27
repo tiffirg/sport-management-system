@@ -5,6 +5,9 @@ class InvalidConfigException(pathConfig: String): Exception("$pathConfig: No suc
 
 class InvalidFormatConfigException(pathConfig: String): Exception("$pathConfig: Invalid config format")
 
+// Commands
+class MissCommandException : Exception("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`")
+
 // Data
 class InvalidFileException(path: String) : Exception("$path: No such file or directory")
 
@@ -33,7 +36,6 @@ class InvalidTimeException(time: String) : Exception("$time: Invalid time format
 
 
 
-class MissCommandException : Exception("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`")
 
 fun printMessageAboutMissTeam(nameFile: String) = println("$nameFile: No such request file or incorrect data format")
 
