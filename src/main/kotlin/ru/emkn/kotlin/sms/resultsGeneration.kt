@@ -1,14 +1,10 @@
 package ru.emkn.kotlin.sms
 
-import ru.emkn.kotlin.sms.classes.Athlete
-import ru.emkn.kotlin.sms.classes.Group
-import ru.emkn.kotlin.sms.classes.ResultAthleteGroup
-import ru.emkn.kotlin.sms.classes.ResultsGroup
+import ru.emkn.kotlin.sms.classes.*
 import java.time.LocalTime
 
 
-
-// TODO("проверить корректность прохождения дистанции участником?")
+// TODO("проверить корректность прохождения дистанции участником? С помощью Athlete.CheckCheckpoints")
 fun getAthleteResult(athlete: Athlete): LocalTime? {
     return if (athlete.checkpoints != null) {
         athlete.checkpoints!!.last().time

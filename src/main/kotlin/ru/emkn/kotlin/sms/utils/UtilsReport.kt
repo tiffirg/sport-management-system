@@ -14,12 +14,7 @@ class IncorrectResultsGroupException(pathResultsGroup: String) : Exception("$pat
 
 class IncorrectDataException(file: String) : Exception("$file: Invalid data format")
 
-class IncorrectCheckpointException(file: String) : Exception("$file: Invalid checkpoint date")
-
-// Date and Time
-class InvalidDateException(date: String) : Exception("$date: Invalid date format")
-
-class InvalidTimeException(time: String) : Exception("$time: Invalid time format")
+class InvalidFileCheckpointException(fileCheckpoint: String) : Exception("$fileCheckpoint: Invalid checkpoint data")
 
 // Check data
 interface ExceptionData
@@ -30,6 +25,11 @@ class IncorrectRankException(rank: String) : Exception("$rank: Incorrect rank"),
 
 class IncorrectBirthYearException(birthYear: String) : Exception("$birthYear: Not integer"), ExceptionData
 
+class IncorrectNumberAthleteException(numberAthlete: String) : Exception("$numberAthlete: Not integer"), ExceptionData
+
+class InvalidDateException(date: String) : Exception("$date: Invalid date format"), ExceptionData
+
+class InvalidTimeException(time: String) : Exception("$time: Invalid time format"), ExceptionData
 
 
 
@@ -41,3 +41,5 @@ fun printMessageAboutMissAthleteRequest(request: String, team: String) =
     println("'$team' $request: Not allowed to compete")
 
 fun printMessageAboutCancelCompetition() = println("Cancellation of the competition ")
+
+fun printMessageAboutMissAthleteCheckpointData(unitData: String, checkpoint: String) = println()

@@ -1,8 +1,6 @@
 package ru.emkn.kotlin.sms.classes
 
 import ru.emkn.kotlin.sms.utils.TimeFormatter
-import java.sql.Time
-import java.time.LocalDateTime
 import java.time.LocalTime
 
 data class Athlete(
@@ -23,4 +21,20 @@ data class Athlete(
                 startTime?.format(TimeFormatter) ?: ""
             )
         }
+
+    fun checkCheckpoints() {
+        if (checkpoints.isNullOrEmpty()) {
+            removed = false
+            return
+        }
+        checkpoints?.let {
+            for (i in 1 until it.size) {
+                if (it[i - 1].time >= it[i].time) {
+                    removed = false
+                    return
+                }
+            }
+            removed = true
+        }
+    }
 }

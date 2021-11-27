@@ -75,37 +75,18 @@ object CsvHandler {
         path: String,
         isCheckpointAthlete: Boolean,
         dataProtocolStart: Map<Int, Athlete>
-    ): List<Athlete> { // TODO(Добавить эксепшен)
+    ): List<Athlete> {
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
         }
-        if (isCheckpointAthlete) {
-            TODO("Реализация по участнику")
+        val data = csvReader().readAll(file)
+
+        return (if (isCheckpointAthlete) {
+            parseCheckpointsOfAthlete(data, dataProtocolStart)
         } else {
-            try {
-                val data = csvReader().readAll(file)
-                var checkpoint = data[0][0]
-                var unit: List<String>
-                var numberAthlete: Int
-                for (i in 1 until data.size) {
-                    unit = data[i]
-                    if (unit[0].isNotBlank() && unit[1].isBlank()) {  // TODO(Сделать список всех чекпоинтов. Добавить эксепшен")
-                        checkpoint = unit[0]
-                    } else {
-                        numberAthlete = unit[0].toInt()  // TODO(Exception)
-                        dataProtocolStart[numberAthlete]!!.checkpoints!!.add(
-                            CheckpointTime(
-                                checkpoint, unit[1].toLocalTime()?: throw Exception() // TODO(Сделать нормальный)
-                            )
-                        )  // TODO(Exception)
-                    }
-                }
-            } catch (e: Exception) {
-                println(e)
-            }
-        }
-        return dataProtocolStart.values.toList()
+            parseCheckpointsOfPoints(data, dataProtocolStart)
+        }) ?: throw InvalidFileCheckpointException(path)
     }
 
     fun generationResultsGroup(path: String, data: Map<Group, ResultsGroup>) {
@@ -170,7 +151,7 @@ object CsvHandler {
         }
         val athletes = mutableListOf<Athlete>()
         val data = csvReader().readAll(file)
-        if (data.isEmpty() || data[0].isEmpty()) {
+        if (data.size > 1 || data[0].isEmpty()) {
             return null
         }
         val teamName = data[0][0]
@@ -202,4 +183,48 @@ object CsvHandler {
     }
 
     private fun toRank(rank: String) = Rank(rank.ifBlank { null })
+
+
+    private fun parseCheckpointsOfAthlete(
+        data: List<List<String>>,
+        dataProtocolStart: Map<Int, Athlete>
+    ): List<Athlete>? {
+        TODO()
+    }
+
+    private fun parseCheckpointsOfPoints(
+        data: List<List<String>>,
+        dataProtocolStart: Map<Int, Athlete>
+    ): List<Athlete>? {
+        if (data.size < 2 || data[0].isEmpty()) {
+            return null
+        }
+        var checkpoint = data[0][0]
+        var unit: List<String>
+        var numberAthlete: Int
+        for (i in 1 until data.size) {
+            unit = data[i]
+            try {
+                if (unit[0].isNotBlank() && unit[1].isBlank()) {  // TODO(Сделать список всех чекпоинтов. Добавить эксепшен отсутствия чекпоинта")
+                    checkpoint = unit[0]
+                } else {
+                    numberAthlete = unit[0].toIntOrNull() ?: throw IncorrectNumberAthleteException(unit[0])
+                    dataProtocolStart[numberAthlete]!!.checkpoints!!.add(        // TODO(Как то избавиться от !!)
+                        CheckpointTime(
+                            checkpoint, unit[1].toLocalTime() ?: throw InvalidTimeException(unit[1])
+                        )
+                    )
+                }
+            } catch (exception: Exception) {
+                // TODO(Возможно здесь стоит сразу выставить removed=true)
+                printMessageAboutMissAthleteCheckpointData(unit.joinToString(" "), checkpoint)
+                if (exception is ExceptionData) {
+                    println(exception)
+                } else {
+                    return null
+                }
+            }
+        }
+        return dataProtocolStart.values.toList()
+    }
 }
