@@ -29,5 +29,19 @@ data class ResultAthleteGroup(val athleteNumberInGroup: Int, val athleteNumber: 
         }
 }
 
-data class ResultsGroup (val group: Group, val results: List<ResultAthleteGroup>)
+data class ResultsGroup(val group: Group, val results: List<ResultAthleteGroup>) {
 
+    private val leaderTime : LocalTime?
+        get() = this.results[0].result
+
+    fun getAthleteScore(athleteNumber: Int): Int {
+        val athleteTime = this.results.find { resultAthleteGroup ->
+            resultAthleteGroup.athleteNumber == athleteNumber
+        }?.result
+        return if (athleteTime == null || leaderTime == null) {
+            0
+        } else {
+            0.coerceAtLeast(100 * (2 - athleteTime.toSecondOfDay() / leaderTime!!.toSecondOfDay()))
+        }
+    }
+}
