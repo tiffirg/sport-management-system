@@ -31,7 +31,7 @@ object ArgumentsHandler {
         val isCheckpointAthlete by option(
             ArgType.Boolean,
             fullName = "checkpointAthlete",
-            shortName = "cp",
+            shortName = "cpa",
             description = "Checkpoints data by athlete").default(false)
         val pathProtocolStart by option(
             ArgType.String,
