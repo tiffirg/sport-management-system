@@ -25,24 +25,24 @@ data class Athlete(
 
     fun checkCheckpoints() {
         if (checkpoints.isNullOrEmpty()) {
-            removed = false
+            removed = true
             return
         }
         val orderedCheckpoints = DISTANCE_CRITERIA[group.distance]!!
         checkpoints?.let { data ->
             if (data.mapTo(mutableSetOf()) {it.checkpoint } != orderedCheckpoints.toSet()) {
-                removed = false
+                removed = true
                 return
             }
             val sortedData = data.sortedBy { el -> orderedCheckpoints.indexOfFirst { el.checkpoint == it} }
             checkpoints = sortedData as MutableList<CheckpointTime>?
             for (i in 1 until sortedData.size) {
                 if (sortedData[i - 1].time >= sortedData[i].time) {
-                    removed = false
+                    removed = true
                     return
                 }
             }
-            removed = true
+            removed = false
         }
     }
 }
