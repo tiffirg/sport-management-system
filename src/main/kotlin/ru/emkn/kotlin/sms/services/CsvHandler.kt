@@ -4,6 +4,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.*
+import ru.emkn.kotlin.sms.logger
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 
@@ -15,7 +16,7 @@ object CsvHandler {
         for (path in paths) {
             request = parseRequest(path)
             if (request == null) {
-                printMessageAboutMissTeam(path)
+                logger.info(messageAboutMissTeam(path))
                 continue
             }
             teams.add(request)
@@ -64,8 +65,8 @@ object CsvHandler {
                     )
                 }
             }
-        } catch (e: Exception) {
-            println(e)
+        } catch (exception: Exception) {
+            logger.debug { exception.message }
             throw IncorrectProtocolStartException(path)
         }
         return athletes
@@ -132,8 +133,8 @@ object CsvHandler {
                     )
                 }
             }
-        } catch (e: Exception) {
-            println(e)
+        } catch (exception: Exception) {
+            logger.debug { exception.message }
             throw IncorrectResultsGroupException(path)
         }
         listOfGroups.add(ResultsGroup(Group(group), listOfAthletes))      // writing down the last group of Athletes
@@ -151,7 +152,7 @@ object CsvHandler {
         }
         val athletes = mutableListOf<Athlete>()
         val data = csvReader().readAll(file)
-        if (data.size > 1 || data[0].isEmpty()) {
+        if (data.size < 2 || data[0].isEmpty()) {
             return null
         }
         val teamName = data[0][0]
@@ -170,9 +171,9 @@ object CsvHandler {
                     )
                 )
             } catch (exception: Exception) {
-                printMessageAboutMissAthleteRequest(unit.joinToString(" "), teamName)
+                logger.info { messageAboutMissAthleteRequest(teamName, unit.joinToString(" ")) }
                 if (exception is ExceptionData) {
-                    println(exception)
+                    logger.info { exception.message }
                 }
             }
         }
@@ -216,9 +217,9 @@ object CsvHandler {
                     )
                 }
             } catch (exception: Exception) {
-                printMessageAboutMissAthleteCheckpointData(unit.joinToString(" "), checkpoint)
+                logger.info { messageAboutMissAthleteCheckpointData(checkpoint, unit.joinToString(" ")) }
                 if (exception is ExceptionData) {
-                    println(exception)
+                    logger.info { exception.message }
                 } else {
                     return null
                 }

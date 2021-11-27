@@ -16,6 +16,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation "com.sksamuel.hoplite:hoplite-core:1.4.15"
     implementation "com.sksamuel.hoplite:hoplite-yaml:1.4.15"
+    implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
+    runtimeOnly("org.slf4j:slf4j-simple:1.7.29")
 
     implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.2.0")
 

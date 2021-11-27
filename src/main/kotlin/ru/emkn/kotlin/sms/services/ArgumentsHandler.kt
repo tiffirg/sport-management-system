@@ -68,7 +68,9 @@ object ArgumentsHandler {
                 resultsTeam.use -> CommandResults(
                     pathResultsAthlete = resultsTeam.pathResultsGroup,
                 )
-                else -> throw MissCommandException()
+                else -> {
+                    throw MissCommandException()
+                }
             }
         )
     }

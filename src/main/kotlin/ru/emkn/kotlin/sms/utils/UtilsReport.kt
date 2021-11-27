@@ -35,13 +35,10 @@ class InvalidDateException(date: String) : Exception("$date: Invalid date format
 class InvalidTimeException(time: String) : Exception("$time: Invalid time format"), ExceptionData
 
 
+fun messageAboutMissTeam(path: String) = "$path: No such request file or incorrect data format"
 
+fun messageAboutMissAthleteRequest(team: String, request: String) = "'$team' $request: Not allowed to compete"
 
-fun printMessageAboutMissTeam(nameFile: String) = println("$nameFile: No such request file or incorrect data format")
+fun messageAboutCancelCompetition() = "Cancellation of the competition"
 
-fun printMessageAboutMissAthleteRequest(request: String, team: String) =
-    println("'$team' $request: Not allowed to compete")
-
-fun printMessageAboutCancelCompetition() = println("Cancellation of the competition ")
-
-fun printMessageAboutMissAthleteCheckpointData(unitData: String, checkpoint: String) = println("`$checkpoint` $unitData: Incorrect checkpoint format ")
+fun messageAboutMissAthleteCheckpointData(checkpoint: String, unitData: String) = "`$checkpoint` $unitData: Incorrect checkpoint format"

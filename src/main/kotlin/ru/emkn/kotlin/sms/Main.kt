@@ -1,7 +1,10 @@
 package ru.emkn.kotlin.sms
 
 import kotlinx.cli.ExperimentalCli
+import mu.KotlinLogging
 import ru.emkn.kotlin.sms.services.ArgumentsHandler
+
+val logger = KotlinLogging.logger { }
 
 @ExperimentalCli
 fun main(args: Array<String>) {
@@ -10,6 +13,6 @@ fun main(args: Array<String>) {
         initConfig(argsParsed.pathConfig)
         App.run(argsParsed.command)
     } catch (exception: Exception) {
-        println(exception)
+        logger.error { exception.message }
     }
 }
