@@ -209,14 +209,13 @@ object CsvHandler {
                     checkpoint = unit[0]
                 } else {
                     numberAthlete = unit[0].toIntOrNull() ?: throw IncorrectNumberAthleteException(unit[0])
-                    dataProtocolStart[numberAthlete]!!.checkpoints!!.add(        // TODO(Как то избавиться от !!)
+                    dataProtocolStart[numberAthlete]!!.checkpoints!!.add(
                         CheckpointTime(
                             checkpoint, unit[1].toLocalTime() ?: throw InvalidTimeException(unit[1])
                         )
                     )
                 }
             } catch (exception: Exception) {
-                // TODO(Возможно здесь стоит сразу выставить removed=true)
                 printMessageAboutMissAthleteCheckpointData(unit.joinToString(" "), checkpoint)
                 if (exception is ExceptionData) {
                     println(exception)

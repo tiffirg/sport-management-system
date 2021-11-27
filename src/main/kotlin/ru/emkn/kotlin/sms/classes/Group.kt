@@ -11,6 +11,6 @@ data class Group(val groupName: String) {
             throw IncorrectGroupException(groupName)
         }
     }
-    val distance : String
-        get() = GROUP_DISTANCES[groupName] ?: ""
+    val distance : String?
+        get() = GROUP_DISTANCES[groupName]
 }
