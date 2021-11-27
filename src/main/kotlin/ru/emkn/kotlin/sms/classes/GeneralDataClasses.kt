@@ -29,6 +29,13 @@ data class ResultAthleteGroup(val athleteNumberInGroup: Int, val athleteNumber: 
         }
 }
 
+data class ResultsTeam(val teamName: String, val teamScore: Int, val data: List<ResultsTeamString>)
+
+data class ResultsTeamString(val startNumber: Int, val name: String, val surname: String,
+                             val birthYear: Int, val rank: Rank,
+                             val group: Group, val place: Int, val score: Int)
+
+
 data class ResultsGroup(val group: Group, val results: List<ResultAthleteGroup>) {
 
     private val leaderTime : LocalTime?
