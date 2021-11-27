@@ -66,7 +66,7 @@ object ArgumentsHandler {
                     isCheckpointAthlete = resultsGroup.isCheckpointAthlete
                 )
                 resultsTeam.use -> CommandResults(
-                    pathResultsAthlete = resultsTeam.pathResultsGroup,
+                    pathResultsGroup = resultsTeam.pathResultsGroup,
                 )
                 else -> {
                     throw MissCommandException()

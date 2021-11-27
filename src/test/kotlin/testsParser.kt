@@ -113,7 +113,7 @@ internal class TestParser {
             Arguments(
                 pathConfig = "/config.yaml",
                 command = CommandResults(
-                    pathResultsAthlete = null
+                    pathResultsGroup = null
                 )
             ),
             ArgumentsHandler.apply(args)
@@ -128,7 +128,7 @@ internal class TestParser {
             Arguments(
                 pathConfig = "/config.yaml",
                 command = CommandResults(
-                    pathResultsAthlete = "path"
+                    pathResultsGroup = "path"
                 )
             ),
             ArgumentsHandler.apply(args)

@@ -56,7 +56,18 @@ object App {
     }
 
     private fun processCommandResultsTeam(command: CommandResults): List<String> {
-        TODO()
+        if (command.pathResultsGroup.isNullOrEmpty()) {
+            checkExistDir()
+        } else if (!dir.exists()) {
+            dir.mkdir()
+        }
+        val dataResultsGroup = if (command.pathResultsGroup.isNullOrEmpty()) {
+            CsvHandler.parseResultsGroup(pathResultsGroup)
+        } else {
+            CsvHandler.parseResultsGroup(command.pathResultsGroup)
+        }
+
+        TODO("CsvHandler.generationResultsGroup(pathResultsTeam, )")
     }
 
     private fun processStream(isCheckpointAthlete: Boolean, dataProtocolStart: Map<Int, Athlete>): List<Athlete> {

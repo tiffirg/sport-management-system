@@ -23,6 +23,6 @@ data class CommandResultsGroup(
     override val type = TypeCommand.RESULTS_GROUP
 }
 
-data class CommandResults(val pathResultsAthlete: String?) : Command {
+data class CommandResults(val pathResultsGroup: String?) : Command {
     override val type = TypeCommand.RESULTS_TEAM
 }
