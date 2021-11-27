@@ -144,7 +144,7 @@ object CsvHandler {
     fun generationResultsTeam(path: String, data: Map<String, ResultsTeam>)  {
         csvWriter().open(path) {
             data.forEach { (teamName, resultsTeam) ->
-                writeRow(listOf(teamName, resultsTeam.teamScore, "", "", "", "", "", "", "", ""))
+                writeRow(listOf(teamName, resultsTeam.teamScore, "", "", "", "", "", ""))
                 resultsTeam.data.forEach { writeRow(it.listForResultsAthlete) }
             }
         }
