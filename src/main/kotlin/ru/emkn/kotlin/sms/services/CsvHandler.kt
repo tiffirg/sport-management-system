@@ -9,6 +9,7 @@ import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 
 object CsvHandler {
@@ -122,14 +123,14 @@ object CsvHandler {
         }
     }
 
-    fun parseResultsGroup(path: String): MutableList<AthleteResults> {
+    fun parseResultsGroup(path: String): MutableList<ProtocolGroup> {
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
         }
         val linesFromResultsCsv: List<List<String>> = csvReader().readAll(file)
-        var listOfAthletes: MutableList<MedalTable> = mutableListOf()
-        val listOfGroups: MutableList<AthleteResults> = mutableListOf()
+        var listOfAthletes: MutableList<ProtocolString> = mutableListOf()
+        val listOfGroups: MutableList<ProtocolGroup> = mutableListOf()
 
         var group = ""
         var unit: List<String>
@@ -138,17 +139,17 @@ object CsvHandler {
                 unit = linesFromResultsCsv[i]
                 if (GROUP_NAMES.contains(unit[0])) {
                     if (listOfAthletes.isNotEmpty()) {      // = we've already written down the first group of Athletes
-                        listOfGroups.add(AthleteResults(Group(group), listOfAthletes))
+                        listOfGroups.add(ProtocolGroup(Group(group), listOfAthletes))
                         listOfAthletes = mutableListOf()    // .clear() causes troubles
                     }
                     group = unit[0]
                 } else if (unit[0].toIntOrNull() != null) {   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
                     listOfAthletes.add(
-                        MedalTable(
+                        ProtocolString(
                             unit[0].toInt(), unit[1].toInt(),
                             unit[2], unit[3], unit[4].toInt(),
-                            toRank(unit[5]), unit[6], toLocalDateTimeOrNull(unit[7]),
-                            unit[8].toIntOrNull(), unit[9]
+                            toRank(unit[5]), unit[6], (unit[7]).toLocalTime() ?: LocalTime.parse("24:00:00"),
+                            unit[8].toInt(), unit[9]
                         )
                     )
                 }
@@ -156,7 +157,7 @@ object CsvHandler {
         } catch (e: Exception) {
             throw IncorrectResultsGroupException(path)
         }
-        listOfGroups.add(AthleteResults(Group(group), listOfAthletes))      // writing down the last group of Athletes
+        listOfGroups.add(ProtocolGroup(Group(group), listOfAthletes))      // writing down the last group of Athletes
         return listOfGroups
     }
 
