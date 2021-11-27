@@ -141,8 +141,13 @@ object CsvHandler {
         return listOfGroups
     }
 
-    fun generationResultsTeam() {
-        TODO()
+    fun generationResultsTeam(path: String, data: Map<String, ResultsTeam>)  {
+        csvWriter().open(path) {
+            data.forEach { (teamName, resultsTeam) ->
+                writeRow(listOf(teamName, resultsTeam.teamScore, "", "", "", "", "", "", "", ""))
+                resultsTeam.data.forEach { writeRow(it.listForResultsAthlete) }
+            }
+        }
     }
 
     private fun parseRequest(path: String): Team? {
