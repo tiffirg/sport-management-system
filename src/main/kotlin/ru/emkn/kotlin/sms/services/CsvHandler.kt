@@ -112,8 +112,16 @@ object CsvHandler {
         return dataProtocolStart.values.toList()
     }
 
-    fun generationResultsGroup() {
-        TODO()
+    fun generationResultsGroup(path: String, data: Map<Group, ProtocolGroup>) {
+        csvWriter().open(path) {
+            data.forEach { (group, protocolGroup) ->
+                writeRow(listOf(group.groupName, "", "", "", "", "", "", "", "", ""))
+                protocolGroup.protocols.forEach { protocolString ->
+                    writeRow(protocolString.listForResultsGroup)
+                }
+            }
+        }
+
     }
 
     fun toLocalDateTimeOrNull(string: String): LocalDateTime? {
