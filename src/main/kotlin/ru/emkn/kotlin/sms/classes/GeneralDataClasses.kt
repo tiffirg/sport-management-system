@@ -62,7 +62,9 @@ data class ResultsGroup(val group: Group, val results: List<ResultAthleteGroup>)
         return if (athleteTime == null || leaderTime == null) {
             0
         } else {
-            0.coerceAtLeast(100 * (2 - athleteTime.toSecondOfDay() / leaderTime!!.toSecondOfDay()))
+            val x = athleteTime.toSecondOfDay().toDouble()
+            val y = leaderTime!!.toSecondOfDay().toDouble()
+            0.coerceAtLeast((100 * (2 - x / y)).toInt())
         }
     }
 }
