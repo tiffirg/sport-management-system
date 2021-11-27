@@ -53,7 +53,8 @@ object App {
         } else {
             CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete, dataProtocolStart)
         }
-        print(dataCheckpoint)
+        val resultsByGroup = generateResults(dataCheckpoint)
+        CsvHandler.generationResultsGroup(pathResultsGroup, resultsByGroup)
     }
 
     private fun processCommandResultsTeam(command: CommandResults): List<String> {
