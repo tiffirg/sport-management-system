@@ -3,13 +3,9 @@ package ru.emkn.kotlin.sms
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.services.CsvHandler
 import ru.emkn.kotlin.sms.utils.InvalidFileException
-import ru.emkn.kotlin.sms.utils.InvalidTimeException
-import ru.emkn.kotlin.sms.utils.printMessageAboutCancelCompetition
+import ru.emkn.kotlin.sms.utils.messageAboutCancelCompetition
 import ru.emkn.kotlin.sms.utils.toLocalTime
 import java.io.File
-import java.lang.Exception
-import java.time.LocalDateTime
-import java.time.LocalTime
 
 object App {
     private val pathDirectory = File(PATH_CONFIG).resolveSibling("${EVENT_NAME}_$EVENT_DATE").path
@@ -29,7 +25,7 @@ object App {
     private fun processCommandStart(command: CommandStart) {
         val data = CsvHandler.parseRequests(command.pathsRequests)
         if (data.isEmpty()) {
-            printMessageAboutCancelCompetition()
+            logger.info { messageAboutCancelCompetition() }
             return
         }
         // генерирование стартовых списков
@@ -40,8 +36,10 @@ object App {
     }
 
     private fun processCommandResultsGroup(command: CommandResultsGroup) {
-        if (command.pathProtocolCheckpoint.isNullOrEmpty() || command.pathProtocolStart.isNullOrEmpty()) {
+        if (command.pathProtocolStart.isNullOrEmpty()) {
             checkExistDir()
+        } else if (!dir.exists()) {
+            dir.mkdir()
         }
         val dataProtocolStart: Map<Int, Athlete> = if (command.pathProtocolStart.isNullOrEmpty()) {
             CsvHandler.parseProtocolStart(pathProtocolStart)
@@ -66,8 +64,7 @@ object App {
         var splits: List<String>
         if (isCheckpointAthlete) {
             TODO("Реализация по участнику")
-        }
-        else {
+        } else {
             var isWait = true
             var athlete: Athlete? = null
             var numberAthlete: Int? = null
@@ -82,10 +79,14 @@ object App {
                     numberAthlete = line.toInt()
                     athlete = dataProtocolStart[numberAthlete]!! // TODO(Exception)
                     isWait = false
-                }
-                else {
-                    splits = line.split(" " )
-                    checkpoints.add(CheckpointTime(splits[0], splits[1].toLocalTime()?: throw Exception() ))  // TODO(Сделать нормальный)
+                } else {
+                    splits = line.split(" ")
+                    checkpoints.add(
+                        CheckpointTime(
+                            splits[0],
+                            splits[1].toLocalTime() ?: throw Exception()
+                        )
+                    )  // TODO(Сделать нормальный)
                 }
                 line = readLine()
             }

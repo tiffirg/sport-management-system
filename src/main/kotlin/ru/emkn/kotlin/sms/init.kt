@@ -47,12 +47,10 @@ fun initConfig(pathConfig: String) {
         RANKS = config.ranks
         GROUP_NAMES = config.groups.map { it.group }
         GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
-        println(GROUP_DISTANCES)
         DISTANCE_CRITERIA =
             config.criteria.associate { criteriaData -> Pair(criteriaData.distance, criteriaData.checkpoints) }
-        println(DISTANCE_CRITERIA)
     } catch (e: Exception) {
-        // TODO(Проверить конкретную ошибку и в случае чего: println(e))
+        logger.debug { e.message }
         throw InvalidFormatConfigException(pathConfig)
     }
 }

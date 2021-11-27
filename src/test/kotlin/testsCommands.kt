@@ -5,7 +5,7 @@ import ru.emkn.kotlin.sms.*
 import ru.emkn.kotlin.sms.services.CsvHandler
 import java.io.File
 import java.time.LocalTime
-import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -18,6 +18,14 @@ const val PATH_RESULTS_TEAM = "src/test/resources/sampleResultsTeam.csv"
 
 
 internal class TestsCommands {
+
+    @AfterTest
+    fun afterTest() {
+        val dir = File("src/test/resources/${EVENT_NAME}_$EVENT_DATE")
+        if (dir.exists()) {
+            dir.deleteRecursively()
+        }
+    }
 
     @Test
     fun testStartProcessing() {
@@ -65,9 +73,8 @@ internal class TestsCommands {
     @ExperimentalCli
     @Test
     fun testCommandResultsGroup1() {
-        val args = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT)
+        val args = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "-ps", PATH_PROTOCOL_START)
         main(args)
-//        val pathResultsGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rg_${EVENT_NAME}_$EVENT_DATE.csv"
         val dataSampleResultsGroup = CsvHandler.parseResultsGroup(PATH_RESULTS_GROUP)
         val dataResultsGroup = CsvHandler.parseResultsGroup(PATH_RESULTS_GROUP)
         for (resultsGroup in dataResultsGroup) {
@@ -86,27 +93,21 @@ internal class TestsCommands {
     @ExperimentalCli
     @Test
     fun testCommandResultsGroup2() {
-        val pathProtocolsStart = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/ps_${EVENT_NAME}_$EVENT_DATE.csv"
-        val args1 = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT)
-        val args2 = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "-ps", pathProtocolsStart)
-        val args3 = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "--protocolStart", pathProtocolsStart)
+
+        val args1 = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "-ps", PATH_PROTOCOL_START)
+        val args2 = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "--protocolStart", PATH_PROTOCOL_START)
         val pathResultsGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rg_${EVENT_NAME}_$EVENT_DATE.csv"
         main(args1)
         val data1 = CsvHandler.parseResultsGroup(pathResultsGroup)
         main(args2)
         val data2 = CsvHandler.parseResultsGroup(pathResultsGroup)
-        main(args3)
-        val data3 = CsvHandler.parseResultsGroup(pathResultsGroup)
         assertEquals(data1.size, data2.size)
-        assertEquals(data1.size, data3.size)
         for (i in data1.indices) {
             val result1 = data1[i].results
             val result2 = data2[i].results
-            val result3 = data3[i].results
+            assertEquals(result1.size, result1.size)
             assertEquals(result1.size, result2.size)
-            assertEquals(result1.size, result3.size)
             assertEquals(result1.map { it.listForResultsGroup }, result2.map { it.listForResultsGroup })
-            assertEquals(result1.map { it.listForResultsGroup }, result3.map { it.listForResultsGroup })
         }
     }
 
