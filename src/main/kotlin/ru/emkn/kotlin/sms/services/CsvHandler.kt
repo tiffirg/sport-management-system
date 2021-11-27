@@ -6,6 +6,7 @@ import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.GROUP_DISTANCES
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.*
+import ru.emkn.kotlin.sms.disqualifiedTime
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.LocalDateTime
@@ -156,7 +157,7 @@ object CsvHandler {
                         ProtocolString(
                             unit[0].toInt(), unit[1].toInt(),
                             unit[2], unit[3], unit[4].toInt(),
-                            toRank(unit[5]), unit[6], (unit[7]).toLocalTime() ?: LocalTime.parse("24:00:00"),
+                            toRank(unit[5]), unit[6], (unit[7]).toLocalTime() ?: disqualifiedTime,
                             unit[8].toInt(), unit[9]
                         )
                     )

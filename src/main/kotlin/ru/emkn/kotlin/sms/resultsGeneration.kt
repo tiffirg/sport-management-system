@@ -4,7 +4,7 @@ import ru.emkn.kotlin.sms.classes.*
 import java.time.LocalTime
 
 
-val disqualifiedTime: LocalTime = LocalTime.parse("24:00:00") // resulting time for those with incorrect finished
+val disqualifiedTime: LocalTime = LocalTime.parse("23:59:59") // resulting time for those with incorrect finished
 
 fun getAthleteResult(athlete: Athlete): LocalTime {
     return if (athlete.checkpoints != null) {
@@ -13,8 +13,6 @@ fun getAthleteResult(athlete: Athlete): LocalTime {
         disqualifiedTime
     }
 }
-
-val x: Boolean = LocalTime.parse("12:00:00") > LocalTime.parse("11:00:00")
 
 fun generateResultsGroup(athletesGroup: List<Athlete>): List<ProtocolString> {
     athletesGroup.sortedBy { athlete -> getAthleteResult(athlete) }
