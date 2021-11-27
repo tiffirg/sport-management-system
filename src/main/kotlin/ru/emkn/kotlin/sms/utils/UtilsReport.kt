@@ -44,4 +44,4 @@ fun printMessageAboutMissAthleteRequest(request: String, team: String) =
 
 fun printMessageAboutCancelCompetition() = println("Cancellation of the competition ")
 
-fun printMessageAboutMissAthleteCheckpointData(unitData: String, checkpoint: String) = println()
+fun printMessageAboutMissAthleteCheckpointData(unitData: String, checkpoint: String) = println("`$checkpoint` $unitData: Incorrect checkpoint format ")
