@@ -14,6 +14,8 @@ import java.time.LocalTime
 object App {
     private val pathDirectory = File(PATH_CONFIG).resolveSibling("${EVENT_NAME}_$EVENT_DATE").path
     private val pathProtocolStart = File(pathDirectory).resolve("ps_${EVENT_NAME}_$EVENT_DATE.csv").path
+    private val pathResultsGroup = File(pathDirectory).resolve("rg_${EVENT_NAME}_$EVENT_DATE.csv").path
+    private val pathResultsTeam = File(pathDirectory).resolve("rt_${EVENT_NAME}_$EVENT_DATE.csv").path
     private val dir = File(pathDirectory)
 
     fun run(command: Command) {
