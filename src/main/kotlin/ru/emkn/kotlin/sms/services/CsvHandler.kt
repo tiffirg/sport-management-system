@@ -2,15 +2,10 @@ package ru.emkn.kotlin.sms.services
 
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
-import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
-import ru.emkn.kotlin.sms.GROUP_DISTANCES
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.disqualifiedTime
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
-import java.time.LocalDateTime
-import java.time.LocalTime
 
 
 object CsvHandler {
@@ -113,11 +108,11 @@ object CsvHandler {
         return dataProtocolStart.values.toList()
     }
 
-    fun generationResultsGroup(path: String, data: Map<Group, ProtocolGroup>) {
+    fun generationResultsGroup(path: String, data: Map<Group, ResultsGroup>) {
         csvWriter().open(path) {
             data.forEach { (group, protocolGroup) ->
                 writeRow(listOf(group.groupName, "", "", "", "", "", "", "", "", ""))
-                protocolGroup.protocols.forEach { protocolString ->
+                protocolGroup.results.forEach { protocolString ->
                     writeRow(protocolString.listForResultsGroup)
                 }
             }
@@ -125,48 +120,42 @@ object CsvHandler {
 
     }
 
-    fun toLocalDateTimeOrNull(string: String): LocalDateTime? {
-        return when (string) {
-            "снят." -> null
-            else -> null    // !!!HERE SHOULD BE String -> LocalDateTime. Not null
-        }
-    }
-
-    fun parseResultsGroup(path: String): MutableList<ProtocolGroup> {
+    fun parseResultsGroup(path: String): MutableList<ResultsGroup> {
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
         }
         val linesFromResultsCsv: List<List<String>> = csvReader().readAll(file)
-        var listOfAthletes: MutableList<ProtocolString> = mutableListOf()
-        val listOfGroups: MutableList<ProtocolGroup> = mutableListOf()
+        var listOfAthletes: MutableList<ResultAthleteGroup> = mutableListOf()
+        val listOfGroups: MutableList<ResultsGroup> = mutableListOf()
 
         var group = ""
         var unit: List<String>
         try {
-            for (i in 1 until linesFromResultsCsv.size) {
-                unit = linesFromResultsCsv[i]
+            for (element in linesFromResultsCsv) {
+                unit = element
                 if (GROUP_NAMES.contains(unit[0])) {
                     if (listOfAthletes.isNotEmpty()) {      // = we've already written down the first group of Athletes
-                        listOfGroups.add(ProtocolGroup(Group(group), listOfAthletes))
-                        listOfAthletes = mutableListOf()    // .clear() causes troubles
+                        listOfGroups.add(ResultsGroup(Group(group), listOfAthletes))
+                        listOfAthletes = mutableListOf()
                     }
                     group = unit[0]
                 } else if (unit[0].toIntOrNull() != null) {   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
                     listOfAthletes.add(
-                        ProtocolString(
+                        ResultAthleteGroup(
                             unit[0].toInt(), unit[1].toInt(),
                             unit[2], unit[3], unit[4].toInt(),
-                            toRank(unit[5]), unit[6], (unit[7]).toLocalTime() ?: disqualifiedTime,
+                            toRank(unit[5]), unit[6], (unit[7]).toLocalTime(),
                             unit[8].toInt(), unit[9]
                         )
                     )
                 }
             }
         } catch (e: Exception) {
+            println(e)
             throw IncorrectResultsGroupException(path)
         }
-        listOfGroups.add(ProtocolGroup(Group(group), listOfAthletes))      // writing down the last group of Athletes
+        listOfGroups.add(ResultsGroup(Group(group), listOfAthletes))      // writing down the last group of Athletes
         return listOfGroups
     }
 
@@ -186,7 +175,7 @@ object CsvHandler {
         }
         val teamName = data[0][0]
         var unit: List<String>
-        for (i in 2 until data.size) {
+        for (i in 1 until data.size) {
             unit = data[i]
             try {
                 athletes.add(

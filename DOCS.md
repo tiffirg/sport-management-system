@@ -40,11 +40,11 @@ For each input option, you can use the command `--checkpointAthlete` or `-cpa`
 ```
 
 ```
-3. competition <path config> resultsGroup path --protocolsStart path
+3. competition <path config> resultsGroup path --protocolStart path
 ```
 
 ```
-4. competition <path config> resultsGroup <InputStream> --protocolsStart path
+4. competition <path config> resultsGroup <InputStream> --protocolStart path
 ```
 
 

@@ -7,7 +7,7 @@ import ru.emkn.kotlin.sms.services.ArgumentsHandler
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class Test1 {
+internal class TestParser {
 
     @ExperimentalCli
     @Test
@@ -61,7 +61,7 @@ internal class Test1 {
     @ExperimentalCli
     @Test
     fun testParserResultsGroup4() {
-        val args = arrayOf("/config.yaml", "resultsGroup", "-cp")
+        val args = arrayOf("/config.yaml", "resultsGroup", "-cpa")
         assertEquals(
             Arguments(
                 pathConfig = "/config.yaml",
