@@ -5,7 +5,7 @@ import java.time.LocalTime
 
 
 val disqualifiedTime: LocalTime = LocalTime.parse("23:59:59") // resulting time for those with incorrect finished
-
+// TODO("проверить корректность прохождения дистанции участником?")
 fun getAthleteResult(athlete: Athlete): LocalTime {
     return if (athlete.checkpoints != null) {
         athlete.checkpoints!!.last().time
@@ -15,6 +15,7 @@ fun getAthleteResult(athlete: Athlete): LocalTime {
 }
 
 fun generateResultsGroup(athletesGroup: List<Athlete>): List<ProtocolString> {
+    // TODO("добавить присвоение разрядов")
     athletesGroup.sortedBy { athlete -> getAthleteResult(athlete) }
     val protocols: List<ProtocolString> = athletesGroup.mapIndexed { index, athlete ->
         ProtocolString(
