@@ -1,14 +1,39 @@
 package ru.emkn.kotlin.sms
 
-import ru.emkn.kotlin.sms.classes.Athlete
-import java.lang.Math.max
-import java.time.LocalTime
+import ru.emkn.kotlin.sms.classes.*
 
-fun scoreInGroup(athleteTime: LocalTime, leaderTime: LocalTime): Int {
-    return 0.coerceAtLeast(100 * (2 - athleteTime.toSecondOfDay() / leaderTime.toSecondOfDay()))
-    //max(0, 100 * (2 - <результат>/<результат победителя>)
+
+fun teamResultsGeneration(listOfGroups: MutableList<ResultsGroup>): Map<String, ResultsTeam> {
+
+
+    val resultsForGroups = listOfGroups.associate { resultsGroup -> Pair(resultsGroup.group, resultsGroup.results) }
+    val athleteResults = resultsForGroups.flatMap { it.value }
+    val teamsResults = athleteResults.groupBy { athleteResult -> athleteResult.teamName }
+
+    val scoresByAthleteNumber: MutableMap<Int, Int> = mutableMapOf()
+    val groupByAthleteNumber: MutableMap<Int, Group> = mutableMapOf()
+
+    listOfGroups.forEach { resultsGroup ->
+        resultsGroup.results.forEach { athleteResult ->
+            scoresByAthleteNumber[athleteResult.athleteNumber] =
+                resultsGroup.getAthleteScore(athleteResult.athleteNumber)
+            groupByAthleteNumber[athleteResult.athleteNumber] = resultsGroup.group
+        }
+    }
+
+    fun generateTeamResult(teamName: String, teamResults: List<ResultAthleteGroup>): ResultsTeam {
+        val data = teamResults.map { (_, athleteNumber, surname, name, birthYear, rank, _, _, place, _) ->
+            ResultsTeamString(
+                athleteNumber, name, surname, birthYear, rank,
+                groupByAthleteNumber[athleteNumber]!!, place, scoresByAthleteNumber[athleteNumber]!!
+            )
+        }
+        val teamScore = data.sumOf { it.score }
+        return ResultsTeam(teamName, teamScore, data)
+    }
+
+    return teamsResults.map { (teamName, teamResults) ->
+        Pair(teamName, generateTeamResult(teamName, teamResults)) }.toMap()
+
 }
 
-fun teamResultsGeneration() {
-
-}
