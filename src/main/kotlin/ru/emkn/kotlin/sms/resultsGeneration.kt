@@ -11,39 +11,35 @@ fun LocalTime.minus(time: LocalTime?): LocalTime {
         this
     } else {
         val totalSeconds = this.toSecondOfDay() - time.toSecondOfDay()
-        val h = totalSeconds / (60 * 60)
-        val m = totalSeconds / 60 - h * 60
-        val s = totalSeconds % 60
-        LocalTime.of(h, m, s)
+        val hour = totalSeconds / (60 * 60)
+        val minute = totalSeconds / 60 - hour * 60
+        val second = totalSeconds % 60
+        LocalTime.of(hour, minute, second)
     }
 }
 
 
-// TODO("проверить корректность прохождения дистанции участником? С помощью Athlete.CheckCheckpoints")
-fun getAthleteResult(athlete: Athlete): LocalTime? {
-
-    if (athlete.checkpoints == null) {
-        TODO("invalid athlete")
+fun getAthleteResult(athlete: Athlete): LocalTime {
+    athlete.checkCheckpoints()
+    return if (athlete.removed) {
+        LocalTime.parse("00:00:00")
     } else {
-
-        val distanceCriteria = DISTANCE_CRITERIA[athlete.group.distance]
-        val finish = distanceCriteria?.last() ?: throw Exception() // TODO: invalid distance criteria
-
-        return if (athlete.checkpoints != null) {
-            val dataCheckpoints = athlete.checkpoints!!.associate { Pair(it.checkpoint, it.time) }
-            dataCheckpoints[finish]?.minus(athlete.startTime) ?: throw Exception() // TODO: убрать вопросики
-        } else {
-            null
-        }
+        val finishTime = athlete.checkpoints!!.last().time
+        finishTime.minus(athlete.startTime)
     }
 }
 
 
 fun generateResultsGroup(athletesGroup: AthletesGroup): List<ResultAthleteGroup> {
+
     // TODO("добавить присвоение разрядов")
 
     val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
-        getAthleteResult(athlete)?.toSecondOfDay() ?: INF
+        if (athlete.removed) {
+            INF
+        } else {
+            getAthleteResult(athlete).toSecondOfDay()
+        }
     }
 
     val protocols: List<ResultAthleteGroup> = sortedAthletes.mapIndexed { index, athlete ->
