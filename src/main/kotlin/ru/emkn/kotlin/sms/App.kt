@@ -55,7 +55,7 @@ object App {
         CsvHandler.generationResultsGroup(pathResultsGroup, resultsByGroup)
     }
 
-    private fun processCommandResultsTeam(command: CommandResults): List<String> {
+    private fun processCommandResultsTeam(command: CommandResults) {
         if (command.pathResultsGroup.isNullOrEmpty()) {
             checkExistDir()
         } else if (!dir.exists()) {
@@ -66,8 +66,7 @@ object App {
         } else {
             CsvHandler.parseResultsGroup(command.pathResultsGroup)
         }
-
-        TODO("CsvHandler.generationResultsGroup(pathResultsTeam, )")
+        CsvHandler.generationResultsTeam(pathResultsTeam, teamResultsGeneration(dataResultsGroup))
     }
 
     private fun processStream(isCheckpointAthlete: Boolean, dataProtocolStart: Map<Int, Athlete>): List<Athlete> {
