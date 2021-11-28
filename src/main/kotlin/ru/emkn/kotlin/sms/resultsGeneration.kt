@@ -106,5 +106,6 @@ fun generateResults(dataCheckpoints: List<Athlete>): Map<Group, ResultsGroup> {
     val protocols = (athletesGroups.map { (group, athletesGroup) ->
         Pair(group, ResultsGroup(group, generateResultsGroup(AthletesGroup(group, athletesGroup))))
     }).toMap()
+    protocols.toSortedMap(compareBy { it.groupName })
     return protocols
 }
