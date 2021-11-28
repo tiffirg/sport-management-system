@@ -7,7 +7,25 @@ import java.time.LocalTime
 data class SplitResultAthleteGroup (val athleteNumberInGroup: Int, val athleteNumber: Int,
                                     val surname: String, val name: String, val birthYear: Int,
                                     val rank: Rank, val teamName: String, val splits: List<CheckpointTime>?,
-                                    val place: Int, val backlog: String)
+                                    val place: Int, val backlog: String) {
+    val listForSplitsResultsGroup: List<String>
+        get() {
+            val result = mutableListOf(
+                athleteNumberInGroup.toString(),
+                athleteNumber.toString(),
+                surname,
+                name,
+                birthYear.toString(),
+                rank.rankName ?: "",
+                teamName,
+                place.toString(),
+                backlog)
+            splits?.forEach {
+                result.addAll(listOf(it.checkpoint, it.time.toString()))  // TODO(Сделать нормальный csv)
+            }
+            return result
+        }
+}
 
 data class SplitResultsGroup(val group: Group, val results: List<SplitResultAthleteGroup>)
 

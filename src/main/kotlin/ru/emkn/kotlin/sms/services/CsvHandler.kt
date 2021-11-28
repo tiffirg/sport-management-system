@@ -2,17 +2,12 @@ package ru.emkn.kotlin.sms.services
 
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
-import ru.emkn.kotlin.sms.GROUP_NAMES
-import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.logger
+import ru.emkn.kotlin.sms.*
+import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.CheckpointTime
+import ru.emkn.kotlin.sms.classes.Group
+import ru.emkn.kotlin.sms.classes.Rank
 import ru.emkn.kotlin.sms.utils.*
-
-import ru.emkn.kotlin.sms.Team
-import ru.emkn.kotlin.sms.AthletesGroup
-import ru.emkn.kotlin.sms.ResultAthleteInGroup
-import ru.emkn.kotlin.sms.ResultsGroup
-import ru.emkn.kotlin.sms.ResultsTeam
-
 import java.io.File
 
 
@@ -106,7 +101,15 @@ object CsvHandler {
                 }
             }
         }
+    }
 
+    fun generationSplitResults(path: String, data: Map<Group, SplitResultsGroup>) {
+        csvWriter().open(path) {
+            data.forEach { (group, splitResultsGroup) ->
+                writeRow(listOf(group.groupName, "", "", "", "", "", "", "", "", ""))
+                splitResultsGroup.results.forEach { writeRow(it.listForSplitsResultsGroup) }
+            }
+        }
     }
 
     fun parseResultsGroup(path: String): MutableList<ResultsGroup> {
@@ -148,7 +151,7 @@ object CsvHandler {
         return listOfGroups
     }
 
-    fun generationResultsTeam(path: String, data: Map<String, ResultsTeam>)  {
+    fun generationResultsTeam(path: String, data: Map<String, ResultsTeam>) {
         csvWriter().open(path) {
             data.forEach { (teamName, resultsTeam) ->
                 writeRow(listOf(teamName, resultsTeam.teamScore, "", "", "", "", "", ""))

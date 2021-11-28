@@ -76,7 +76,8 @@ internal class TestsCommands {
         val args = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "-ps", PATH_PROTOCOL_START)
         main(args)
         val dataSampleResultsGroup = CsvHandler.parseResultsGroup(PATH_RESULTS_GROUP)
-        val dataResultsGroup = CsvHandler.parseResultsGroup(PATH_RESULTS_GROUP)
+        val pathResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rg_${EVENT_NAME}_$EVENT_DATE.csv"
+        val dataResultsGroup = CsvHandler.parseResultsGroup(pathResultGroup)
         for (resultsGroup in dataResultsGroup) {
             val sampleResults = dataSampleResultsGroup.find { it.group.groupName == resultsGroup.group.groupName }?.results
             assert(!sampleResults.isNullOrEmpty())
@@ -118,10 +119,9 @@ internal class TestsCommands {
         val args = arrayOf(PATH_CONFIG, "resultsTeam", PATH_RESULTS_GROUP)
         main(args)
         val pathResultsTeam = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rt_${EVENT_NAME}_$EVENT_DATE.csv"
-        assertEquals(
-            csvReader().readAll(File(pathResultsTeam)),
-            csvReader().readAll(File(PATH_RESULTS_TEAM))
-        )
+        val data = CsvHandler.parseResultsGroup(pathResultsTeam)
+
+
     }
 
     @ExperimentalCli

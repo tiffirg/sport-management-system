@@ -9,10 +9,11 @@ import java.io.File
 
 object App {
     private val pathDirectory = File(PATH_CONFIG).resolveSibling("${EVENT_NAME}_$EVENT_DATE").path
-    private val pathProtocolStart = File(pathDirectory).resolve("ps_${EVENT_NAME}_$EVENT_DATE.csv").path
-    private val pathResultsGroup = File(pathDirectory).resolve("rg_${EVENT_NAME}_$EVENT_DATE.csv").path
-    private val pathResultsTeam = File(pathDirectory).resolve("rt_${EVENT_NAME}_$EVENT_DATE.csv").path
     private val dir = File(pathDirectory)
+    private val pathProtocolStart = dir.resolve("ps_${EVENT_NAME}_$EVENT_DATE.csv").path
+    private val pathResultsGroup = dir.resolve("rg_${EVENT_NAME}_$EVENT_DATE.csv").path
+    private val pathSplitResults = dir.resolve("rs_${EVENT_NAME}_$EVENT_DATE.csv").path
+    private val pathResultsTeam = File(pathDirectory).resolve("rt_${EVENT_NAME}_$EVENT_DATE.csv").path
 
     fun run(command: Command) {
         when (command) {
@@ -28,9 +29,7 @@ object App {
             logger.info { messageAboutCancelCompetition() }
             return
         }
-        // генерирование стартовых списков
         val startLists: List<AthletesGroup> = startProtocolsGeneration(data)
-        // записывание данных в csv
         dir.mkdir()
         CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
@@ -53,6 +52,7 @@ object App {
         }
         val resultsByGroup = generateResults(dataCheckpoint)
         CsvHandler.generationResultsGroup(pathResultsGroup, resultsByGroup)
+        CsvHandler.generationSplitResults(pathSplitResults, generateSplitResults(dataCheckpoint))
     }
 
     private fun processCommandResultsTeam(command: CommandResults) {
