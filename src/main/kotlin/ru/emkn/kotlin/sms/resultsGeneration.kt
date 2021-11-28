@@ -1,9 +1,8 @@
 package ru.emkn.kotlin.sms
 
 import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.utils.TimeFormatter
 import java.time.LocalTime
-
+import kotlin.Double.Companion.POSITIVE_INFINITY
 
 
 data class ResultAthleteInGroup(val athleteNumberInGroup: Int, val athleteNumber: Int,
@@ -28,9 +27,6 @@ data class ResultAthleteInGroup(val athleteNumberInGroup: Int, val athleteNumber
         }
 }
 
-
-
-
 data class ResultsGroup(val group: Group, val results: List<ResultAthleteInGroup>) {
 
     private val leaderTime : LocalTime?
@@ -51,19 +47,7 @@ data class ResultsGroup(val group: Group, val results: List<ResultAthleteInGroup
 }
 
 
-const val INF = 1000000
-
-fun LocalTime.minus(time: LocalTime?): LocalTime {
-    return if (time == null) {
-        this
-    } else {
-        val totalSeconds = this.toSecondOfDay() - time.toSecondOfDay()
-        val hour = totalSeconds / (60 * 60)
-        val minute = totalSeconds / 60 - hour * 60
-        val second = totalSeconds % 60
-        LocalTime.of(hour, minute, second)
-    }
-}
+const val INF = POSITIVE_INFINITY.toInt()
 
 
 // функция вычисляет отставание от лидера

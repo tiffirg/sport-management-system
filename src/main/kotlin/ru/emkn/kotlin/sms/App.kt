@@ -4,7 +4,6 @@ import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.services.CsvHandler
 import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.messageAboutCancelCompetition
-import ru.emkn.kotlin.sms.utils.toLocalTime
 import java.io.File
 
 object App {
@@ -69,8 +68,8 @@ object App {
         CsvHandler.generationResultsTeam(pathResultsTeam, teamResultsGeneration(dataResultsGroup))
     }
 
-    private fun processStream(isCheckpointAthlete: Boolean, dataProtocolStart: Map<Int, Athlete>): List<Athlete> {
-        var line = readLine()
+    private fun processStream(isCheckpointAthlete: Boolean, dataProtocolStart: Map<Int, Athlete>): List<Athlete> {  // По ТЗ - не требуется
+        var line = readLine()                                                                                       // Реализован шаблон на будущее
         var splits: List<String>
         if (isCheckpointAthlete) {
             TODO("Реализация по участнику")

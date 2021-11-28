@@ -1,13 +1,17 @@
 package ru.emkn.kotlin.sms
-import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.utils.TimeFormatter
-import java.time.LocalTime
+
+import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.CheckpointTime
+import ru.emkn.kotlin.sms.classes.Group
+import ru.emkn.kotlin.sms.classes.Rank
 
 
-data class SplitResultAthleteGroup (val athleteNumberInGroup: Int, val athleteNumber: Int,
-                                    val surname: String, val name: String, val birthYear: Int,
-                                    val rank: Rank, val teamName: String, val splits: List<CheckpointTime>?,
-                                    val place: Int, val backlog: String) {
+data class SplitResultAthleteGroup(
+    val athleteNumberInGroup: Int, val athleteNumber: Int,
+    val surname: String, val name: String, val birthYear: Int,
+    val rank: Rank, val teamName: String, val splits: List<CheckpointTime>?,
+    val place: Int, val backlog: String
+) {
     val listForSplitsResultsGroup: List<String>
         get() {
             val result = mutableListOf(
@@ -19,7 +23,8 @@ data class SplitResultAthleteGroup (val athleteNumberInGroup: Int, val athleteNu
                 rank.rankName ?: "",
                 teamName,
                 place.toString(),
-                backlog)
+                backlog
+            )
             splits?.forEach {
                 result.addAll(listOf(it.checkpoint, it.time.toString()))  // TODO(Сделать нормальный csv)
             } ?: result.add("снят")

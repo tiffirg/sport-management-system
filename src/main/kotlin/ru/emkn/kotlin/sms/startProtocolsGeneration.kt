@@ -3,8 +3,6 @@ package ru.emkn.kotlin.sms
 import ru.emkn.kotlin.sms.classes.Athlete
 import ru.emkn.kotlin.sms.classes.Group
 import ru.emkn.kotlin.sms.utils.InvalidTimeException
-import ru.emkn.kotlin.sms.utils.toLocalTime
-
 
 
 data class Team(val teamName: String, val athletes: List<Athlete>)
@@ -24,7 +22,8 @@ fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
     // распределение времени старта между группами
     fun generateStartTimes() {
 
-        var currentStartTime = EVENT_TIME.toLocalTime() ?: throw InvalidTimeException(EVENT_TIME) // TODO(Перенести в init)
+        var currentStartTime =
+            EVENT_TIME.toLocalTime() ?: throw InvalidTimeException(EVENT_TIME) // TODO(Перенести в init)
         var currentGroupIndex = 1
 
         // жеребьевка внутри каждой группы
