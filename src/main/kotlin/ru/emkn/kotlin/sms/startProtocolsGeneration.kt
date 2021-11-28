@@ -1,11 +1,16 @@
 package ru.emkn.kotlin.sms
 
 import ru.emkn.kotlin.sms.classes.Athlete
-import ru.emkn.kotlin.sms.classes.AthletesGroup
 import ru.emkn.kotlin.sms.classes.Group
-import ru.emkn.kotlin.sms.classes.Team
 import ru.emkn.kotlin.sms.utils.InvalidTimeException
 import ru.emkn.kotlin.sms.utils.toLocalTime
+
+
+
+data class Team(val teamName: String, val athletes: List<Athlete>)
+
+data class AthletesGroup(val group: Group, val athletes: List<Athlete>)
+
 
 fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
 

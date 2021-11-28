@@ -3,6 +3,29 @@ package ru.emkn.kotlin.sms
 import ru.emkn.kotlin.sms.classes.*
 
 
+data class ResultsTeam(val teamName: String, val teamScore: Int, val data: List<AthleteResultInTeam>)
+
+data class AthleteResultInTeam(
+    val startNumber: Int, val name: String, val surname: String,
+    val birthYear: Int, val rank: Rank,
+    val group: Group, val place: Int, val score: Int
+) {
+    val listForResultsAthlete: List<String>
+        get() {
+            return listOf(
+                startNumber.toString(),
+                surname,
+                name,
+                birthYear.toString(),
+                rank.rankName ?: "",
+                group.groupName,
+                place.toString(),
+                score.toString()
+            )
+        }
+}
+
+
 fun teamResultsGeneration(listOfGroups: MutableList<ResultsGroup>): Map<String, ResultsTeam> {
 
 
@@ -21,9 +44,9 @@ fun teamResultsGeneration(listOfGroups: MutableList<ResultsGroup>): Map<String, 
         }
     }
 
-    fun generateTeamResult(teamName: String, teamResults: List<ResultAthleteGroup>): ResultsTeam {
+    fun generateTeamResult(teamName: String, teamResults: List<ResultAthleteInGroup>): ResultsTeam {
         val data = teamResults.map { (_, athleteNumber, surname, name, birthYear, rank, _, _, place, _) ->
-            ResultsTeamString(
+            AthleteResultInTeam(
                 athleteNumber, name, surname, birthYear, rank,
                 groupByAthleteNumber[athleteNumber]!!, place, scoresByAthleteNumber[athleteNumber]!!
             )
@@ -33,7 +56,8 @@ fun teamResultsGeneration(listOfGroups: MutableList<ResultsGroup>): Map<String, 
     }
 
     return teamsResults.map { (teamName, teamResults) ->
-        Pair(teamName, generateTeamResult(teamName, teamResults)) }.toMap()
+        Pair(teamName, generateTeamResult(teamName, teamResults))
+    }.toMap()
 
 }
 
