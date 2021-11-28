@@ -6,6 +6,13 @@ import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.logger
 import ru.emkn.kotlin.sms.utils.*
+
+import ru.emkn.kotlin.sms.Team
+import ru.emkn.kotlin.sms.AthletesGroup
+import ru.emkn.kotlin.sms.ResultAthleteInGroup
+import ru.emkn.kotlin.sms.ResultsGroup
+import ru.emkn.kotlin.sms.ResultsTeam
+
 import java.io.File
 
 
@@ -108,7 +115,7 @@ object CsvHandler {
             throw InvalidFileException(path)
         }
         val linesFromResultsCsv: List<List<String>> = csvReader().readAll(file)
-        var listOfAthletes: MutableList<ResultAthleteGroup> = mutableListOf()
+        var listOfAthletes: MutableList<ResultAthleteInGroup> = mutableListOf()
         val listOfGroups: MutableList<ResultsGroup> = mutableListOf()
 
         var group = ""
@@ -124,7 +131,7 @@ object CsvHandler {
                     group = unit[0]
                 } else if (unit[0].toIntOrNull() != null) {   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
                     listOfAthletes.add(
-                        ResultAthleteGroup(
+                        ResultAthleteInGroup(
                             unit[0].toInt(), unit[1].toInt(),
                             unit[2], unit[3], unit[4].toInt(),
                             toRank(unit[5]), unit[6], (unit[7]).toLocalTime(),
