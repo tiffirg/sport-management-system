@@ -76,5 +76,6 @@ fun generateSplitResults(dataCheckpoints: List<Athlete>): Map<Group, SplitResult
     val splitProtocols = (athletesGroups.map { (group, athletesGroup) ->
         Pair(group, SplitResultsGroup(group, generateSplitResultsGroup(AthletesGroup(group, athletesGroup))))
     }).toMap()
+    splitProtocols.toSortedMap(compareBy { it.groupName })
     return splitProtocols
 }
