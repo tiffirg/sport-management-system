@@ -13,6 +13,7 @@ import java.time.format.DateTimeParseException
 
 val TimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 val DateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+const val REMOVED_VALUE = "снят"
 
 private fun checkConfigDate(date: String) {
     try {

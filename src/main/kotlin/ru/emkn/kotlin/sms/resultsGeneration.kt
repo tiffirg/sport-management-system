@@ -20,7 +20,7 @@ data class ResultAthleteInGroup(val athleteNumberInGroup: Int, val athleteNumber
                 birthYear.toString(),
                 rank.rankName ?: "",
                 teamName,
-                result?.format(TimeFormatter) ?: "снят",
+                result?.format(TimeFormatter) ?: REMOVED_VALUE,
                 place.toString(),
                 backlog
             )

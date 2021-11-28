@@ -12,7 +12,7 @@ data class SplitResultAthleteGroup(
     val rank: Rank, val teamName: String, val splits: List<CheckpointTime>?,
     val place: Int, val backlog: String
 ) {
-    val listForSplitsResultsGroup: List<String>
+    val listForSplitsResultsGroup: MutableList<String>
         get() {
             val result = mutableListOf(
                 athleteNumberInGroup.toString(),
@@ -23,12 +23,11 @@ data class SplitResultAthleteGroup(
                 rank.rankName ?: "",
                 teamName,
                 place.toString(),
-                backlog
+                if (splits.isNullOrEmpty()) REMOVED_VALUE else backlog
             )
             splits?.forEach {
-                result.addAll(listOf(it.checkpoint, it.time.toString()))  // TODO(Сделать нормальный csv)
-            } ?: result.add("снят")
-
+                result.addAll(listOf(it.checkpoint, it.time.toString()))
+            }
             return result
         }
 }

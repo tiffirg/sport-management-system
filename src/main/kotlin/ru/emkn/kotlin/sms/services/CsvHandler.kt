@@ -104,10 +104,16 @@ object CsvHandler {
     }
 
     fun generationSplitResults(path: String, data: Map<Group, SplitResultsGroup>) {
+        val maxDistance = data.maxOf { (_, resultsGroup) -> resultsGroup.results.maxOf { it.splits?.size?: 0 } }
         csvWriter().open(path) {
             data.forEach { (group, splitResultsGroup) ->
-                writeRow(listOf(group.groupName, "", "", "", "", "", "", "", "", ""))
-                splitResultsGroup.results.forEach { writeRow(it.listForSplitsResultsGroup) }
+                val title = mutableListOf(group.groupName, "", "", "", "", "", "", "", "")
+                title.addAll(List(2 * maxDistance) {""})
+                writeRow(title)
+                splitResultsGroup.results.forEach {
+                    val result = it.listForSplitsResultsGroup
+                    result.addAll(List(2 * (maxDistance - (it.splits?.size?: 0))) {""})
+                    writeRow(result) }
             }
         }
     }
