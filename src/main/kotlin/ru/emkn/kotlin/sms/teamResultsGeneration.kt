@@ -55,9 +55,11 @@ fun teamResultsGeneration(listOfGroups: MutableList<ResultsGroup>): Map<String, 
         return ResultsTeam(teamName, teamScore, data)
     }
 
-    return teamsResults.map { (teamName, teamResults) ->
+    val res = teamsResults.map { (teamName, teamResults) ->
         Pair(teamName, generateTeamResult(teamName, teamResults))
     }.toMap()
+
+    return res.toSortedMap(compareByDescending { res[it]!!.teamScore })
 
 }
 
