@@ -45,5 +45,6 @@ fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
     }
 
     generateStartTimes()
-    return groupLists.map { (group, athleteList) -> AthletesGroup(group, athleteList) }
+    val startLists = groupLists.map { (group, athleteList) -> AthletesGroup(group, athleteList) }
+    return startLists.sortedBy { athletesGroup -> athletesGroup.group.toString() }
 }
