@@ -1,7 +1,7 @@
 package ru.emkn.kotlin.sms
 import ru.emkn.kotlin.sms.classes.*
+import ru.emkn.kotlin.sms.utils.TimeFormatter
 import java.time.LocalTime
-
 
 
 data class SplitResultAthleteGroup (val athleteNumberInGroup: Int, val athleteNumber: Int,
@@ -59,14 +59,20 @@ fun generateSplitResultsGroup(athletesGroup: AthletesGroup): List<SplitResultAth
         val resultTimeOrNull = getAthleteResult(athlete)
         resultTimeOrNull?.toSecondOfDay() ?: INF
     }
+
+    val leaderTime = getAthleteResult(sortedAthletes.first())
+
     val splitProtocols: List<SplitResultAthleteGroup> = sortedAthletes.mapIndexed { index, athlete ->
+        val split = getAthleteSplit(athlete)
+        val result = getAthleteResult(athlete)
         SplitResultAthleteGroup(
             index + 1, athlete.athleteNumber!!,
             athlete.surname, athlete.name, athlete.birthYear,
-            athlete.rank, athlete.teamName, getAthleteSplit(athlete),
-            index + 1, ""
+            athlete.rank, athlete.teamName, split,
+            index + 1, getBacklog(result, leaderTime)
         )
     }
+
     return splitProtocols
 }
 

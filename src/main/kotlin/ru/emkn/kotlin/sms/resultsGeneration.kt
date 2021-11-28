@@ -66,6 +66,16 @@ fun LocalTime.minus(time: LocalTime?): LocalTime {
 }
 
 
+// функция вычисляет отставание от лидера
+fun getBacklog(result: LocalTime?, leaderTime: LocalTime?) : String {
+    return if (result == null) {
+        ""
+    } else {
+        "+${result.minus(leaderTime).format(TimeFormatter)}"
+    }
+}
+
+
 fun getAthleteResult(athlete: Athlete): LocalTime? {
     athlete.checkCheckpoints()
     return if (athlete.removed) {
@@ -75,7 +85,6 @@ fun getAthleteResult(athlete: Athlete): LocalTime? {
         finishTime.minus(athlete.startTime)
     }
 }
-
 
 fun generateResultsGroup(athletesGroup: AthletesGroup): List<ResultAthleteInGroup> {
 
@@ -102,9 +111,7 @@ fun generateResultsGroup(athletesGroup: AthletesGroup): List<ResultAthleteInGrou
     val leaderTime = protocols.first().result
     protocols.forEach { resultAthleteInGroup ->
         val result = resultAthleteInGroup.result
-        if (result != null) {
-            resultAthleteInGroup.backlog = "+${result.minus(leaderTime).format(TimeFormatter)}"
-        }
+        resultAthleteInGroup.backlog = getBacklog(result, leaderTime)
     }
 
     return protocols
