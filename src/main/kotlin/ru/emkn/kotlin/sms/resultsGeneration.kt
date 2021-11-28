@@ -19,10 +19,10 @@ fun LocalTime.minus(time: LocalTime?): LocalTime {
 }
 
 
-fun getAthleteResult(athlete: Athlete): LocalTime {
+fun getAthleteResult(athlete: Athlete): LocalTime? {
     athlete.checkCheckpoints()
     return if (athlete.removed) {
-        LocalTime.parse("00:00:00")
+        null
     } else {
         val finishTime = athlete.checkpoints!!.last().time
         finishTime.minus(athlete.startTime)
@@ -34,12 +34,11 @@ fun generateResultsGroup(athletesGroup: AthletesGroup): List<ResultAthleteGroup>
 
     // TODO("добавить присвоение разрядов")
 
+    // Атлеты сортируются по времени результата
+    // Если человек дисквалифицирован, то его результатом буде специальное значение
     val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
-        if (athlete.removed) {
-            INF
-        } else {
-            getAthleteResult(athlete).toSecondOfDay()
-        }
+        val resultTimeOrNull = getAthleteResult(athlete)
+        resultTimeOrNull?.toSecondOfDay() ?: INF
     }
 
     val protocols: List<ResultAthleteGroup> = sortedAthletes.mapIndexed { index, athlete ->
