@@ -32,10 +32,11 @@ fun getAthleteResult(athlete: Athlete): LocalTime? {
 
 fun generateResultsGroup(athletesGroup: AthletesGroup): List<ResultAthleteGroup> {
 
-    // TODO("добавить присвоение разрядов")
+    // TODO: присвоение разрядов
 
     // Атлеты сортируются по времени результата
     // Если человек дисквалифицирован, то его результатом буде специальное значение
+
     val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
         val resultTimeOrNull = getAthleteResult(athlete)
         resultTimeOrNull?.toSecondOfDay() ?: INF
