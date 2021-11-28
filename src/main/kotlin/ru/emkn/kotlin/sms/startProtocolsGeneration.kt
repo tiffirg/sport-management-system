@@ -1,12 +1,9 @@
 package ru.emkn.kotlin.sms
 
 import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.AthletesGroup
 import ru.emkn.kotlin.sms.classes.Group
-
-
-data class Team(val teamName: String, val athletes: List<Athlete>)
-
-data class AthletesGroup(val group: Group, val athletes: List<Athlete>)
+import ru.emkn.kotlin.sms.classes.Team
 
 
 fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {

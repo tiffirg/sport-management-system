@@ -1,38 +1,6 @@
 package ru.emkn.kotlin.sms
 
-import ru.emkn.kotlin.sms.classes.Athlete
-import ru.emkn.kotlin.sms.classes.CheckpointTime
-import ru.emkn.kotlin.sms.classes.Group
-import ru.emkn.kotlin.sms.classes.Rank
-
-
-data class SplitResultAthleteGroup(
-    val athleteNumberInGroup: Int, val athleteNumber: Int,
-    val surname: String, val name: String, val birthYear: Int,
-    val rank: Rank, val teamName: String, val splits: List<CheckpointTime>?,
-    val place: Int, val backlog: String
-) {
-    val listForSplitsResultsGroup: MutableList<String>
-        get() {
-            val result = mutableListOf(
-                athleteNumberInGroup.toString(),
-                athleteNumber.toString(),
-                surname,
-                name,
-                birthYear.toString(),
-                rank.rankName ?: "",
-                teamName,
-                place.toString(),
-                if (splits.isNullOrEmpty()) REMOVED_VALUE else backlog
-            )
-            splits?.forEach {
-                result.addAll(listOf(it.checkpoint, it.time.toString()))
-            }
-            return result
-        }
-}
-
-data class SplitResultsGroup(val group: Group, val results: List<SplitResultAthleteGroup>)
+import ru.emkn.kotlin.sms.classes.*
 
 
 fun getAthleteSplit(athlete: Athlete): List<CheckpointTime>? {

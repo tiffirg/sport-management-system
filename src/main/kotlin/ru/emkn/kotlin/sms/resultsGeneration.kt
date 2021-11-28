@@ -5,48 +5,6 @@ import java.time.LocalTime
 import kotlin.Double.Companion.POSITIVE_INFINITY
 
 
-data class ResultAthleteInGroup(val athleteNumberInGroup: Int, val athleteNumber: Int,
-                                val surname: String, val name: String, val birthYear: Int,
-                                val rank: Rank, val teamName: String, val result: LocalTime?,
-                                val place: Int, var backlog: String) {
-
-    val listForResultsGroup: List<String>
-        get() {
-            return listOf(
-                athleteNumberInGroup.toString(),
-                athleteNumber.toString(),
-                surname,
-                name,
-                birthYear.toString(),
-                rank.rankName ?: "",
-                teamName,
-                result?.format(TimeFormatter) ?: REMOVED_VALUE,
-                place.toString(),
-                backlog
-            )
-        }
-}
-
-data class ResultsGroup(val group: Group, val results: List<ResultAthleteInGroup>) {
-
-    private val leaderTime : LocalTime?
-        get() = this.results[0].result
-
-    fun getAthleteScore(athleteNumber: Int): Int {
-        val athleteTime = this.results.find { resultAthleteGroup ->
-            resultAthleteGroup.athleteNumber == athleteNumber
-        }?.result
-        return if (athleteTime == null || leaderTime == null) {
-            0
-        } else {
-            val x = athleteTime.toSecondOfDay().toDouble()
-            val y = leaderTime!!.toSecondOfDay().toDouble()
-            0.coerceAtLeast((100 * (2 - x / y)).toInt())
-        }
-    }
-}
-
-
 const val INF = POSITIVE_INFINITY.toInt()
 
 
