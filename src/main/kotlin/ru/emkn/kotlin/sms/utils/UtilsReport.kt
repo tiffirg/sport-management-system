@@ -17,8 +17,6 @@ class IncorrectProtocolStartException(pathProtocolStart: String) : Exception("$p
 
 class IncorrectResultsGroupException(pathResultsGroup: String) : Exception("$pathResultsGroup: Invalid results group format")
 
-class IncorrectDataException(file: String) : Exception("$file: Invalid data format")
-
 class InvalidFileCheckpointException(fileCheckpoint: String) : Exception("$fileCheckpoint: Invalid checkpoint data")
 
 // Check data

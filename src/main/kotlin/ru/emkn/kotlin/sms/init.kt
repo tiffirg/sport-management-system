@@ -2,7 +2,9 @@ package ru.emkn.kotlin.sms
 
 import com.sksamuel.hoplite.ConfigLoader
 import ru.emkn.kotlin.sms.utils.InvalidConfigException
+import ru.emkn.kotlin.sms.utils.InvalidDateException
 import ru.emkn.kotlin.sms.utils.InvalidFormatConfigException
+import ru.emkn.kotlin.sms.utils.InvalidTimeException
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
@@ -12,12 +14,16 @@ import java.time.format.DateTimeParseException
 val TimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 val DateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-fun String.toLocalDate(): LocalDate? {
-    return try {
-        LocalDate.parse(this, DateFormat)
+private fun checkConfigDate(date: String) {
+    try {
+        LocalDate.parse(date, DateFormat)
     } catch (e: DateTimeParseException) {
-        null
+        throw InvalidDateException(date)
     }
+}
+
+private fun checkConfigLocalTime(time: String): LocalTime {
+    return time.toLocalTime() ?: throw InvalidTimeException(time)
 }
 
 fun String.toLocalTime(): LocalTime? {
@@ -42,8 +48,9 @@ fun LocalTime.minus(time: LocalTime?): LocalTime {
 
 var PATH_CONFIG = ""
 var EVENT_NAME = ""
-var EVENT_DATE = ""
-var EVENT_TIME = ""
+var EVENT_DATE_STRING = ""
+var EVENT_TIME_STRING = ""
+var EVENT_TIME: LocalTime = LocalTime.MIN
 var EVENT_SPORT = ""
 var RANKS: List<String> = listOf()
 var GROUP_NAMES: List<String> = listOf()
@@ -76,8 +83,10 @@ fun initConfig(pathConfig: String) {
         val config = ConfigLoader().loadConfigOrThrow<ConfigData>(File(pathConfig))
         PATH_CONFIG = File(pathConfig).absolutePath
         EVENT_NAME = config.eventName
-        EVENT_DATE = config.eventDate
-        EVENT_TIME = config.eventTime
+        checkConfigDate(config.eventDate)
+        EVENT_DATE_STRING = config.eventDate
+        EVENT_TIME_STRING = config.eventTime
+        EVENT_TIME = checkConfigLocalTime(config.eventTime)
         EVENT_SPORT = config.eventSport
         RANKS = config.ranks
         GROUP_NAMES = config.groups.map { it.group }
@@ -89,3 +98,5 @@ fun initConfig(pathConfig: String) {
         throw InvalidFormatConfigException(pathConfig)
     }
 }
+
+

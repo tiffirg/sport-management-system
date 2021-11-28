@@ -1,6 +1,5 @@
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import kotlinx.cli.ExperimentalCli
-import org.junit.Ignore
 import ru.emkn.kotlin.sms.*
 import ru.emkn.kotlin.sms.services.CsvHandler
 import java.io.File
@@ -27,7 +26,7 @@ internal class TestsCommands {
 
     @AfterTest
     fun afterTest() {
-        val dir = File("src/test/resources/${EVENT_NAME}_$EVENT_DATE")
+        val dir = File("src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING")
         if (dir.exists()) {
             dir.deleteRecursively()
         }
@@ -45,7 +44,7 @@ internal class TestsCommands {
     fun testCommandProtocolStart1() {
         val args = arrayOf(PATH_CONFIG, "protocolStart", PATH_APPLICATION1)
         main(args)
-        val pathProtocolStart = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/ps_${EVENT_NAME}_$EVENT_DATE.csv"
+        val pathProtocolStart = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/ps_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
         val dataSampleProtocolStart = CsvHandler.parseProtocolStart(PATH_PROTOCOL_START1).values
         val sampleAthletesGroups = dataSampleProtocolStart.groupBy { athlete -> athlete.group }
 
@@ -73,7 +72,7 @@ internal class TestsCommands {
     fun testCommandProtocolStart2() {
         val args = arrayOf(PATH_CONFIG, "protocolStart", PATH_APPLICATION1, PATH_APPLICATION2)
         main(args)
-        val pathProtocolStart = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/ps_${EVENT_NAME}_$EVENT_DATE.csv"
+        val pathProtocolStart = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/ps_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
         val dataSampleProtocolStart = CsvHandler.parseProtocolStart(PATH_PROTOCOL_START1_2).values
         val sampleAthletesGroups = dataSampleProtocolStart.groupBy { athlete -> athlete.group }
 
@@ -102,8 +101,8 @@ internal class TestsCommands {
         val args = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "-ps", PATH_PROTOCOL_START1)
         main(args)
         val dataSampleResultsGroup = CsvHandler.parseResultsGroup(PATH_RESULTS_GROUP1)
-        val pathResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rg_${EVENT_NAME}_$EVENT_DATE.csv"
-        val pathSplitResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rs_${EVENT_NAME}_$EVENT_DATE.csv"
+        val pathResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/rg_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
+        val pathSplitResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/rs_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
         val data = csvReader().readAll(File(pathSplitResultGroup))
         val dataSample = csvReader().readAll(File(PATH_SPLIT_RESULTS_GROUP1))
         assert(data == dataSample)
@@ -126,7 +125,7 @@ internal class TestsCommands {
     fun testCommandResultsGroup2() {
         val args1 = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "-ps", PATH_PROTOCOL_START1)
         val args2 = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "--protocolStart", PATH_PROTOCOL_START1)
-        val pathResultsGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rg_${EVENT_NAME}_$EVENT_DATE.csv"
+        val pathResultsGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/rg_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
         main(args1)
         val data1 = CsvHandler.parseResultsGroup(pathResultsGroup)
         main(args2)
@@ -146,8 +145,8 @@ internal class TestsCommands {
         val args = arrayOf(PATH_CONFIG, "resultsGroup", PATH_DATA_CHECKPOINT, "-ps", PATH_PROTOCOL_START1_2)
         main(args)
         val dataSampleResultsGroup = CsvHandler.parseResultsGroup(PATH_RESULTS_GROUP1_2)
-        val pathResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rg_${EVENT_NAME}_$EVENT_DATE.csv"
-        val pathSplitResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rs_${EVENT_NAME}_$EVENT_DATE.csv"
+        val pathResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/rg_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
+        val pathSplitResultGroup = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/rs_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
         val data = csvReader().readAll(File(pathSplitResultGroup))
         val dataSample = csvReader().readAll(File(PATH_SPLIT_RESULTS_GROUP1_2))
         assert(data == dataSample)
@@ -170,7 +169,7 @@ internal class TestsCommands {
     fun testCommandResultsTeam1() {
         val args = arrayOf(PATH_CONFIG, "resultsTeam", PATH_RESULTS_GROUP1)
         main(args)
-        val pathResultsTeam = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rt_${EVENT_NAME}_$EVENT_DATE.csv"
+        val pathResultsTeam = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/rt_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
         val data = csvReader().readAll(File(pathResultsTeam))
         val dataSample = csvReader().readAll(File(PATH_RESULTS_TEAM1))
         assert(data == dataSample)
@@ -180,7 +179,7 @@ internal class TestsCommands {
     fun testCommandResultsTeam2() {
         val args = arrayOf(PATH_CONFIG, "resultsTeam", PATH_RESULTS_GROUP1_2)
         main(args)
-        val pathResultsTeam = "src/test/resources/${EVENT_NAME}_$EVENT_DATE/rt_${EVENT_NAME}_$EVENT_DATE.csv"
+        val pathResultsTeam = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/rt_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
         val data = csvReader().readAll(File(pathResultsTeam))
         val dataSample = csvReader().readAll(File(PATH_RESULTS_TEAM1_2))
         assert(data == dataSample)
