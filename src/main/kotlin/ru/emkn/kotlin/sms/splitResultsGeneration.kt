@@ -22,7 +22,8 @@ data class SplitResultAthleteGroup (val athleteNumberInGroup: Int, val athleteNu
                 backlog)
             splits?.forEach {
                 result.addAll(listOf(it.checkpoint, it.time.toString()))  // TODO(Сделать нормальный csv)
-            }
+            } ?: result.add("снят")
+
             return result
         }
 }
