@@ -9,7 +9,7 @@ import java.time.LocalTime
 data class ResultAthleteInGroup(val athleteNumberInGroup: Int, val athleteNumber: Int,
                                 val surname: String, val name: String, val birthYear: Int,
                                 val rank: Rank, val teamName: String, val result: LocalTime?,
-                                val place: Int, val backlog: String) {
+                                val place: Int, var backlog: String) {
 
     val listForResultsGroup: List<String>
         get() {
@@ -97,6 +97,16 @@ fun generateResultsGroup(athletesGroup: AthletesGroup): List<ResultAthleteInGrou
             index + 1, ""
         )
     }
+
+    // вычисление отставания от лидера
+    val leaderTime = protocols.first().result
+    protocols.forEach { resultAthleteInGroup ->
+        val result = resultAthleteInGroup.result
+        if (result != null) {
+            resultAthleteInGroup.backlog = "+${result.minus(leaderTime).format(TimeFormatter)}"
+        }
+    }
+
     return protocols
 }
 
