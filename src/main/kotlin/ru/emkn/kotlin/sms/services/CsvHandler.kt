@@ -2,9 +2,30 @@ package ru.emkn.kotlin.sms.services
 
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
-import ru.emkn.kotlin.sms.*
-import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.utils.*
+import ru.emkn.kotlin.sms.GROUP_NAMES
+import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.AthletesGroup
+import ru.emkn.kotlin.sms.classes.Team
+import ru.emkn.kotlin.sms.classes.Group
+import ru.emkn.kotlin.sms.classes.ResultsGroup
+import ru.emkn.kotlin.sms.classes.ResultsTeam
+import ru.emkn.kotlin.sms.classes.SplitResultsGroup
+import ru.emkn.kotlin.sms.classes.CheckpointTime
+import ru.emkn.kotlin.sms.classes.Rank
+import ru.emkn.kotlin.sms.classes.ResultAthleteInGroup
+import ru.emkn.kotlin.sms.toLocalTime
+import ru.emkn.kotlin.sms.logger
+import ru.emkn.kotlin.sms.utils.IncorrectProtocolStartException
+import ru.emkn.kotlin.sms.utils.InvalidFileCheckpointException
+import ru.emkn.kotlin.sms.utils.InvalidFileException
+import ru.emkn.kotlin.sms.utils.messageAboutMissTeam
+import ru.emkn.kotlin.sms.utils.ExceptionData
+import ru.emkn.kotlin.sms.utils.messageAboutMissAthleteCheckpointData
+import ru.emkn.kotlin.sms.utils.InvalidTimeException
+import ru.emkn.kotlin.sms.utils.IncorrectResultsGroupException
+import ru.emkn.kotlin.sms.utils.IncorrectBirthYearException
+import ru.emkn.kotlin.sms.utils.IncorrectNumberAthleteException
+import ru.emkn.kotlin.sms.utils.messageAboutMissAthleteRequest
 import java.io.File
 
 
@@ -225,7 +246,7 @@ object CsvHandler {
         for (i in 1 until data.size) {
             unit = data[i]
             try {
-                if (unit[0].isNotBlank() && unit[1].isBlank()) {  // TODO(Сделать список всех чекпоинтов. Добавить эксепшен отсутствия чекпоинта")
+                if (unit[0].isNotBlank() && unit[1].isBlank()) {
                     checkpoint = unit[0]
                 } else {
                     numberAthlete = unit[0].toIntOrNull() ?: throw IncorrectNumberAthleteException(unit[0])

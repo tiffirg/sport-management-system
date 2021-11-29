@@ -1,7 +1,14 @@
 package ru.emkn.kotlin.sms
 
-import ru.emkn.kotlin.sms.classes.*
+import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.AthletesGroup
+import ru.emkn.kotlin.sms.classes.Command
+import ru.emkn.kotlin.sms.classes.CommandResults
+import ru.emkn.kotlin.sms.classes.CommandResultsGroup
+import ru.emkn.kotlin.sms.classes.CommandStart
+import ru.emkn.kotlin.sms.classes.CheckpointTime
 import ru.emkn.kotlin.sms.services.CsvHandler
+import ru.emkn.kotlin.sms.services.GenerationResultsOfCommands
 import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.messageAboutCancelCompetition
 import java.io.File
@@ -28,7 +35,7 @@ object App {
             logger.info { messageAboutCancelCompetition() }
             return
         }
-        val startLists: List<AthletesGroup> = startProtocolsGeneration(data)
+        val startLists: List<AthletesGroup> = GenerationResultsOfCommands.startProtocolsGeneration(data)
         dir.mkdir()
         CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
@@ -49,9 +56,11 @@ object App {
         } else {
             CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete, dataProtocolStart)
         }
-        val resultsByGroup = generateResults(dataCheckpoint)
-        CsvHandler.generationResultsGroup(pathResultsGroup, resultsByGroup)
-        CsvHandler.generationSplitResults(pathSplitResults, generateSplitResults(dataCheckpoint))
+        CsvHandler.generationResultsGroup(pathResultsGroup, GenerationResultsOfCommands.generateResults(dataCheckpoint))
+        CsvHandler.generationSplitResults(
+            pathSplitResults,
+            GenerationResultsOfCommands.generateSplitResults(dataCheckpoint)
+        )
     }
 
     private fun processCommandResultsTeam(command: CommandResults) {
@@ -65,11 +74,18 @@ object App {
         } else {
             CsvHandler.parseResultsGroup(command.pathResultsGroup)
         }
-        CsvHandler.generationResultsTeam(pathResultsTeam, teamResultsGeneration(dataResultsGroup))
+        CsvHandler.generationResultsTeam(
+            pathResultsTeam,
+            GenerationResultsOfCommands.teamResultsGeneration(dataResultsGroup)
+        )
     }
 
-    private fun processStream(isCheckpointAthlete: Boolean, dataProtocolStart: Map<Int, Athlete>): List<Athlete> {  // По ТЗ - не требуется
-        var line = readLine()                                                                                       // Реализован шаблон на будущее
+    private fun processStream(
+        isCheckpointAthlete: Boolean,
+        dataProtocolStart: Map<Int, Athlete>
+    ): List<Athlete> {  // По ТЗ - не требуется
+        var line =
+            readLine()                                                                                       // Реализован шаблон на будущее
         var splits: List<String>
         if (isCheckpointAthlete) {
             TODO("Реализация по участнику")
