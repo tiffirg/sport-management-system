@@ -56,6 +56,7 @@ object App {
         } else {
             CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete, dataProtocolStart)
         }
+        dataCheckpoint.forEach { it.checkCheckpoints() }
         CsvHandler.generationResultsGroup(pathResultsGroup, GenerationResultsOfCommands.generateResults(dataCheckpoint))
         CsvHandler.generationSplitResults(
             pathSplitResults,
@@ -83,9 +84,9 @@ object App {
     private fun processStream(
         isCheckpointAthlete: Boolean,
         dataProtocolStart: Map<Int, Athlete>
-    ): List<Athlete> {  // По ТЗ - не требуется
+    ): List<Athlete> {          // По ТЗ - не требуется, реализован шаблон на будущее
         var line =
-            readLine()                                                                                       // Реализован шаблон на будущее
+            readLine()
         var splits: List<String>
         if (isCheckpointAthlete) {
             TODO("Реализация по участнику")

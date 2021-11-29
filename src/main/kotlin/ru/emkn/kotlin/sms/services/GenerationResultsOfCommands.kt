@@ -134,7 +134,6 @@ object GenerationResultsOfCommands {
     }
 
     private fun getAthleteSplit(athlete: Athlete): List<CheckpointTime>? {
-        athlete.checkCheckpoints()
         return if (athlete.removed) {
             null
         } else {
@@ -175,7 +174,6 @@ object GenerationResultsOfCommands {
     }
 
     private fun getAthleteResult(athlete: Athlete): LocalTime? {
-        athlete.checkCheckpoints()
         return if (athlete.removed) {
             null
         } else {
@@ -190,7 +188,6 @@ object GenerationResultsOfCommands {
 
         // Атлеты сортируются по времени результата
         // Если человек дисквалифицирован, то его результатом буде специальное значение
-
         val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
             val resultTimeOrNull = getAthleteResult(athlete)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()

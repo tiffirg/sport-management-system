@@ -26,7 +26,7 @@ data class Athlete(
         }
 
     override fun toString(): String {
-        return "$surname $name Team: $teamName| Group: ${group.groupName}"
+        return "$surname $name Team: $teamName Group: ${group.groupName}"
     }
 
     fun checkCheckpoints() {
