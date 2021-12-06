@@ -8,11 +8,11 @@ import ru.emkn.kotlin.sms.classes.Team
 import ru.emkn.kotlin.sms.classes.Group
 import ru.emkn.kotlin.sms.classes.ResultsGroup
 import ru.emkn.kotlin.sms.classes.ResultsTeam
-import ru.emkn.kotlin.sms.classes.SplitResultsGroup
+import ru.emkn.kotlin.sms.classes.GroupSplitResults
 import ru.emkn.kotlin.sms.classes.CheckpointTime
-import ru.emkn.kotlin.sms.classes.ResultAthleteInGroup
+import ru.emkn.kotlin.sms.classes.AthleteResultInGroup
 import ru.emkn.kotlin.sms.classes.AthleteResultInTeam
-import ru.emkn.kotlin.sms.classes.SplitResultAthleteGroup
+import ru.emkn.kotlin.sms.classes.AthleteSplitResultInGroup
 import ru.emkn.kotlin.sms.minus
 import java.time.LocalTime
 
@@ -65,10 +65,10 @@ object GenerationResultsOfCommands {
         return protocols
     }
 
-    fun generateSplitResults(dataCheckpoints: List<Athlete>): Map<Group, SplitResultsGroup> {
+    fun generateSplitResults(dataCheckpoints: List<Athlete>): Map<Group, GroupSplitResults> {
         val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
         val splitProtocols = (athletesGroups.map { (group, athletesGroup) ->
-            Pair(group, SplitResultsGroup(group, generateSplitResultsGroup(AthletesGroup(group, athletesGroup))))
+            Pair(group, GroupSplitResults(group, generateSplitResultsGroup(AthletesGroup(group, athletesGroup))))
         }).toMap()
         splitProtocols.toSortedMap(compareBy { it.groupName })
         return splitProtocols
@@ -92,7 +92,7 @@ object GenerationResultsOfCommands {
             }
         }
 
-        fun generateTeamResult(teamName: String, teamResults: List<ResultAthleteInGroup>): ResultsTeam {
+        fun generateTeamResult(teamName: String, teamResults: List<AthleteResultInGroup>): ResultsTeam {
             val data = teamResults.map { (_, athleteNumber, surname, name, birthYear, rank, _, _, place, _) ->
                 AthleteResultInTeam(
                     athleteNumber, name, surname, birthYear, rank,
@@ -111,7 +111,7 @@ object GenerationResultsOfCommands {
 
     }
 
-    private fun generateSplitResultsGroup(athletesGroup: AthletesGroup): List<SplitResultAthleteGroup> {
+    private fun generateSplitResultsGroup(athletesGroup: AthletesGroup): List<AthleteSplitResultInGroup> {
         val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
             val resultTimeOrNull = getAthleteResult(athlete)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
@@ -119,10 +119,10 @@ object GenerationResultsOfCommands {
 
         val leaderTime = getAthleteResult(sortedAthletes.first())
 
-        val splitProtocols: List<SplitResultAthleteGroup> = sortedAthletes.mapIndexed { index, athlete ->
+        val splitProtocols: List<AthleteSplitResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
             val split = getAthleteSplit(athlete)
             val result = getAthleteResult(athlete)
-            SplitResultAthleteGroup(
+            AthleteSplitResultInGroup(
                 index + 1, athlete.athleteNumber!!,
                 athlete.surname, athlete.name, athlete.birthYear,
                 athlete.rank, athlete.teamName, split,
@@ -182,7 +182,7 @@ object GenerationResultsOfCommands {
         }
     }
 
-    private fun generateResultsGroup(athletesGroup: AthletesGroup): List<ResultAthleteInGroup> {
+    private fun generateResultsGroup(athletesGroup: AthletesGroup): List<AthleteResultInGroup> {
 
         // TODO: присвоение разрядов
 
@@ -193,8 +193,8 @@ object GenerationResultsOfCommands {
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
         }
 
-        val protocols: List<ResultAthleteInGroup> = sortedAthletes.mapIndexed { index, athlete ->
-            ResultAthleteInGroup(
+        val protocols: List<AthleteResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
+            AthleteResultInGroup(
                 index + 1, athlete.athleteNumber!!,
                 athlete.surname, athlete.name, athlete.birthYear,
                 athlete.rank, athlete.teamName, getAthleteResult(athlete),

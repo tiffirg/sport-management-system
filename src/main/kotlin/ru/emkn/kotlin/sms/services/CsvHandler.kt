@@ -9,10 +9,10 @@ import ru.emkn.kotlin.sms.classes.Team
 import ru.emkn.kotlin.sms.classes.Group
 import ru.emkn.kotlin.sms.classes.ResultsGroup
 import ru.emkn.kotlin.sms.classes.ResultsTeam
-import ru.emkn.kotlin.sms.classes.SplitResultsGroup
+import ru.emkn.kotlin.sms.classes.GroupSplitResults
 import ru.emkn.kotlin.sms.classes.CheckpointTime
 import ru.emkn.kotlin.sms.classes.Rank
-import ru.emkn.kotlin.sms.classes.ResultAthleteInGroup
+import ru.emkn.kotlin.sms.classes.AthleteResultInGroup
 import ru.emkn.kotlin.sms.toLocalTime
 import ru.emkn.kotlin.sms.logger
 import ru.emkn.kotlin.sms.utils.IncorrectProtocolStartException
@@ -121,7 +121,7 @@ object CsvHandler {
         }
     }
 
-    fun generationSplitResults(path: String, data: Map<Group, SplitResultsGroup>) {
+    fun generationSplitResults(path: String, data: Map<Group, GroupSplitResults>) {
         val maxDistance = data.maxOf { (_, resultsGroup) -> resultsGroup.results.maxOf { it.splits?.size ?: 0 } }
         csvWriter().open(path) {
             data.forEach { (group, splitResultsGroup) ->
@@ -143,7 +143,7 @@ object CsvHandler {
             throw InvalidFileException(path)
         }
         val linesFromResultsCsv: List<List<String>> = csvReader().readAll(file)
-        var listOfAthletes: MutableList<ResultAthleteInGroup> = mutableListOf()
+        var listOfAthletes: MutableList<AthleteResultInGroup> = mutableListOf()
         val listOfGroups: MutableList<ResultsGroup> = mutableListOf()
 
         var group = ""
@@ -159,7 +159,7 @@ object CsvHandler {
                     group = unit[0]
                 } else if (unit[0].toIntOrNull() != null) {   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
                     listOfAthletes.add(
-                        ResultAthleteInGroup(
+                        AthleteResultInGroup(
                             unit[0].toInt(), unit[1].toInt(),
                             unit[2], unit[3], unit[4].toInt(),
                             toRank(unit[5]), unit[6], (unit[7]).toLocalTime(),
