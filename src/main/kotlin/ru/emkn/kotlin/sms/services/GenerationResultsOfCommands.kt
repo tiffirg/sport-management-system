@@ -10,9 +10,9 @@ import ru.emkn.kotlin.sms.classes.ResultsGroup
 import ru.emkn.kotlin.sms.classes.ResultsTeam
 import ru.emkn.kotlin.sms.classes.GroupSplitResults
 import ru.emkn.kotlin.sms.classes.CheckpointTime
-import ru.emkn.kotlin.sms.classes.AthleteResultInGroup
-import ru.emkn.kotlin.sms.classes.AthleteResultInTeam
-import ru.emkn.kotlin.sms.classes.AthleteSplitResultInGroup
+import ru.emkn.kotlin.sms.classes.CompetitorResultInGroup
+import ru.emkn.kotlin.sms.classes.CompetitorResultInTeam
+import ru.emkn.kotlin.sms.classes.CompetitorSplitResultInGroup
 import ru.emkn.kotlin.sms.minus
 import java.time.LocalTime
 
@@ -92,9 +92,9 @@ object GenerationResultsOfCommands {
             }
         }
 
-        fun generateTeamResult(teamName: String, teamResults: List<AthleteResultInGroup>): ResultsTeam {
+        fun generateTeamResult(teamName: String, teamResults: List<CompetitorResultInGroup>): ResultsTeam {
             val data = teamResults.map { (_, athleteNumber, surname, name, birthYear, rank, _, _, place, _) ->
-                AthleteResultInTeam(
+                CompetitorResultInTeam(
                     athleteNumber, name, surname, birthYear, rank,
                     groupByAthleteNumber[athleteNumber]!!, place, scoresByAthleteNumber[athleteNumber]!!
                 )
@@ -111,7 +111,7 @@ object GenerationResultsOfCommands {
 
     }
 
-    private fun generateSplitResultsGroup(athletesGroup: AthletesGroup): List<AthleteSplitResultInGroup> {
+    private fun generateSplitResultsGroup(athletesGroup: AthletesGroup): List<CompetitorSplitResultInGroup> {
         val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
             val resultTimeOrNull = getAthleteResult(athlete)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
@@ -119,10 +119,10 @@ object GenerationResultsOfCommands {
 
         val leaderTime = getAthleteResult(sortedAthletes.first())
 
-        val splitProtocols: List<AthleteSplitResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
+        val splitProtocols: List<CompetitorSplitResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
             val split = getAthleteSplit(athlete)
             val result = getAthleteResult(athlete)
-            AthleteSplitResultInGroup(
+            CompetitorSplitResultInGroup(
                 index + 1, athlete.athleteNumber!!,
                 athlete.surname, athlete.name, athlete.birthYear,
                 athlete.rank, athlete.teamName, split,
@@ -182,7 +182,7 @@ object GenerationResultsOfCommands {
         }
     }
 
-    private fun generateResultsGroup(athletesGroup: AthletesGroup): List<AthleteResultInGroup> {
+    private fun generateResultsGroup(athletesGroup: AthletesGroup): List<CompetitorResultInGroup> {
 
         // TODO: присвоение разрядов
 
@@ -193,8 +193,8 @@ object GenerationResultsOfCommands {
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
         }
 
-        val protocols: List<AthleteResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
-            AthleteResultInGroup(
+        val protocols: List<CompetitorResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
+            CompetitorResultInGroup(
                 index + 1, athlete.athleteNumber!!,
                 athlete.surname, athlete.name, athlete.birthYear,
                 athlete.rank, athlete.teamName, getAthleteResult(athlete),

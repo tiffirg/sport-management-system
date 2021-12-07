@@ -32,8 +32,8 @@ data class Competitor(
     val athlete: Athlete
 ) : Athlete(athlete)
 
-data class AthleteResults(
-    val athlete: Competitor,
+data class CompetitorResults(
+    val competitor: Competitor,
     val checkpoints: List<CheckpointTime>,
     val removed: Boolean
 ) {
@@ -62,15 +62,15 @@ data class AthleteResults(
     }
 }
 
-data class AthleteResultInGroup(
-    val athlete: Competitor, val athleteNumberInGroup: Int,
+data class CompetitorResultInGroup(
+    val competitor: Competitor, val athleteNumberInGroup: Int,
     val result: Duration, val place: Int, var backlog: String
 )
 
-data class AthleteResultInTeam(
-    val athlete: Competitor, val place: Int, val score: Int
+data class CompetitorResultInTeam(
+    val competitor: Competitor, val place: Int, val score: Int
 )
 
-data class AthleteSplitResultInGroup(
-    val athleteResultInGroup: AthleteResultInGroup, val splits: List<CheckpointTime>
+data class CompetitorSplitResultInGroup(
+    val competitorResultInGroup: CompetitorResultInGroup, val splits: List<CheckpointTime>
 )
