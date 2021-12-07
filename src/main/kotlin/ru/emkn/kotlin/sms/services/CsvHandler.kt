@@ -3,33 +3,16 @@ package ru.emkn.kotlin.sms.services
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
-import ru.emkn.kotlin.sms.classes.Competitor
-import ru.emkn.kotlin.sms.classes.CompetitorsGroup
-import ru.emkn.kotlin.sms.classes.Team
-import ru.emkn.kotlin.sms.classes.Group
-import ru.emkn.kotlin.sms.classes.ResultsGroup
-import ru.emkn.kotlin.sms.classes.ResultsTeam
-import ru.emkn.kotlin.sms.classes.GroupSplitResults
-import ru.emkn.kotlin.sms.classes.CheckpointTime
-import ru.emkn.kotlin.sms.classes.Rank
-import ru.emkn.kotlin.sms.classes.CompetitorResultInGroup
+import ru.emkn.kotlin.sms.TimeFormatter
+import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.toLocalTime
 import ru.emkn.kotlin.sms.logger
-import ru.emkn.kotlin.sms.utils.IncorrectProtocolStartException
-import ru.emkn.kotlin.sms.utils.InvalidFileCheckpointException
-import ru.emkn.kotlin.sms.utils.InvalidFileException
-import ru.emkn.kotlin.sms.utils.messageAboutMissTeam
-import ru.emkn.kotlin.sms.utils.ExceptionData
-import ru.emkn.kotlin.sms.utils.messageAboutMissAthleteCheckpointData
-import ru.emkn.kotlin.sms.utils.InvalidTimeException
-import ru.emkn.kotlin.sms.utils.IncorrectResultsGroupException
-import ru.emkn.kotlin.sms.utils.IncorrectBirthYearException
-import ru.emkn.kotlin.sms.utils.IncorrectNumberAthleteException
-import ru.emkn.kotlin.sms.utils.messageAboutMissAthleteRequest
+import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 
 
 object CsvHandler {
+
     fun parseRequests(paths: List<String>): List<Team> {
         val teams = mutableListOf<Team>()
         var request: Team?
@@ -46,50 +29,47 @@ object CsvHandler {
 
     fun generationProtocolsStart(path: String, data: List<CompetitorsGroup>) {
         csvWriter().open(path) {
-            data.forEach { (group, athletes) ->
+            data.forEach { (group, competitors) ->
                 writeRow(listOf(group.groupName, "", "", "", "", "", ""))
-                athletes.forEach {
+                competitors.forEach {
                     writeRow(it.listForProtocolStart)
                 }
             }
         }
     }
 
-    fun parseProtocolStart(path: String): Map<Int, Competitor> {
+    fun parseProtocolStart(path: String): List<Competitor> {
         val file = File(path)
         if (!file.exists()) {
             throw InvalidFileException(path)
         }
-        val athletes = mutableMapOf<Int, Competitor>()
+        val competitors = mutableListOf<Competitor>()
         try {
             val data = csvReader().readAll(file)
             var group = Group(data[0][0])
             var unit: List<String>
-            var number: Int
             for (i in 1 until data.size) {
                 unit = data[i]
                 if (GROUP_NAMES.contains(unit[0])) {
                     group = Group(unit[0])
                 } else {
-                    number = unit[0].toInt()
-                    athletes[number] = Competitor(
-                        unit[1],
-                        unit[2],
-                        unit[3].toInt(),
-                        group,
-                        toRank(unit[4]),
-                        unit[5],
-                        athleteNumber = number,
-                        startTime = unit[6].toLocalTime(),
-                        checkpoints = mutableListOf()
-                    )
+                    val number = unit[0].toInt()
+                    val surname = unit[1]
+                    val name = unit[2]
+                    val birthYear = unit[3].toInt()
+                    val rank = Rank(unit[4])
+                    val teamName = unit[5]
+                    val startTime = unit[6].toLocalTime()!!
+                    val athlete = Athlete(surname, name, birthYear, group, rank, teamName)
+                    val competitor = Competitor(number, startTime, athlete)
+                    competitors.add(competitor)
                 }
             }
         } catch (exception: Exception) {
             logger.debug { exception.message }
             throw IncorrectProtocolStartException(path)
         }
-        return athletes
+        return competitors
     }
 
     fun parseCheckpoints(
@@ -110,25 +90,28 @@ object CsvHandler {
         }) ?: throw InvalidFileCheckpointException(path)
     }
 
-    fun generationResultsGroup(path: String, data: Map<Group, ResultsGroup>) {
+    fun generationResultsGroup(path: String, data: List<GroupResults>) {
         csvWriter().open(path) {
-            data.forEach { (group, protocolGroup) ->
+            data.forEach { (group, competitorResults) ->
                 writeRow(listOf(group.groupName, "", "", "", "", "", "", "", "", ""))
-                protocolGroup.results.forEach { protocolString ->
-                    writeRow(protocolString.listForResultsGroup)
+                competitorResults.forEach { competitorResultInGroup ->
+                    writeRow(competitorResultInGroup.listForResultsGroup)
                 }
             }
         }
     }
 
-    fun generationSplitResults(path: String, data: Map<Group, GroupSplitResults>) {
-        val maxDistance = data.maxOf { (_, resultsGroup) -> resultsGroup.results.maxOf { it.splits?.size ?: 0 } }
+    fun generationSplitResults(path: String, data: List<GroupSplitResults>) {
+        val maxDistance = data.maxOf { groupSplitsResult ->
+            groupSplitsResult.results.maxOf { competitorSplit -> competitorSplit.splits?.size ?: 0 } }
         csvWriter().open(path) {
-            data.forEach { (group, splitResultsGroup) ->
+            data.forEach { groupSplitResults ->
+                val group = groupSplitResults.group
+                val splitResults = groupSplitResults.results
                 val title = mutableListOf(group.groupName, "", "", "", "", "", "", "", "")
                 title.addAll(List(2 * maxDistance) { "" })
                 writeRow(title)
-                splitResultsGroup.results.forEach {
+                splitResults.forEach {
                     val result = it.listForSplitsResultsGroup
                     result.addAll(List(2 * (maxDistance - (it.splits?.size ?: 0))) { "" })
                     writeRow(result)

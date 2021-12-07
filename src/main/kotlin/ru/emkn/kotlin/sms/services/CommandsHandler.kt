@@ -4,7 +4,7 @@ import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.classes.*
 import java.time.Duration
 
-object GenerationResultsOfCommands {
+object CommandsHandler {
 
     // генерация стартовых протоколов
 

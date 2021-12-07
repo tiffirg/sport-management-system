@@ -1,16 +1,8 @@
 package ru.emkn.kotlin.sms
 
-import ru.emkn.kotlin.sms.classes.Competitor
-import ru.emkn.kotlin.sms.classes.CompetitorsGroup
-import ru.emkn.kotlin.sms.classes.Command
-import ru.emkn.kotlin.sms.classes.CommandResults
-import ru.emkn.kotlin.sms.classes.CommandResultsGroup
-import ru.emkn.kotlin.sms.classes.CommandStart
-import ru.emkn.kotlin.sms.classes.CheckpointTime
-import ru.emkn.kotlin.sms.services.CsvHandler
-import ru.emkn.kotlin.sms.services.GenerationResultsOfCommands
-import ru.emkn.kotlin.sms.utils.InvalidFileException
-import ru.emkn.kotlin.sms.utils.messageAboutCancelCompetition
+import ru.emkn.kotlin.sms.classes.*
+import ru.emkn.kotlin.sms.services.*
+import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 
 object App {
@@ -35,7 +27,7 @@ object App {
             logger.info { messageAboutCancelCompetition() }
             return
         }
-        val startLists: List<CompetitorsGroup> = GenerationResultsOfCommands.startProtocolsGeneration(data)
+        val startLists: List<CompetitorsGroup> = CommandsHandler.startProtocolsGeneration(data)
         dir.mkdir()
         CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
@@ -57,10 +49,10 @@ object App {
             CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete, dataProtocolStart)
         }
         dataCheckpoint.forEach { it.checkCheckpoints() }
-        CsvHandler.generationResultsGroup(pathResultsGroup, GenerationResultsOfCommands.generateResults(dataCheckpoint))
+        CsvHandler.generationResultsGroup(pathResultsGroup, CommandsHandler.generateResults(dataCheckpoint))
         CsvHandler.generationSplitResults(
             pathSplitResults,
-            GenerationResultsOfCommands.generateSplitResults(dataCheckpoint)
+            CommandsHandler.generateSplitResults(dataCheckpoint)
         )
     }
 
@@ -77,7 +69,7 @@ object App {
         }
         CsvHandler.generationResultsTeam(
             pathResultsTeam,
-            GenerationResultsOfCommands.generateTeamsResults(dataResultsGroup)
+            CommandsHandler.generateTeamsResults(dataResultsGroup)
         )
     }
 

@@ -1,6 +1,7 @@
 package ru.emkn.kotlin.sms.classes
 
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
+import ru.emkn.kotlin.sms.TimeFormatter
 import ru.emkn.kotlin.sms.logger
 import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
@@ -33,7 +34,20 @@ data class Competitor(
     val athleteNumber: Int,
     val startTime: LocalTime,
     val athlete: Athlete
-) : Athlete(athlete)
+) : Athlete(athlete) {
+
+    //Пример: 21, Санников, Вадим, 2003, 3р, СПбГУ, 12:02:00
+    val listForProtocolStart: List<String>
+        get() = listOf(
+            athleteNumber.toString(),
+            surname,
+            name,
+            birthYear.toString(),
+            rank.toString(),
+            teamName,
+            startTime.format(TimeFormatter)
+        )
+}
 
 
 open class CompetitorData(
@@ -65,11 +79,25 @@ open class CompetitorData(
 }
 
 
-
 data class CompetitorResultInGroup(
     val competitor: Competitor, val athleteNumberInGroup: Int,
     val result: Duration?, val place: Int, var backlog: String
-)
+) {
+    // Пример: 1, 22, Ананикян, Александр, 2002, 2р, СПбГУ, 00:08:11, 1, +00:00:00
+    val listForResultsGroup: List<String>
+        get() = listOf(
+            place.toString(),
+            competitor.athleteNumber.toString(),
+            competitor.surname,
+            competitor.name,
+            competitor.birthYear.toString(),
+            competitor.rank.toString(),
+            competitor.teamName,
+            result.toString(),
+            place.toString(),
+            backlog
+        )
+}
 
 data class CompetitorResultInTeam(
     val competitor: Competitor, val place: Int, val score: Int
@@ -77,4 +105,26 @@ data class CompetitorResultInTeam(
 
 data class CompetitorSplitResultInGroup(
     val competitorResultInGroup: CompetitorResultInGroup, val splits: List<CheckpointDuration>?
-)
+) {
+    // Пример: 2, 21, Шишкин, Владислав, 2002, 1ю, МГУ, 2, +00:01:50,
+    // 32, 00:01:58, 46, 00:03:30, 34, 00:01:11, 33, 00:01:21, 53, 00:02:01
+    val listForSplitsResultsGroup: MutableList<String>
+        get() {
+            val competitor = competitorResultInGroup.competitor
+            val res = mutableListOf<String>(
+                competitorResultInGroup.place.toString(),
+                competitor.athleteNumber.toString(),
+                competitor.surname,
+                competitor.name,
+                competitor.birthYear.toString(),
+                competitor.rank.toString(),
+                competitor.teamName,
+                competitorResultInGroup.place.toString(),
+                competitorResultInGroup.backlog
+            )
+            val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toString()) } ?: listOf()
+            res.addAll(stringSplits)
+            return res
+        }
+
+}
