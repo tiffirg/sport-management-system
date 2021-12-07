@@ -2,7 +2,6 @@ package ru.emkn.kotlin.sms.services
 
 import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.minus
 import java.time.Duration
 
 object GenerationResultsOfCommands {
@@ -92,8 +91,10 @@ object GenerationResultsOfCommands {
         }
 
         val protocols: List<CompetitorResultInGroup> = sortedCompetitorsData.mapIndexed { index, competitorData ->
-            CompetitorResultInGroup(competitorData.competitor, index + 1,
-            getCompetitorResult(competitorData), index + 1, "")
+            CompetitorResultInGroup(
+                competitorData.competitor, index + 1,
+                getCompetitorResult(competitorData), index + 1, ""
+            )
         }
 
         // вычисление отставания от лидера
@@ -158,26 +159,23 @@ object GenerationResultsOfCommands {
 
     // генерация сплитов группы участников
 
-    private fun generateSplitResultsGroup(athletesGroup: CompetitorsGroup): List<CompetitorSplitResultInGroup> {
-        val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
-            val resultTimeOrNull = getCompetitorResult(athlete)
-            resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
+    private fun generateSplitResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupSplitResults {
+
+        val mappedData: Map<Competitor, CompetitorData> = competitorsDataGroup.competitorsData.associateBy {
+            competitorData -> competitorData.competitor
         }
 
-        val leaderTime = getCompetitorResult(sortedAthletes.first())
+        val protocols = generateResultsGroup(competitorsDataGroup)
 
-        val splitProtocols: List<CompetitorSplitResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
-            val split = getCompetitorSplit(athlete)
-            val result = getCompetitorResult(athlete)
-            CompetitorSplitResultInGroup(
-                index + 1, athlete.athleteNumber!!,
-                athlete.surname, athlete.name, athlete.birthYear,
-                athlete.rank, athlete.teamName, split,
-                index + 1, getBacklog(result, leaderTime)
-            )
-        }
+        val splitProtocols: List<CompetitorSplitResultInGroup> =
+            protocols.results.map { competitorResultInGroup ->
+                val competitorData = mappedData[competitorResultInGroup.competitor]
+                assert(competitorData != null) {"mapped data contains information about all competitors"}
+                val splits = getCompetitorSplit(competitorData!!)
+                CompetitorSplitResultInGroup(competitorResultInGroup, splits)
+            }
 
-        return splitProtocols
+        return GroupSplitResults(competitorsDataGroup.group, splitProtocols)
     }
 
 

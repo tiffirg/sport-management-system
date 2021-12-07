@@ -76,5 +76,5 @@ data class CompetitorResultInTeam(
 )
 
 data class CompetitorSplitResultInGroup(
-    val competitorResultInGroup: CompetitorResultInGroup, val splits: List<CheckpointTime>
+    val competitorResultInGroup: CompetitorResultInGroup, val splits: List<CheckpointDuration>?
 )
