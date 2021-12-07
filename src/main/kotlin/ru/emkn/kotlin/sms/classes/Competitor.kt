@@ -6,40 +6,40 @@ import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
 import java.time.LocalTime
 
-interface Person {
-    val surname: String
-    val name: String
+open class Person(
+    val surname: String,
+    val name: String,
     val birthYear: Int
-}
+)
 
-open class Competitor(
-    override val surname: String, override val name: String, override val birthYear: Int,
+open class Athlete(
+    surname: String, name: String, birthYear: Int,
     open val group: Group, open val rank: Rank, open val teamName: String
-) : Person {
+) : Person(surname, name, birthYear) {
     override fun toString(): String {
         return "$surname $name Team: $teamName Group: ${group.groupName}"
     }
+
+    constructor(athlete: Athlete) : this(
+        athlete.surname, athlete.name, athlete.birthYear,
+        athlete.group, athlete.rank, athlete.teamName
+    )
 }
 
-data class Athlete(
+data class Competitor(
     val athleteNumber: Int,
     val startTime: LocalTime,
-    override val surname: String,
-    override val name: String,
-    override val birthYear: Int,
-    override val group: Group,
-    override val rank: Rank,
-    override val teamName: String
-) : Competitor(surname, name, birthYear, group, rank, teamName)
+    val athlete: Athlete
+) : Athlete(athlete)
 
 data class AthleteResults(
-    val athlete: Athlete,
+    val athlete: Competitor,
     val checkpoints: List<CheckpointTime>,
     val removed: Boolean
 ) {
 
     companion object {
-        fun checkCheckpoints(athleteStart: Athlete, checkpoints: List<CheckpointTime>): Boolean {
+        fun checkCheckpoints(athleteStart: Competitor, checkpoints: List<CheckpointTime>): Boolean {
             if (checkpoints.isEmpty()) {
                 logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
                 return false
@@ -63,12 +63,12 @@ data class AthleteResults(
 }
 
 data class AthleteResultInGroup(
-    val athlete: Athlete, val athleteNumberInGroup: Int,
+    val athlete: Competitor, val athleteNumberInGroup: Int,
     val result: Duration, val place: Int, var backlog: String
 )
 
 data class AthleteResultInTeam(
-    val athlete: Athlete, val place: Int, val score: Int
+    val athlete: Competitor, val place: Int, val score: Int
 )
 
 data class AthleteSplitResultInGroup(

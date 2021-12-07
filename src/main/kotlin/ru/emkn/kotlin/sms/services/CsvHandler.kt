@@ -3,7 +3,7 @@ package ru.emkn.kotlin.sms.services
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
-import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.Competitor
 import ru.emkn.kotlin.sms.classes.AthletesGroup
 import ru.emkn.kotlin.sms.classes.Team
 import ru.emkn.kotlin.sms.classes.Group
@@ -55,12 +55,12 @@ object CsvHandler {
         }
     }
 
-    fun parseProtocolStart(path: String): Map<Int, Athlete> {
+    fun parseProtocolStart(path: String): Map<Int, Competitor> {
         val file = File(path)
         if (!file.exists()) {
             throw InvalidFileException(path)
         }
-        val athletes = mutableMapOf<Int, Athlete>()
+        val athletes = mutableMapOf<Int, Competitor>()
         try {
             val data = csvReader().readAll(file)
             var group = Group(data[0][0])
@@ -72,7 +72,7 @@ object CsvHandler {
                     group = Group(unit[0])
                 } else {
                     number = unit[0].toInt()
-                    athletes[number] = Athlete(
+                    athletes[number] = Competitor(
                         unit[1],
                         unit[2],
                         unit[3].toInt(),
@@ -95,8 +95,8 @@ object CsvHandler {
     fun parseCheckpoints(
         path: String,
         isCheckpointAthlete: Boolean,
-        dataProtocolStart: Map<Int, Athlete>
-    ): List<Athlete> {
+        dataProtocolStart: Map<Int, Competitor>
+    ): List<Competitor> {
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
@@ -190,7 +190,7 @@ object CsvHandler {
         if (!file.exists()) {
             return null
         }
-        val athletes = mutableListOf<Athlete>()
+        val athletes = mutableListOf<Competitor>()
         val data = csvReader().readAll(file)
         if (data.size < 2 || data[0].isEmpty()) {
             return null
@@ -201,7 +201,7 @@ object CsvHandler {
             unit = data[i]
             try {
                 athletes.add(
-                    Athlete(
+                    Competitor(
                         unit[1],
                         unit[2],
                         unit[3].toIntOrNull() ?: throw IncorrectBirthYearException(unit[3]),
@@ -228,15 +228,15 @@ object CsvHandler {
 
     private fun parseCheckpointsOfAthlete(
         data: List<List<String>>,
-        dataProtocolStart: Map<Int, Athlete>
-    ): List<Athlete>? {
+        dataProtocolStart: Map<Int, Competitor>
+    ): List<Competitor>? {
         TODO()
     }
 
     private fun parseCheckpointsOfPoints(
         data: List<List<String>>,
-        dataProtocolStart: Map<Int, Athlete>
-    ): List<Athlete>? {
+        dataProtocolStart: Map<Int, Competitor>
+    ): List<Competitor>? {
         if (data.size < 2 || data[0].isEmpty()) {
             return null
         }

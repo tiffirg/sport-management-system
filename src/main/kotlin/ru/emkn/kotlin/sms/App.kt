@@ -1,6 +1,6 @@
 package ru.emkn.kotlin.sms
 
-import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.Competitor
 import ru.emkn.kotlin.sms.classes.AthletesGroup
 import ru.emkn.kotlin.sms.classes.Command
 import ru.emkn.kotlin.sms.classes.CommandResults
@@ -46,7 +46,7 @@ object App {
         } else if (!dir.exists()) {
             dir.mkdir()
         }
-        val dataProtocolStart: Map<Int, Athlete> = if (command.pathProtocolStart.isNullOrEmpty()) {
+        val dataProtocolStart: Map<Int, Competitor> = if (command.pathProtocolStart.isNullOrEmpty()) {
             CsvHandler.parseProtocolStart(pathProtocolStart)
         } else {
             CsvHandler.parseProtocolStart(command.pathProtocolStart)
@@ -83,8 +83,8 @@ object App {
 
     private fun processStream(
         isCheckpointAthlete: Boolean,
-        dataProtocolStart: Map<Int, Athlete>
-    ): List<Athlete> {          // По ТЗ - не требуется, реализован шаблон на будущее
+        dataProtocolStart: Map<Int, Competitor>
+    ): List<Competitor> {          // По ТЗ - не требуется, реализован шаблон на будущее
         var line =
             readLine()
         var splits: List<String>
@@ -92,7 +92,7 @@ object App {
             TODO("Реализация по участнику")
         } else {
             var isWait = true
-            var athlete: Athlete? = null
+            var athlete: Competitor? = null
             var numberAthlete: Int? = null
             var checkpoints = mutableListOf<CheckpointTime>()
             while (line != null) {  // TODO(Добавить эксепшен)

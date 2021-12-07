@@ -1,4 +1,4 @@
-import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.Competitor
 import ru.emkn.kotlin.sms.classes.Group
 import ru.emkn.kotlin.sms.classes.Rank
 import ru.emkn.kotlin.sms.classes.Team
@@ -21,19 +21,19 @@ val rankMaster = Rank("МС")
 
 // Команда "Московский компас"
 
-val vasily = Athlete(
+val vasily = Competitor(
     "Смирнов", "Василий", 2001,
     M21, rank2, "Московский Компас"
 )
-val ivan = Athlete(
+val ivan = Competitor(
     "Смирнов", "Иван", 1978,
     M40, rankCandidate, "Московский Компас"
 )
-val maria = Athlete(
+val maria = Competitor(
     "Калинина", "Мария", 1958,
     W60, rank1, "Московский Компас"
 )
-val mikhail = Athlete(
+val mikhail = Competitor(
     "Петров", "Михаил", 1990,
     M21, rankMaster, "Московский Компас"
 )
@@ -43,11 +43,11 @@ val MoscowTeam = Team("Московский Компас", listOf(vasily, ivan, 
 
 // Команда "Выборгские медведи"
 
-val dmitriy = Athlete(
+val dmitriy = Competitor(
     "Иванов", "Дмитрий", 1950,
     M60, rankCandidate, "Выборгские медведи"
 )
-val kirill = Athlete(
+val kirill = Competitor(
     "Иванов", "Кирилл", 1953,
     M60, rankMaster, "Выборгские медведи"
 )

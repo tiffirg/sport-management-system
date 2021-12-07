@@ -2,7 +2,7 @@ package ru.emkn.kotlin.sms.services
 
 import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.TimeFormatter
-import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.Competitor
 import ru.emkn.kotlin.sms.classes.AthletesGroup
 import ru.emkn.kotlin.sms.classes.Team
 import ru.emkn.kotlin.sms.classes.Group
@@ -21,7 +21,7 @@ object GenerationResultsOfCommands {
     fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
 
         // формирование списков участников по группам
-        val groupLists: Map<Group, MutableList<Athlete>> =
+        val groupLists: Map<Group, MutableList<Competitor>> =
             (applications.flatMap { team -> team.athletes }).groupByTo(mutableMapOf()) { athlete -> athlete.group }
 
         // количество номеров, предусмотренных для участников из одной группы
@@ -34,7 +34,7 @@ object GenerationResultsOfCommands {
             var currentGroupIndex = 1
 
             // жеребьевка внутри каждой группы
-            fun tossGroup(participants: MutableList<Athlete>) {
+            fun tossGroup(participants: MutableList<Competitor>) {
                 participants.shuffle()
                 participants.forEachIndexed { numberInGroup, athlete ->
                     athlete.athleteNumber = currentGroupIndex * maxGroupSize + numberInGroup + 1
@@ -56,7 +56,7 @@ object GenerationResultsOfCommands {
     }
 
 
-    fun generateResults(dataCheckpoints: List<Athlete>): Map<Group, ResultsGroup> {
+    fun generateResults(dataCheckpoints: List<Competitor>): Map<Group, ResultsGroup> {
         val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
         val protocols = (athletesGroups.map { (group, athletesGroup) ->
             Pair(group, ResultsGroup(group, generateResultsGroup(AthletesGroup(group, athletesGroup))))
@@ -65,7 +65,7 @@ object GenerationResultsOfCommands {
         return protocols
     }
 
-    fun generateSplitResults(dataCheckpoints: List<Athlete>): Map<Group, GroupSplitResults> {
+    fun generateSplitResults(dataCheckpoints: List<Competitor>): Map<Group, GroupSplitResults> {
         val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
         val splitProtocols = (athletesGroups.map { (group, athletesGroup) ->
             Pair(group, GroupSplitResults(group, generateSplitResultsGroup(AthletesGroup(group, athletesGroup))))
@@ -133,7 +133,7 @@ object GenerationResultsOfCommands {
         return splitProtocols
     }
 
-    private fun getAthleteSplit(athlete: Athlete): List<CheckpointTime>? {
+    private fun getAthleteSplit(athlete: Competitor): List<CheckpointTime>? {
         return if (athlete.removed) {
             null
         } else {
@@ -173,7 +173,7 @@ object GenerationResultsOfCommands {
         }
     }
 
-    private fun getAthleteResult(athlete: Athlete): LocalTime? {
+    private fun getAthleteResult(athlete: Competitor): LocalTime? {
         return if (athlete.removed) {
             null
         } else {

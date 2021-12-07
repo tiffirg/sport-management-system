@@ -1,6 +1,6 @@
 package ru.emkn.kotlin.sms.utils
 
-import ru.emkn.kotlin.sms.classes.Athlete
+import ru.emkn.kotlin.sms.classes.Competitor
 
 // Config
 class InvalidConfigException(pathConfig: String): Exception("$pathConfig: No such config")
@@ -43,4 +43,4 @@ fun messageAboutCancelCompetition() = "Cancellation of the competition"
 
 fun messageAboutMissAthleteCheckpointData(checkpoint: String, unitData: String) = "`$checkpoint` $unitData: Incorrect checkpoint format"
 
-fun messageAboutIncorrectDataCheckpointOfAthlete(athlete: Athlete) = "Incorrect data on the checkpoint of the $athlete"
+fun messageAboutIncorrectDataCheckpointOfAthlete(athlete: Competitor) = "Incorrect data on the checkpoint of the $athlete"
