@@ -6,6 +6,8 @@ data class Team(val teamName: String, val athletes: List<Athlete>)
 
 data class CompetitorsGroup(val group: Group, val competitors: List<Competitor>)
 
+data class CompetitorsDataGroup(val group: Group, val competitorsData: List<CompetitorData>)
+
 data class TeamResults(val teamName: String, val teamScore: Int, val data: List<CompetitorResultInTeam>)
 
 data class GroupResults(val group: Group, val results: List<CompetitorResultInGroup>) {

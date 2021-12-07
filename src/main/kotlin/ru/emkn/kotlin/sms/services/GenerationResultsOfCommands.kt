@@ -8,6 +8,8 @@ import java.time.LocalTime
 
 object GenerationResultsOfCommands {
 
+    // генерация стартовых протоколов
+
     fun startProtocolsGeneration(applications: List<Team>): List<CompetitorsGroup> {
 
         // формирование списков участников по группам
@@ -18,14 +20,14 @@ object GenerationResultsOfCommands {
         val maxGroupSize = ((athleteGroups.maxOf { it.value.size } / 10 + 1) * 10)
 
         // распределение времени старта между группами
-        fun generateStartTimes(groupLists: Map<Group, List<Athlete>>) : Map<Group, List<Competitor>> {
+        fun generateStartTimes(groupLists: Map<Group, List<Athlete>>): Map<Group, List<Competitor>> {
 
             var currentStartTime = EVENT_TIME
             var currentGroupIndex = 1
 
             // жеребьевка каждой группы: по списку группы атлетов
             // формируется список участников соревнований
-            fun tossGroup(athletes: List<Athlete>) : List<Competitor> {
+            fun tossGroup(athletes: List<Athlete>): List<Competitor> {
                 val shuffledAthletes = athletes.shuffled()
                 val competitors = mutableListOf<Competitor>()
                 shuffledAthletes.forEachIndexed { numberInGroup, athlete ->
@@ -52,17 +54,60 @@ object GenerationResultsOfCommands {
         val competitorGroups = generateStartTimes(athleteGroups)
         val startLists = competitorGroups.map { (group, competitors) -> CompetitorsGroup(group, competitors) }
         return startLists.sortedBy { athletesGroup -> athletesGroup.group.toString() }
+
     }
 
 
-    fun generateResults(dataCheckpoints: List<Competitor>): Map<Group, ResultsGroup> {
-        val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
-        val protocols = (athletesGroups.map { (group, athletesGroup) ->
-            Pair(group, ResultsGroup(group, generateResultsGroup(CompetitorsGroup(group, athletesGroup))))
-        }).toMap()
-        protocols.toSortedMap(compareBy { it.groupName })
+    // генерация результатов одной группы
+
+    private fun generateResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupResults {
+
+        // TODO: присвоение разрядов
+
+        // Атлеты сортируются по времени результата
+        // Если человек дисквалифицирован, то его результатом буде специальное значение
+
+        val sortedAthletes = competitorsDataGroup.competitors.sortedBy { athlete ->
+            val resultTimeOrNull = getAthleteResult(athlete)
+            resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
+        }
+
+        val protocols: List<CompetitorResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
+            CompetitorResultInGroup(
+                index + 1, athlete.athleteNumber!!,
+                athlete.surname, athlete.name, athlete.birthYear,
+                athlete.rank, athlete.teamName, getAthleteResult(athlete),
+                index + 1, ""
+            )
+        }
+
+        // вычисление отставания от лидера
+        val leaderTime = protocols.first().result
+        protocols.forEach { resultAthleteInGroup ->
+            val result = resultAthleteInGroup.result
+            resultAthleteInGroup.backlog = getBacklog(result, leaderTime)
+        }
+
         return protocols
     }
+
+
+    // генерация результатов всех участников
+
+    fun generateResults(data: List<CompetitorData>): List<GroupResults> {
+        val athletesGroups =
+            (data.groupBy { competitorData -> competitorData.competitor.group }).map { (group, competitorsData) ->
+                CompetitorsDataGroup(group, competitorsData)
+            }
+
+        val protocols = athletesGroups.map { competitorsDataGroup ->
+            generateResultsGroup(competitorsDataGroup)
+        }
+
+        return protocols.sortedBy { groupResults -> groupResults.group.groupName }
+    }
+
+
 
     fun generateSplitResults(dataCheckpoints: List<Competitor>): Map<Group, GroupSplitResults> {
         val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
@@ -181,33 +226,4 @@ object GenerationResultsOfCommands {
         }
     }
 
-    private fun generateResultsGroup(athletesGroup: CompetitorsGroup): List<CompetitorResultInGroup> {
-
-        // TODO: присвоение разрядов
-
-        // Атлеты сортируются по времени результата
-        // Если человек дисквалифицирован, то его результатом буде специальное значение
-        val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
-            val resultTimeOrNull = getAthleteResult(athlete)
-            resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
-        }
-
-        val protocols: List<CompetitorResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
-            CompetitorResultInGroup(
-                index + 1, athlete.athleteNumber!!,
-                athlete.surname, athlete.name, athlete.birthYear,
-                athlete.rank, athlete.teamName, getAthleteResult(athlete),
-                index + 1, ""
-            )
-        }
-
-        // вычисление отставания от лидера
-        val leaderTime = protocols.first().result
-        protocols.forEach { resultAthleteInGroup ->
-            val result = resultAthleteInGroup.result
-            resultAthleteInGroup.backlog = getBacklog(result, leaderTime)
-        }
-
-        return protocols
-    }
 }

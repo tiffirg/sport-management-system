@@ -6,6 +6,7 @@ import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
 import java.time.LocalTime
 
+
 open class Person(
     val surname: String,
     val name: String,
@@ -32,12 +33,11 @@ data class Competitor(
     val athlete: Athlete
 ) : Athlete(athlete)
 
-data class CompetitorResults(
+data class CompetitorData (
     val competitor: Competitor,
     val checkpoints: List<CheckpointTime>,
     val removed: Boolean
 ) {
-
     companion object {
         fun checkCheckpoints(athleteStart: Competitor, checkpoints: List<CheckpointTime>): Boolean {
             if (checkpoints.isEmpty()) {
