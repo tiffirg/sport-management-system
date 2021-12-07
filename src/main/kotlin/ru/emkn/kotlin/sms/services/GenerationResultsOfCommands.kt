@@ -4,6 +4,7 @@ import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.TimeFormatter
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.minus
+import java.time.Duration
 import java.time.LocalTime
 
 object GenerationResultsOfCommands {
@@ -58,6 +59,18 @@ object GenerationResultsOfCommands {
     }
 
 
+    // генерация результатов одного участника
+
+    private fun getCompetitorResult(competitorData: CompetitorData): Duration? {
+        return if (competitorData.removed) {
+            null
+        } else {
+            val finishTime = competitorData.checkpoints.last().time
+            val startTime = competitorData.competitor.startTime
+            Duration.between(startTime, finishTime)
+        }
+    }
+
     // генерация результатов одной группы
 
     private fun generateResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupResults {
@@ -67,16 +80,16 @@ object GenerationResultsOfCommands {
         // Атлеты сортируются по времени результата
         // Если человек дисквалифицирован, то его результатом буде специальное значение
 
-        val sortedAthletes = competitorsDataGroup.competitors.sortedBy { athlete ->
-            val resultTimeOrNull = getAthleteResult(athlete)
+        val sortedCompetitorsData = competitorsDataGroup.competitorsData.sortedBy { competitorData ->
+            val resultTimeOrNull = getCompetitorResult(competitorData)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
         }
 
-        val protocols: List<CompetitorResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
+        val protocols: List<CompetitorResultInGroup> = sortedCompetitorsData.mapIndexed { index, athlete ->
             CompetitorResultInGroup(
                 index + 1, athlete.athleteNumber!!,
                 athlete.surname, athlete.name, athlete.birthYear,
-                athlete.rank, athlete.teamName, getAthleteResult(athlete),
+                athlete.rank, athlete.teamName, getCompetitorResult(athlete),
                 index + 1, ""
             )
         }
@@ -157,15 +170,15 @@ object GenerationResultsOfCommands {
 
     private fun generateSplitResultsGroup(athletesGroup: CompetitorsGroup): List<CompetitorSplitResultInGroup> {
         val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
-            val resultTimeOrNull = getAthleteResult(athlete)
+            val resultTimeOrNull = getCompetitorResult(athlete)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
         }
 
-        val leaderTime = getAthleteResult(sortedAthletes.first())
+        val leaderTime = getCompetitorResult(sortedAthletes.first())
 
         val splitProtocols: List<CompetitorSplitResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
             val split = getAthleteSplit(athlete)
-            val result = getAthleteResult(athlete)
+            val result = getCompetitorResult(athlete)
             CompetitorSplitResultInGroup(
                 index + 1, athlete.athleteNumber!!,
                 athlete.surname, athlete.name, athlete.birthYear,
@@ -214,15 +227,6 @@ object GenerationResultsOfCommands {
             ""
         } else {
             "+${result.minus(leaderTime).format(TimeFormatter)}"
-        }
-    }
-
-    private fun getAthleteResult(athlete: Competitor): LocalTime? {
-        return if (athlete.removed) {
-            null
-        } else {
-            val finishTime = athlete.checkpoints!!.last().time
-            finishTime.minus(athlete.startTime)
         }
     }
 
