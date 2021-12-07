@@ -64,7 +64,7 @@ data class CompetitorData (
 
 data class CompetitorResultInGroup(
     val competitor: Competitor, val athleteNumberInGroup: Int,
-    val result: Duration, val place: Int, var backlog: String
+    val result: Duration?, val place: Int, var backlog: String
 )
 
 data class CompetitorResultInTeam(

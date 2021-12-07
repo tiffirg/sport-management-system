@@ -59,6 +59,17 @@ object GenerationResultsOfCommands {
     }
 
 
+    // функция вычисляет отставание от лидера
+    private fun getBacklog(result: Duration?, leaderTime: Duration?): String {
+        return if (result == null) {
+            ""
+        } else {
+            val backlog = result - leaderTime
+            "+${backlog}"
+        }
+    }
+
+
     // генерация результатов одного участника
 
     private fun getCompetitorResult(competitorData: CompetitorData): Duration? {
@@ -77,28 +88,23 @@ object GenerationResultsOfCommands {
 
         // TODO: присвоение разрядов
 
-        // Атлеты сортируются по времени результата
-        // Если человек дисквалифицирован, то его результатом буде специальное значение
-
+        // Участники сортируются по времени результата
+        // Если человек дисквалифицирован, то его результатом будет специальное значение
         val sortedCompetitorsData = competitorsDataGroup.competitorsData.sortedBy { competitorData ->
-            val resultTimeOrNull = getCompetitorResult(competitorData)
-            resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
+            val result = getCompetitorResult(competitorData)
+            result?.seconds ?: Double.POSITIVE_INFINITY.toLong()
         }
 
-        val protocols: List<CompetitorResultInGroup> = sortedCompetitorsData.mapIndexed { index, athlete ->
-            CompetitorResultInGroup(
-                index + 1, athlete.athleteNumber!!,
-                athlete.surname, athlete.name, athlete.birthYear,
-                athlete.rank, athlete.teamName, getCompetitorResult(athlete),
-                index + 1, ""
-            )
+        val protocols: List<CompetitorResultInGroup> = sortedCompetitorsData.mapIndexed { index, competitorData ->
+            CompetitorResultInGroup(competitorData.competitor, index + 1,
+            getCompetitorResult(competitorData), index + 1, "")
         }
 
         // вычисление отставания от лидера
         val leaderTime = protocols.first().result
-        protocols.forEach { resultAthleteInGroup ->
-            val result = resultAthleteInGroup.result
-            resultAthleteInGroup.backlog = getBacklog(result, leaderTime)
+        protocols.forEach { competitorResult ->
+            val result = competitorResult.result
+            competitorResult.backlog = getBacklog(result, leaderTime)
         }
 
         return protocols
@@ -221,13 +227,6 @@ object GenerationResultsOfCommands {
         }
     }
 
-    // функция вычисляет отставание от лидера
-    private fun getBacklog(result: LocalTime?, leaderTime: LocalTime?): String {
-        return if (result == null) {
-            ""
-        } else {
-            "+${result.minus(leaderTime).format(TimeFormatter)}"
-        }
-    }
+
 
 }
