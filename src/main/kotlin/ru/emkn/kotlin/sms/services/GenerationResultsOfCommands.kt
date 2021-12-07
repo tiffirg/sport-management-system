@@ -55,8 +55,8 @@ object GenerationResultsOfCommands {
 
     }
 
+    // вычисление отставания от лидера
 
-    // функция вычисляет отставание от лидера
     private fun getBacklog(result: Duration?, leaderTime: Duration?): String {
         return if (result == null) {
             ""
@@ -65,7 +65,6 @@ object GenerationResultsOfCommands {
             "+${backlog}"
         }
     }
-
 
     // генерация результатов одного участника
 
@@ -106,7 +105,6 @@ object GenerationResultsOfCommands {
 
         return GroupResults(competitorsDataGroup.group, protocols)
     }
-
 
     // генерация результатов всех участников
 
@@ -156,21 +154,21 @@ object GenerationResultsOfCommands {
         }
     }
 
-
     // генерация сплитов группы участников
 
     private fun generateSplitResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupSplitResults {
 
-        val mappedData: Map<Competitor, CompetitorData> = competitorsDataGroup.competitorsData.associateBy {
-            competitorData -> competitorData.competitor
-        }
+        val mappedData: Map<Competitor, CompetitorData> =
+            competitorsDataGroup.competitorsData.associateBy { competitorData ->
+                competitorData.competitor
+            }
 
         val protocols = generateResultsGroup(competitorsDataGroup)
 
         val splitProtocols: List<CompetitorSplitResultInGroup> =
             protocols.results.map { competitorResultInGroup ->
                 val competitorData = mappedData[competitorResultInGroup.competitor]
-                assert(competitorData != null) {"mapped data contains information about all competitors"}
+                assert(competitorData != null) { "mapped data contains information about all competitors" }
                 val splits = getCompetitorSplit(competitorData!!)
                 CompetitorSplitResultInGroup(competitorResultInGroup, splits)
             }
@@ -178,14 +176,14 @@ object GenerationResultsOfCommands {
         return GroupSplitResults(competitorsDataGroup.group, splitProtocols)
     }
 
-
     // генерация сплитов всех участников
 
     fun generateSplitResults(data: List<CompetitorData>): List<GroupSplitResults> {
 
-        val competitorsGroups = data.groupBy { competitorData -> competitorData.competitor.group }.map {
-            (group, competitorsData) -> CompetitorsDataGroup(group, competitorsData)
-        }
+        val competitorsGroups =
+            data.groupBy { competitorData -> competitorData.competitor.group }.map { (group, competitorsData) ->
+                CompetitorsDataGroup(group, competitorsData)
+            }
         val splitProtocols = competitorsGroups.map { competitorsDataGroup ->
             generateSplitResultsGroup(competitorsDataGroup)
         }
@@ -193,40 +191,47 @@ object GenerationResultsOfCommands {
         return splitProtocols.sortedBy { groupSplitResults -> groupSplitResults.group.groupName }
     }
 
-    fun teamResultsGeneration(listOfGroups: MutableList<ResultsGroup>): Map<String, ResultsTeam> {
+
+    // генерация результатов команд
+
+    fun generateTeamsResults(groupResultsList: List<GroupResults>): List<TeamResults> {
 
 
-        val resultsForGroups = listOfGroups.associate { resultsGroup -> Pair(resultsGroup.group, resultsGroup.results) }
-        val athleteResults = resultsForGroups.flatMap { it.value }
-        val teamsResults = athleteResults.groupBy { athleteResult -> athleteResult.teamName }
+        val fullResultsList = groupResultsList.flatMap { groupResult -> groupResult.results }
+        val teamsList = fullResultsList.groupBy { athleteResult -> athleteResult.competitor.teamName }
 
-        val scoresByAthleteNumber: MutableMap<Int, Int> = mutableMapOf()
-        val groupByAthleteNumber: MutableMap<Int, Group> = mutableMapOf()
 
-        listOfGroups.forEach { resultsGroup ->
-            resultsGroup.results.forEach { athleteResult ->
-                scoresByAthleteNumber[athleteResult.athleteNumber] =
-                    resultsGroup.getAthleteScore(athleteResult.athleteNumber)
-                groupByAthleteNumber[athleteResult.athleteNumber] = resultsGroup.group
+        // подсчет очков каждого участника
+
+        val scoresByCompetitor: MutableMap<Competitor, Int> = mutableMapOf()
+        groupResultsList.forEach { groupResults ->
+            groupResults.results.forEach { competitorResultInGroup ->
+                scoresByCompetitor[competitorResultInGroup.competitor] =
+                    groupResults.getCompetitorScore(competitorResultInGroup.competitor.athleteNumber)
             }
         }
 
-        fun generateTeamResult(teamName: String, teamResults: List<CompetitorResultInGroup>): ResultsTeam {
-            val data = teamResults.map { (_, athleteNumber, surname, name, birthYear, rank, _, _, place, _) ->
+        // генерация результатов одной команды
+
+        fun generateTeamResult(teamName: String, teamResults: List<CompetitorResultInGroup>): TeamResults {
+            val data = teamResults.map { competitorResultInGroup ->
+                val competitor = competitorResultInGroup.competitor
+                val score =  scoresByCompetitor[competitor]
+                assert(score != null) {"scoresByCompetitor contains information about all competitors"}
                 CompetitorResultInTeam(
-                    athleteNumber, name, surname, birthYear, rank,
-                    groupByAthleteNumber[athleteNumber]!!, place, scoresByAthleteNumber[athleteNumber]!!
+                    competitor, competitorResultInGroup.place,
+                    score!!
                 )
             }
             val teamScore = data.sumOf { it.score }
-            return ResultsTeam(teamName, teamScore, data)
+            return TeamResults(teamName, teamScore, data)
         }
 
-        val res = teamsResults.map { (teamName, teamResults) ->
-            Pair(teamName, generateTeamResult(teamName, teamResults))
-        }.toMap()
+        val temResults = teamsList.map { (teamName, teamResults) ->
+            generateTeamResult(teamName, teamResults)
+        }
 
-        return res.toSortedMap(compareByDescending { res[it]!!.teamScore })
+        return temResults.sortedByDescending { teamResults -> teamResults.teamScore }
 
     }
 

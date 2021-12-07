@@ -77,7 +77,7 @@ object App {
         }
         CsvHandler.generationResultsTeam(
             pathResultsTeam,
-            GenerationResultsOfCommands.teamResultsGeneration(dataResultsGroup)
+            GenerationResultsOfCommands.generateTeamsResults(dataResultsGroup)
         )
     }
 
