@@ -111,12 +111,12 @@ object GenerationResultsOfCommands {
     // генерация результатов всех участников
 
     fun generateResults(data: List<CompetitorData>): List<GroupResults> {
-        val athletesGroups =
+        val competitorsGroups =
             (data.groupBy { competitorData -> competitorData.competitor.group }).map { (group, competitorsData) ->
                 CompetitorsDataGroup(group, competitorsData)
             }
 
-        val protocols = athletesGroups.map { competitorsDataGroup ->
+        val protocols = competitorsGroups.map { competitorsDataGroup ->
             generateResultsGroup(competitorsDataGroup)
         }
 
@@ -182,12 +182,15 @@ object GenerationResultsOfCommands {
     // генерация сплитов всех участников
 
     fun generateSplitResults(data: List<CompetitorData>): List<GroupSplitResults> {
-        val athletesGroups = data.groupBy { competitorData -> competitorData.competitor.group }
-        val splitProtocols = (athletesGroups.map { (group, athletesGroup) ->
-            Pair(group, GroupSplitResults(group, generateSplitResultsGroup(CompetitorsGroup(group, athletesGroup))))
-        }).toMap()
-        splitProtocols.toSortedMap(compareBy { it.groupName })
-        return splitProtocols
+
+        val competitorsGroups = data.groupBy { competitorData -> competitorData.competitor.group }.map {
+            (group, competitorsData) -> CompetitorsDataGroup(group, competitorsData)
+        }
+        val splitProtocols = competitorsGroups.map { competitorsDataGroup ->
+            generateSplitResultsGroup(competitorsDataGroup)
+        }
+
+        return splitProtocols.sortedBy { groupSplitResults -> groupSplitResults.group.groupName }
     }
 
     fun teamResultsGeneration(listOfGroups: MutableList<ResultsGroup>): Map<String, ResultsTeam> {
