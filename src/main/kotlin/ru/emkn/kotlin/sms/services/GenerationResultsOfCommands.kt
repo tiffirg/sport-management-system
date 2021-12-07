@@ -22,7 +22,7 @@ object GenerationResultsOfCommands {
 
         // формирование списков участников по группам
         val groupLists: Map<Group, MutableList<Competitor>> =
-            (applications.flatMap { team -> team.athletes }).groupByTo(mutableMapOf()) { athlete -> athlete.group }
+            (applications.flatMap { team -> team.competitors }).groupByTo(mutableMapOf()) { athlete -> athlete.group }
 
         // количество номеров, предусмотренных для участников из одной группы
         val maxGroupSize = ((groupLists.maxOf { it.value.size } / 10 + 1) * 10)
@@ -112,7 +112,7 @@ object GenerationResultsOfCommands {
     }
 
     private fun generateSplitResultsGroup(athletesGroup: AthletesGroup): List<CompetitorSplitResultInGroup> {
-        val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
+        val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
             val resultTimeOrNull = getAthleteResult(athlete)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
         }
@@ -188,7 +188,7 @@ object GenerationResultsOfCommands {
 
         // Атлеты сортируются по времени результата
         // Если человек дисквалифицирован, то его результатом буде специальное значение
-        val sortedAthletes = athletesGroup.athletes.sortedBy { athlete ->
+        val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
             val resultTimeOrNull = getAthleteResult(athlete)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
         }
