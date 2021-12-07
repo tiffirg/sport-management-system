@@ -3,12 +3,13 @@ package ru.emkn.kotlin.sms.services
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
-import ru.emkn.kotlin.sms.TimeFormatter
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.toLocalTime
 import ru.emkn.kotlin.sms.logger
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
+import java.time.Duration
+import java.time.LocalTime
 
 
 object CsvHandler {
@@ -120,42 +121,52 @@ object CsvHandler {
         }
     }
 
-    fun parseResultsGroup(path: String): MutableList<ResultsGroup> {
+    fun parseResultsGroup(path: String): List<GroupResults> {
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
         }
         val linesFromResultsCsv: List<List<String>> = csvReader().readAll(file)
         var listOfAthletes: MutableList<CompetitorResultInGroup> = mutableListOf()
-        val listOfGroups: MutableList<ResultsGroup> = mutableListOf()
+        val listOfGroups: MutableList<GroupResults> = mutableListOf()
 
-        var group = ""
+        var groupName = ""
         var unit: List<String>
         try {
             for (element in linesFromResultsCsv) {
                 unit = element
                 if (GROUP_NAMES.contains(unit[0])) {
-                    if (listOfAthletes.isNotEmpty()) {      // = we've already written down the first group of Athletes
-                        listOfGroups.add(ResultsGroup(Group(group), listOfAthletes))
+                    if (listOfAthletes.isNotEmpty()) {
+                        // = we've already written down the first group of Athletes
+                        listOfGroups.add(GroupResults(Group(groupName), listOfAthletes))
                         listOfAthletes = mutableListOf()
                     }
-                    group = unit[0]
-                } else if (unit[0].toIntOrNull() != null) {   // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
-                    listOfAthletes.add(
-                        CompetitorResultInGroup(
-                            unit[0].toInt(), unit[1].toInt(),
-                            unit[2], unit[3], unit[4].toInt(),
-                            toRank(unit[5]), unit[6], (unit[7]).toLocalTime(),
-                            unit[8].toInt(), unit[9]
-                        )
-                    )
+                    groupName = unit[0]
+                } else if (unit[0].toIntOrNull() != null) {
+                    // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
+                    val place = unit[0].toInt()
+                    val athleteNumber = unit[1].toInt()
+                    val surname = unit[2]
+                    val name = unit[3]
+                    val birthYear = unit[4].toInt()
+                    val rank = toRank(unit[5])
+                    val teamName = unit[6]
+                    val result = Duration.parse(unit[7])
+                    val backlog = unit[9]
+                    val athlete = Athlete(surname, name, birthYear, Group(groupName), rank, teamName)
+                    val competitor = Competitor(athleteNumber, LocalTime.of(0, 0), athlete)
+                    // TODO: we know it's a competitor, but we don't know his start time,
+                    //  and we don't need it for scores
+                    listOfAthletes.add(CompetitorResultInGroup(competitor, place, result, place, backlog))
                 }
             }
         } catch (exception: Exception) {
             logger.debug { exception.message }
             throw IncorrectResultsGroupException(path)
         }
-        listOfGroups.add(ResultsGroup(Group(group), listOfAthletes))      // writing down the last group of Athletes
+
+        // writing down the last group of Athletes
+        listOfGroups.add(GroupResults(Group(groupName), listOfAthletes))
         return listOfGroups
     }
 

@@ -38,7 +38,7 @@ object App {
         } else if (!dir.exists()) {
             dir.mkdir()
         }
-        val dataProtocolStart: Map<Int, Competitor> = if (command.pathProtocolStart.isNullOrEmpty()) {
+        val dataProtocolStart: List<Competitor> = if (command.pathProtocolStart.isNullOrEmpty()) {
             CsvHandler.parseProtocolStart(pathProtocolStart)
         } else {
             CsvHandler.parseProtocolStart(command.pathProtocolStart)
