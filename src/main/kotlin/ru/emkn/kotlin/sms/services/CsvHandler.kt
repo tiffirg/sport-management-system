@@ -170,11 +170,11 @@ object CsvHandler {
         return listOfGroups
     }
 
-    fun generationResultsTeam(path: String, data: Map<String, ResultsTeam>) {
+    fun generationResultsTeam(path: String, data: List<TeamResults>) {
         csvWriter().open(path) {
-            data.forEach { (teamName, resultsTeam) ->
-                writeRow(listOf(teamName, resultsTeam.teamScore, "", "", "", "", "", ""))
-                resultsTeam.data.forEach { writeRow(it.listForResultsAthlete) }
+            data.forEach { (teamName, teamScore, teamData) ->
+                writeRow(listOf(teamName, teamScore, "", "", "", "", "", ""))
+                teamData.forEach { writeRow(it.listForResultsAthlete) }
             }
         }
     }

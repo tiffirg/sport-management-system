@@ -101,7 +101,20 @@ data class CompetitorResultInGroup(
 
 data class CompetitorResultInTeam(
     val competitor: Competitor, val place: Int, val score: Int
-)
+) {
+    // Пример: 21, Шишкин, Владислав, 2002, 1ю, М10, 2, 77
+    val listForResultsAthlete: List<String>
+    get() = listOf(
+        competitor.athleteNumber.toString(),
+        competitor.surname,
+        competitor.name,
+        competitor.birthYear.toString(),
+        competitor.rank.toString(),
+        competitor.group.groupName,
+        place.toString(),
+        score.toString()
+    )
+}
 
 data class CompetitorSplitResultInGroup(
     val competitorResultInGroup: CompetitorResultInGroup, val splits: List<CheckpointDuration>?
