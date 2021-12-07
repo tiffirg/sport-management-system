@@ -2,56 +2,55 @@ package ru.emkn.kotlin.sms.services
 
 import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.TimeFormatter
-import ru.emkn.kotlin.sms.classes.Competitor
-import ru.emkn.kotlin.sms.classes.AthletesGroup
-import ru.emkn.kotlin.sms.classes.Team
-import ru.emkn.kotlin.sms.classes.Group
-import ru.emkn.kotlin.sms.classes.ResultsGroup
-import ru.emkn.kotlin.sms.classes.ResultsTeam
-import ru.emkn.kotlin.sms.classes.GroupSplitResults
-import ru.emkn.kotlin.sms.classes.CheckpointTime
-import ru.emkn.kotlin.sms.classes.CompetitorResultInGroup
-import ru.emkn.kotlin.sms.classes.CompetitorResultInTeam
-import ru.emkn.kotlin.sms.classes.CompetitorSplitResultInGroup
+import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.minus
 import java.time.LocalTime
 
 object GenerationResultsOfCommands {
 
-    fun startProtocolsGeneration(applications: List<Team>): List<AthletesGroup> {
+    fun startProtocolsGeneration(applications: List<Team>): List<CompetitorsGroup> {
 
         // формирование списков участников по группам
-        val groupLists: Map<Group, MutableList<Competitor>> =
-            (applications.flatMap { team -> team.competitors }).groupByTo(mutableMapOf()) { athlete -> athlete.group }
+        val athleteGroups: Map<Group, List<Athlete>> =
+            (applications.flatMap { team -> team.athletes }).groupBy { athlete -> athlete.group }
 
         // количество номеров, предусмотренных для участников из одной группы
-        val maxGroupSize = ((groupLists.maxOf { it.value.size } / 10 + 1) * 10)
+        val maxGroupSize = ((athleteGroups.maxOf { it.value.size } / 10 + 1) * 10)
 
         // распределение времени старта между группами
-        fun generateStartTimes() {
+        fun generateStartTimes(groupLists: Map<Group, List<Athlete>>) : Map<Group, List<Competitor>> {
 
             var currentStartTime = EVENT_TIME
             var currentGroupIndex = 1
 
-            // жеребьевка внутри каждой группы
-            fun tossGroup(participants: MutableList<Competitor>) {
-                participants.shuffle()
-                participants.forEachIndexed { numberInGroup, athlete ->
-                    athlete.athleteNumber = currentGroupIndex * maxGroupSize + numberInGroup + 1
-                    athlete.startTime = currentStartTime
+            // жеребьевка каждой группы: по списку группы атлетов
+            // формируется список участников соревнований
+            fun tossGroup(athletes: List<Athlete>) : List<Competitor> {
+                val shuffledAthletes = athletes.shuffled()
+                val competitors = mutableListOf<Competitor>()
+                shuffledAthletes.forEachIndexed { numberInGroup, athlete ->
+                    val athleteNumber = currentGroupIndex * maxGroupSize + numberInGroup + 1
+                    val startTime = currentStartTime
+                    val competitor = Competitor(athleteNumber, startTime, athlete)
+                    competitors.add(competitor)
                     currentStartTime = currentStartTime.plusMinutes(1)
                 }
+                return competitors
             }
 
-            groupLists.forEach { (_, participants) ->
-                tossGroup(participants)
+            val result = mutableMapOf<Group, List<Competitor>>()
+            groupLists.forEach { (group, athletes) ->
+                val competitors = tossGroup(athletes)
+                result[group] = competitors
                 currentGroupIndex++
             }
 
+            return result
+
         }
 
-        generateStartTimes()
-        val startLists = groupLists.map { (group, athleteList) -> AthletesGroup(group, athleteList) }
+        val competitorGroups = generateStartTimes(athleteGroups)
+        val startLists = competitorGroups.map { (group, competitors) -> CompetitorsGroup(group, competitors) }
         return startLists.sortedBy { athletesGroup -> athletesGroup.group.toString() }
     }
 
@@ -59,7 +58,7 @@ object GenerationResultsOfCommands {
     fun generateResults(dataCheckpoints: List<Competitor>): Map<Group, ResultsGroup> {
         val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
         val protocols = (athletesGroups.map { (group, athletesGroup) ->
-            Pair(group, ResultsGroup(group, generateResultsGroup(AthletesGroup(group, athletesGroup))))
+            Pair(group, ResultsGroup(group, generateResultsGroup(CompetitorsGroup(group, athletesGroup))))
         }).toMap()
         protocols.toSortedMap(compareBy { it.groupName })
         return protocols
@@ -68,7 +67,7 @@ object GenerationResultsOfCommands {
     fun generateSplitResults(dataCheckpoints: List<Competitor>): Map<Group, GroupSplitResults> {
         val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
         val splitProtocols = (athletesGroups.map { (group, athletesGroup) ->
-            Pair(group, GroupSplitResults(group, generateSplitResultsGroup(AthletesGroup(group, athletesGroup))))
+            Pair(group, GroupSplitResults(group, generateSplitResultsGroup(CompetitorsGroup(group, athletesGroup))))
         }).toMap()
         splitProtocols.toSortedMap(compareBy { it.groupName })
         return splitProtocols
@@ -111,7 +110,7 @@ object GenerationResultsOfCommands {
 
     }
 
-    private fun generateSplitResultsGroup(athletesGroup: AthletesGroup): List<CompetitorSplitResultInGroup> {
+    private fun generateSplitResultsGroup(athletesGroup: CompetitorsGroup): List<CompetitorSplitResultInGroup> {
         val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
             val resultTimeOrNull = getAthleteResult(athlete)
             resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
@@ -182,7 +181,7 @@ object GenerationResultsOfCommands {
         }
     }
 
-    private fun generateResultsGroup(athletesGroup: AthletesGroup): List<CompetitorResultInGroup> {
+    private fun generateResultsGroup(athletesGroup: CompetitorsGroup): List<CompetitorResultInGroup> {
 
         // TODO: присвоение разрядов
 

@@ -2,9 +2,9 @@ package ru.emkn.kotlin.sms.classes
 
 import java.time.Duration
 
-data class Team(val teamName: String, val competitors: List<Competitor>)
+data class Team(val teamName: String, val athletes: List<Athlete>)
 
-data class AthletesGroup(val group: Group, val competitors: List<Competitor>)
+data class CompetitorsGroup(val group: Group, val competitors: List<Competitor>)
 
 data class TeamResults(val teamName: String, val teamScore: Int, val data: List<CompetitorResultInTeam>)
 

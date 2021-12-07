@@ -4,7 +4,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.Competitor
-import ru.emkn.kotlin.sms.classes.AthletesGroup
+import ru.emkn.kotlin.sms.classes.CompetitorsGroup
 import ru.emkn.kotlin.sms.classes.Team
 import ru.emkn.kotlin.sms.classes.Group
 import ru.emkn.kotlin.sms.classes.ResultsGroup
@@ -44,7 +44,7 @@ object CsvHandler {
         return teams
     }
 
-    fun generationProtocolsStart(path: String, data: List<AthletesGroup>) {
+    fun generationProtocolsStart(path: String, data: List<CompetitorsGroup>) {
         csvWriter().open(path) {
             data.forEach { (group, athletes) ->
                 writeRow(listOf(group.groupName, "", "", "", "", "", ""))

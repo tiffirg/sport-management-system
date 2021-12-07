@@ -1,7 +1,7 @@
 package ru.emkn.kotlin.sms
 
 import ru.emkn.kotlin.sms.classes.Competitor
-import ru.emkn.kotlin.sms.classes.AthletesGroup
+import ru.emkn.kotlin.sms.classes.CompetitorsGroup
 import ru.emkn.kotlin.sms.classes.Command
 import ru.emkn.kotlin.sms.classes.CommandResults
 import ru.emkn.kotlin.sms.classes.CommandResultsGroup
@@ -35,7 +35,7 @@ object App {
             logger.info { messageAboutCancelCompetition() }
             return
         }
-        val startLists: List<AthletesGroup> = GenerationResultsOfCommands.startProtocolsGeneration(data)
+        val startLists: List<CompetitorsGroup> = GenerationResultsOfCommands.startProtocolsGeneration(data)
         dir.mkdir()
         CsvHandler.generationProtocolsStart(pathProtocolStart, startLists)
     }
