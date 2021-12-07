@@ -13,6 +13,7 @@ open class Person(
     val birthYear: Int
 )
 
+
 open class Athlete(
     surname: String, name: String, birthYear: Int,
     open val group: Group, open val rank: Rank, open val teamName: String
@@ -27,13 +28,15 @@ open class Athlete(
     )
 }
 
+
 data class Competitor(
     val athleteNumber: Int,
     val startTime: LocalTime,
     val athlete: Athlete
 ) : Athlete(athlete)
 
-data class CompetitorData (
+
+open class CompetitorData(
     val competitor: Competitor,
     val checkpoints: List<CheckpointTime>,
     val removed: Boolean
@@ -58,9 +61,10 @@ data class CompetitorData (
             }
             return true
         }
-
     }
 }
+
+
 
 data class CompetitorResultInGroup(
     val competitor: Competitor, val athleteNumberInGroup: Int,

@@ -1,11 +1,9 @@
 package ru.emkn.kotlin.sms.services
 
 import ru.emkn.kotlin.sms.EVENT_TIME
-import ru.emkn.kotlin.sms.TimeFormatter
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.minus
 import java.time.Duration
-import java.time.LocalTime
 
 object GenerationResultsOfCommands {
 
@@ -86,8 +84,6 @@ object GenerationResultsOfCommands {
 
     private fun generateResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupResults {
 
-        // TODO: присвоение разрядов
-
         // Участники сортируются по времени результата
         // Если человек дисквалифицирован, то его результатом будет специальное значение
         val sortedCompetitorsData = competitorsDataGroup.competitorsData.sortedBy { competitorData ->
@@ -107,7 +103,7 @@ object GenerationResultsOfCommands {
             competitorResult.backlog = getBacklog(result, leaderTime)
         }
 
-        return protocols
+        return GroupResults(competitorsDataGroup.group, protocols)
     }
 
 
@@ -126,10 +122,69 @@ object GenerationResultsOfCommands {
         return protocols.sortedBy { groupResults -> groupResults.group.groupName }
     }
 
+    // генерация сплита одного участника
+
+    private fun getCompetitorSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
+        return if (competitorData.removed) {
+            null
+        } else {
+            // генерация сплитов: время на 1 КП - разница между временем отсечки и временем старта
+            // время на последующие КП - разница времен текущего и предыдущего КП
+            val splits = mutableListOf<CheckpointDuration>()
+            competitorData.checkpoints.forEachIndexed { index, _ ->
+                if (index == 0) {
+                    val firstCheckpoint = competitorData.checkpoints[0]
+                    splits.add(
+                        CheckpointDuration(
+                            firstCheckpoint.checkpoint,
+                            Duration.between(competitorData.competitor.startTime, firstCheckpoint.time)
+                        )
+                    )
+                } else {
+                    val currCheckpoint = competitorData.checkpoints[index]
+                    val prevCheckpoint = competitorData.checkpoints[index - 1]
+                    splits.add(
+                        CheckpointDuration(
+                            currCheckpoint.checkpoint,
+                            Duration.between(prevCheckpoint.time, currCheckpoint.time)
+                        )
+                    )
+                }
+            }
+            splits
+        }
+    }
 
 
-    fun generateSplitResults(dataCheckpoints: List<Competitor>): Map<Group, GroupSplitResults> {
-        val athletesGroups = dataCheckpoints.groupBy { athlete -> athlete.group }
+    // генерация сплитов группы участников
+
+    private fun generateSplitResultsGroup(athletesGroup: CompetitorsGroup): List<CompetitorSplitResultInGroup> {
+        val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
+            val resultTimeOrNull = getCompetitorResult(athlete)
+            resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
+        }
+
+        val leaderTime = getCompetitorResult(sortedAthletes.first())
+
+        val splitProtocols: List<CompetitorSplitResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
+            val split = getCompetitorSplit(athlete)
+            val result = getCompetitorResult(athlete)
+            CompetitorSplitResultInGroup(
+                index + 1, athlete.athleteNumber!!,
+                athlete.surname, athlete.name, athlete.birthYear,
+                athlete.rank, athlete.teamName, split,
+                index + 1, getBacklog(result, leaderTime)
+            )
+        }
+
+        return splitProtocols
+    }
+
+
+    // генерация сплитов всех участников
+
+    fun generateSplitResults(data: List<CompetitorData>): List<GroupSplitResults> {
+        val athletesGroups = data.groupBy { competitorData -> competitorData.competitor.group }
         val splitProtocols = (athletesGroups.map { (group, athletesGroup) ->
             Pair(group, GroupSplitResults(group, generateSplitResultsGroup(CompetitorsGroup(group, athletesGroup))))
         }).toMap()
@@ -173,60 +228,5 @@ object GenerationResultsOfCommands {
         return res.toSortedMap(compareByDescending { res[it]!!.teamScore })
 
     }
-
-    private fun generateSplitResultsGroup(athletesGroup: CompetitorsGroup): List<CompetitorSplitResultInGroup> {
-        val sortedAthletes = athletesGroup.competitors.sortedBy { athlete ->
-            val resultTimeOrNull = getCompetitorResult(athlete)
-            resultTimeOrNull?.toSecondOfDay() ?: Double.POSITIVE_INFINITY.toInt()
-        }
-
-        val leaderTime = getCompetitorResult(sortedAthletes.first())
-
-        val splitProtocols: List<CompetitorSplitResultInGroup> = sortedAthletes.mapIndexed { index, athlete ->
-            val split = getAthleteSplit(athlete)
-            val result = getCompetitorResult(athlete)
-            CompetitorSplitResultInGroup(
-                index + 1, athlete.athleteNumber!!,
-                athlete.surname, athlete.name, athlete.birthYear,
-                athlete.rank, athlete.teamName, split,
-                index + 1, getBacklog(result, leaderTime)
-            )
-        }
-
-        return splitProtocols
-    }
-
-    private fun getAthleteSplit(athlete: Competitor): List<CheckpointTime>? {
-        return if (athlete.removed) {
-            null
-        } else {
-            // генерация сплитов: время на 1 КП - разница между временем отсечки и временем старта
-            // время на последующие КП - разница времен текущего и предыдущего КП
-            val splits = mutableListOf<CheckpointTime>()
-            athlete.checkpoints!!.forEachIndexed { index, _ ->
-                if (index == 0) {
-                    val firstCheckpoint = athlete.checkpoints!![0]
-                    splits.add(
-                        CheckpointTime(
-                            firstCheckpoint.checkpoint,
-                            firstCheckpoint.time.minus(athlete.startTime)
-                        )
-                    )
-                } else {
-                    val currCheckpoint = athlete.checkpoints!![index]
-                    val prevCheckpoint = athlete.checkpoints!![index - 1]
-                    splits.add(
-                        CheckpointTime(
-                            currCheckpoint.checkpoint,
-                            currCheckpoint.time.minus(prevCheckpoint.time)
-                        )
-                    )
-                }
-            }
-            splits
-        }
-    }
-
-
 
 }
