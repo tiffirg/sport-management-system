@@ -10,4 +10,11 @@ data class Rank(val rankName: String?) {
             throw IncorrectRankException(rankName)
         }
     }
+
+    override fun toString(): String {
+        if (rankName.isNullOrEmpty()) {
+            return ""
+        }
+        return rankName
+    }
 }

@@ -48,7 +48,6 @@ object App {
         } else {
             CsvHandler.parseCheckpoints(command.pathProtocolCheckpoint, command.isCheckpointAthlete, dataProtocolStart)
         }
-        dataCheckpoint.forEach { it.checkCheckpoints() }
         CsvHandler.generationResultsGroup(pathResultsGroup, CommandsHandler.generateResults(dataCheckpoint))
         CsvHandler.generationSplitResults(
             pathSplitResults,
@@ -75,41 +74,9 @@ object App {
 
     private fun processStream(
         isCheckpointAthlete: Boolean,
-        dataProtocolStart: Map<Int, Competitor>
-    ): List<Competitor> {          // По ТЗ - не требуется, реализован шаблон на будущее
-        var line =
-            readLine()
-        var splits: List<String>
-        if (isCheckpointAthlete) {
-            TODO("Реализация по участнику")
-        } else {
-            var isWait = true
-            var athlete: Competitor? = null
-            var numberAthlete: Int? = null
-            var checkpoints = mutableListOf<CheckpointTime>()
-            while (line != null) {  // TODO(Добавить эксепшен)
-                line = line.trim()
-                if (isWait) {
-                    if (numberAthlete != null && athlete != null) {
-                        dataProtocolStart[numberAthlete]!!.checkpoints = checkpoints
-                        checkpoints = mutableListOf()
-                    }
-                    numberAthlete = line.toInt()
-                    athlete = dataProtocolStart[numberAthlete]!! // TODO(Exception)
-                    isWait = false
-                } else {
-                    splits = line.split(" ")
-                    checkpoints.add(
-                        CheckpointTime(
-                            splits[0],
-                            splits[1].toLocalTime() ?: throw Exception()
-                        )
-                    )  // TODO(Сделать нормальный)
-                }
-                line = readLine()
-            }
-        }
-        return dataProtocolStart.values.toList()
+        dataProtocolStart: List<Competitor>
+    ): List<CompetitorData> {          // По ТЗ - не требуется, реализован шаблон на будущее
+        TODO()
     }
 
     private fun checkExistDir() {

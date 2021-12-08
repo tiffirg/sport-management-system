@@ -33,22 +33,14 @@ internal class TestsCommands {
     }
 
     @Test
-    fun testStartProcessing() {
-        initConfig(PATH_CONFIG)
-        // стартовые номера участников из одной группы должны начинаться с одинаковой цифры
-        assertEquals(dmitriy.athleteNumber.toString()[0], kirill.athleteNumber.toString()[0])
-        assertEquals(vasily.athleteNumber.toString()[0], mikhail.athleteNumber.toString()[0])
-    }
-
-    @Test
     fun testCommandProtocolStart1() {
         val args = arrayOf(PATH_CONFIG, "protocolStart", PATH_APPLICATION1)
         main(args)
         val pathProtocolStart = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/ps_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
-        val dataSampleProtocolStart = CsvHandler.parseProtocolStart(PATH_PROTOCOL_START1).values
+        val dataSampleProtocolStart = CsvHandler.parseProtocolStart(PATH_PROTOCOL_START1)
         val sampleAthletesGroups = dataSampleProtocolStart.groupBy { athlete -> athlete.group }
 
-        val dataProtocolStart = CsvHandler.parseProtocolStart(pathProtocolStart).values
+        val dataProtocolStart = CsvHandler.parseProtocolStart(pathProtocolStart)
         val athletesGroups = dataProtocolStart.groupBy { athlete -> athlete.group }
         for ((group, athletes) in athletesGroups) {
             val sampleAthletes = sampleAthletesGroups[group]
@@ -73,10 +65,10 @@ internal class TestsCommands {
         val args = arrayOf(PATH_CONFIG, "protocolStart", PATH_APPLICATION1, PATH_APPLICATION2)
         main(args)
         val pathProtocolStart = "src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING/ps_${EVENT_NAME}_$EVENT_DATE_STRING.csv"
-        val dataSampleProtocolStart = CsvHandler.parseProtocolStart(PATH_PROTOCOL_START1_2).values
+        val dataSampleProtocolStart = CsvHandler.parseProtocolStart(PATH_PROTOCOL_START1_2)
         val sampleAthletesGroups = dataSampleProtocolStart.groupBy { athlete -> athlete.group }
 
-        val dataProtocolStart = CsvHandler.parseProtocolStart(pathProtocolStart).values
+        val dataProtocolStart = CsvHandler.parseProtocolStart(pathProtocolStart)
         val athletesGroups = dataProtocolStart.groupBy { athlete -> athlete.group }
         for ((group, athletes) in athletesGroups) {
             val sampleAthletes = sampleAthletesGroups[group]
@@ -114,7 +106,7 @@ internal class TestsCommands {
             val numbers = mutableSetOf<Char>()
 
             for (result in resultsGroup.results) {
-                numbers.add(result.athleteNumber.toString()[0])
+                numbers.add(result.competitor.athleteNumber.toString()[0])
             }
             assertEquals(1, numbers.size)
         }
@@ -158,7 +150,7 @@ internal class TestsCommands {
             val numbers = mutableSetOf<Char>()
 
             for (result in resultsGroup.results) {
-                numbers.add(result.athleteNumber.toString()[0])
+                numbers.add(result.competitor.athleteNumber.toString()[0])
             }
             assertEquals(1, numbers.size)
         }

@@ -3,6 +3,7 @@ package ru.emkn.kotlin.sms.services
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
+import ru.emkn.kotlin.sms.RANKS
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.toLocalTime
 import ru.emkn.kotlin.sms.logger
@@ -10,6 +11,7 @@ import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.Duration
 import java.time.LocalTime
+import kotlin.math.log
 
 
 object CsvHandler {
@@ -76,18 +78,18 @@ object CsvHandler {
     fun parseCheckpoints(
         path: String,
         isCheckpointAthlete: Boolean,
-        dataProtocolStart: Map<Int, Competitor>
-    ): List<Competitor> {
+        dataProtocolStart: List<Competitor>
+    ): List<CompetitorData> {
         val file = File(path)
         if (!File(path).exists()) {
             throw InvalidFileException(path)
         }
         val data = csvReader().readAll(file)
-
+        val numberToCompetitors = dataProtocolStart.associateBy { it.athleteNumber }
         return (if (isCheckpointAthlete) {
-            parseCheckpointsOfAthlete(data, dataProtocolStart)
+            parseCheckpointsOfAthlete(data, numberToCompetitors)
         } else {
-            parseCheckpointsOfPoints(data, dataProtocolStart)
+            parseCheckpointsOfPoints(data, numberToCompetitors)
         }) ?: throw InvalidFileCheckpointException(path)
     }
 
@@ -151,7 +153,8 @@ object CsvHandler {
                     val birthYear = unit[4].toInt()
                     val rank = toRank(unit[5])
                     val teamName = unit[6]
-                    val result = Duration.parse(unit[7])
+                    logger.debug { unit[7] }
+                    val result = Duration.between(LocalTime.MIN, unit[7].toLocalTime())  // TODO()
                     val backlog = unit[9]
                     val athlete = Athlete(surname, name, birthYear, Group(groupName), rank, teamName)
                     val competitor = Competitor(athleteNumber, LocalTime.of(0, 0), athlete)
@@ -184,7 +187,7 @@ object CsvHandler {
         if (!file.exists()) {
             return null
         }
-        val athletes = mutableListOf<Competitor>()
+        val athletes = mutableListOf<Athlete>()
         val data = csvReader().readAll(file)
         if (data.size < 2 || data[0].isEmpty()) {
             return null
@@ -195,7 +198,7 @@ object CsvHandler {
             unit = data[i]
             try {
                 athletes.add(
-                    Competitor(
+                    Athlete(
                         unit[1],
                         unit[2],
                         unit[3].toIntOrNull() ?: throw IncorrectBirthYearException(unit[3]),
@@ -223,20 +226,22 @@ object CsvHandler {
     private fun parseCheckpointsOfAthlete(
         data: List<List<String>>,
         dataProtocolStart: Map<Int, Competitor>
-    ): List<Competitor>? {
+    ): List<CompetitorData>? {
         TODO()
     }
 
     private fun parseCheckpointsOfPoints(
         data: List<List<String>>,
         dataProtocolStart: Map<Int, Competitor>
-    ): List<Competitor>? {
+    ): List<CompetitorData>? {
         if (data.size < 2 || data[0].isEmpty()) {
             return null
         }
         var checkpoint = data[0][0]
         var unit: List<String>
         var numberAthlete: Int
+        var competitor: Competitor
+        val competitorsData = dataProtocolStart.values.associateWith { mutableListOf<CheckpointTime>() }
         for (i in 1 until data.size) {
             unit = data[i]
             try {
@@ -244,11 +249,12 @@ object CsvHandler {
                     checkpoint = unit[0]
                 } else {
                     numberAthlete = unit[0].toIntOrNull() ?: throw IncorrectNumberAthleteException(unit[0])
-                    dataProtocolStart[numberAthlete]!!.checkpoints!!.add(
-                        CheckpointTime(
-                            checkpoint, unit[1].toLocalTime() ?: throw InvalidTimeException(unit[1])
+                        competitor = dataProtocolStart[numberAthlete]!!
+                        competitorsData[competitor]!!.add(
+                            CheckpointTime(
+                                checkpoint, unit[1].toLocalTime() ?: throw InvalidTimeException(unit[1])
+                            )
                         )
-                    )
                 }
             } catch (exception: Exception) {
                 logger.info { messageAboutMissAthleteCheckpointData(checkpoint, unit.joinToString(" ")) }
@@ -259,6 +265,6 @@ object CsvHandler {
                 }
             }
         }
-        return dataProtocolStart.values.toList()
+        return competitorsData.map { CompetitorData(it.key, it.value, CompetitorData.checkCheckpoints(it.key, it.value)) }
     }
 }
