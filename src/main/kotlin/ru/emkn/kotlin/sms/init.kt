@@ -66,6 +66,7 @@ data class GroupData(
 
 data class CriteriaData(
     val distance: String,
+    val type: String,
     val checkpoints: List<String>
 )
 
@@ -75,6 +76,7 @@ data class ConfigData(
     val groups: List<GroupData>,
     val criteria: List<CriteriaData>
 )
+
 
 fun initConfig(pathConfig: String) {
     if (!File(pathConfig).exists()) {
