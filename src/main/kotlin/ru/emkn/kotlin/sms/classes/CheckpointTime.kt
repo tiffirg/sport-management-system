@@ -7,7 +7,7 @@ data class CheckpointTime(val checkpoint: String, val time: LocalTime)
 
 data class CheckpointDuration(val checkpoint: String, val duration: Duration)
 
-fun Duration?.toFormattedString() : String {
+fun Duration?.toResultFormat() : String {
     return if (this == null) {
         ""
     }
@@ -16,5 +16,13 @@ fun Duration?.toFormattedString() : String {
         val minutes = this.toMinutesPart().toString().padStart(2, '0')
         val seconds = this.toSecondsPart().toString().padStart(2, '0')
         "$hours:$minutes:$seconds"
+    }
+}
+
+fun Duration?.toBacklogFormat() : String {
+    return if (this == null) {
+        ""
+    } else {
+        "+${this.toResultFormat()}"
     }
 }

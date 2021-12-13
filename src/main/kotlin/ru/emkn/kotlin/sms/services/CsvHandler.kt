@@ -3,7 +3,6 @@ package ru.emkn.kotlin.sms.services
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
-import ru.emkn.kotlin.sms.RANKS
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.toLocalTime
 import ru.emkn.kotlin.sms.logger
@@ -11,7 +10,6 @@ import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.Duration
 import java.time.LocalTime
-import kotlin.math.log
 
 
 object CsvHandler {
@@ -155,7 +153,7 @@ object CsvHandler {
                     val teamName = unit[6]
                     logger.debug { unit[7] }
                     val result = Duration.between(LocalTime.MIN, unit[7].toLocalTime())  // TODO()
-                    val backlog = unit[9]
+                    val backlog = Duration.between(LocalTime.MIN, unit[9].toLocalTime())
                     val athlete = Athlete(surname, name, birthYear, Group(groupName), rank, teamName)
                     val competitor = Competitor(athleteNumber, LocalTime.of(0, 0), athlete)
                     // TODO: we know it's a competitor, but we don't know his start time,

@@ -58,12 +58,11 @@ object CommandsHandler {
 
     // вычисление отставания от лидера
 
-    private fun getBacklog(result: Duration?, leaderTime: Duration?): String {
+    private fun getBacklog(result: Duration?, leaderTime: Duration?): Duration? {
         return if (result == null) {
-            ""
+            null
         } else {
-            val backlog = (result - leaderTime).toFormattedString()
-            "+${backlog}"
+            result - leaderTime
         }
     }
 
@@ -93,7 +92,7 @@ object CommandsHandler {
         val protocols: List<CompetitorResultInGroup> = sortedCompetitorsData.mapIndexed { index, competitorData ->
             CompetitorResultInGroup(
                 competitorData.competitor, index + 1,
-                getCompetitorResult(competitorData), index + 1, ""
+                getCompetitorResult(competitorData), index + 1, null
             )
         }
 

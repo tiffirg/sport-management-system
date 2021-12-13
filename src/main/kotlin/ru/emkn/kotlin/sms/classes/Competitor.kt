@@ -81,7 +81,7 @@ open class CompetitorData(
 
 data class CompetitorResultInGroup(
     val competitor: Competitor, val athleteNumberInGroup: Int,
-    val result: Duration?, val place: Int, var backlog: String
+    val result: Duration?, val place: Int, var backlog: Duration?
 ) {
     // Пример: 1, 22, Ананикян, Александр, 2002, 2р, СПбГУ, 00:08:11, 1, +00:00:00
     val listForResultsGroup: List<String>
@@ -93,9 +93,9 @@ data class CompetitorResultInGroup(
             competitor.birthYear.toString(),
             competitor.rank.toString(),
             competitor.teamName,
-            result.toFormattedString(),
+            result.toResultFormat(),
             place.toString(),
-            backlog
+            backlog.toBacklogFormat()
         )
 }
 
@@ -133,9 +133,9 @@ data class CompetitorSplitResultInGroup(
                 competitor.rank.toString(),
                 competitor.teamName,
                 competitorResultInGroup.place.toString(),
-                competitorResultInGroup.backlog
+                competitorResultInGroup.backlog.toBacklogFormat()
             )
-            val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toFormattedString()) } ?: listOf()
+            val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toResultFormat()) } ?: listOf()
             res.addAll(stringSplits)
             return res
         }
