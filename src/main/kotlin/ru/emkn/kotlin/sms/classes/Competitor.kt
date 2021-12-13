@@ -70,10 +70,10 @@ open class CompetitorData(
             for (i in 1 until sortedData.size) {
                 if (sortedData[i - 1].time >= sortedData[i].time) {
                     logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                    return false
+                    return true
                 }
             }
-            return true
+            return false
         }
     }
 }
