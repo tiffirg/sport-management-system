@@ -62,7 +62,7 @@ object CommandsHandler {
         return if (result == null) {
             ""
         } else {
-            val backlog = result - leaderTime
+            val backlog = (result - leaderTime).toFormattedString()
             "+${backlog}"
         }
     }

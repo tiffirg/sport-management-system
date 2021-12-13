@@ -59,12 +59,12 @@ open class CompetitorData(
         fun checkCheckpoints(athleteStart: Competitor, checkpoints: List<CheckpointTime>): Boolean {
             if (checkpoints.isEmpty()) {
                 logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                return false
+                return true
             }
             val orderedCheckpoints = DISTANCE_CRITERIA[athleteStart.group.distance]!!
             if (checkpoints.mapTo(mutableSetOf()) { it.checkpoint } != orderedCheckpoints.toSet()) {  // TODO(Fix algorithm)
                 logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                return false
+                return true
             }
             val sortedData = checkpoints.sortedBy { el -> orderedCheckpoints.indexOfFirst { el.checkpoint == it } }
             for (i in 1 until sortedData.size) {
@@ -93,7 +93,7 @@ data class CompetitorResultInGroup(
             competitor.birthYear.toString(),
             competitor.rank.toString(),
             competitor.teamName,
-            result.toString(),
+            result.toFormattedString(),
             place.toString(),
             backlog
         )
@@ -135,7 +135,7 @@ data class CompetitorSplitResultInGroup(
                 competitorResultInGroup.place.toString(),
                 competitorResultInGroup.backlog
             )
-            val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toString()) } ?: listOf()
+            val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toFormattedString()) } ?: listOf()
             res.addAll(stringSplits)
             return res
         }
