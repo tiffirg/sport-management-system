@@ -81,7 +81,7 @@ open class CompetitorData(
 
 data class CompetitorResultInGroup(
     val competitor: Competitor, val athleteNumberInGroup: Int,
-    val result: Duration?, val place: Int, var backlog: Duration?
+    val result: Duration?, val place: Int?, var backlog: Duration?
 ) {
     // Пример: 1, 22, Ананикян, Александр, 2002, 2р, СПбГУ, 00:08:11, 1, +00:00:00
     val listForResultsGroup: List<String>
@@ -100,7 +100,7 @@ data class CompetitorResultInGroup(
 }
 
 data class CompetitorResultInTeam(
-    val competitor: Competitor, val place: Int, val score: Int
+    val competitor: Competitor, val place: Int?, val score: Int
 ) {
     // Пример: 21, Шишкин, Владислав, 2002, 1ю, М10, 2, 77
     val listForResultsAthlete: List<String>

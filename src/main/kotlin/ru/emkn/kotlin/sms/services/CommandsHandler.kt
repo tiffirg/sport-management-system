@@ -107,6 +107,7 @@ object CommandsHandler {
     }
 
     // генерация результатов всех участников
+    // TODO: не присваивать никакое место дисквалифицированным участникам
 
     fun generateResults(data: List<CompetitorData>): List<GroupResults> {
         val competitorsGroups =
