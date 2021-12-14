@@ -58,7 +58,7 @@ object CsvHandler {
                     val surname = unit[1]
                     val name = unit[2]
                     val birthYear = unit[3].toInt()
-                    val rank = Rank(unit[4])
+                    val rank = toRank(unit[4])
                     val teamName = unit[5]
                     val startTime = unit[6].toLocalTime()!!
                     val athlete = Athlete(surname, name, birthYear, group, rank, teamName)
@@ -68,7 +68,6 @@ object CsvHandler {
             }
         } catch (exception: Exception) {
             logger.debug { exception.message }
-            throw IncorrectProtocolStartException(path)
         }
         return competitors
     }
@@ -232,6 +231,7 @@ object CsvHandler {
         data: List<List<String>>,
         dataProtocolStart: Map<Int, Competitor>
     ): List<CompetitorData>? {
+        println(dataProtocolStart)
         if (data.size < 2 || data[0].isEmpty()) {
             return null
         }
@@ -247,7 +247,8 @@ object CsvHandler {
                     checkpoint = unit[0]
                 } else {
                     numberAthlete = unit[0].toIntOrNull() ?: throw IncorrectNumberAthleteException(unit[0])
-                        competitor = dataProtocolStart[numberAthlete]!!
+                        competitor = dataProtocolStart[numberAthlete]
+                            ?: throw IllegalStateException("athlete number is not in start protocol")
                         competitorsData[competitor]!!.add(
                             CheckpointTime(
                                 checkpoint, unit[1].toLocalTime() ?: throw InvalidTimeException(unit[1])
