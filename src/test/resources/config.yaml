@@ -1,5 +1,5 @@
 eventName:
-  Первенство Пятой Бани
+  sampleEvent
 
 eventDate:
   20.02.2022
@@ -135,7 +135,7 @@ criteria:
     checkpoints:
     - 4
 
-  - distance: Ж16  студенты
+  - distance: Ж16 студенты
     type: choice
     checkpoints:
     - 3
