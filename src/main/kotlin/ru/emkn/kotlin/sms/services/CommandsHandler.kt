@@ -16,6 +16,9 @@ object CommandsHandler {
         val athleteGroups: Map<Group, List<Athlete>> =
             (applications.flatMap { team -> team.athletes }).groupBy { athlete -> athlete.group }
 
+        val sortedAthletesGroups = athleteGroups.toSortedMap(compareBy { it.groupName })
+
+
         // количество номеров, предусмотренных для участников из одной группы
         val maxGroupSize = ((athleteGroups.maxOf { it.value.size } / 10 + 1) * 10)
 
@@ -51,7 +54,7 @@ object CommandsHandler {
 
         }
 
-        val competitorGroups = generateStartTimes(athleteGroups)
+        val competitorGroups = generateStartTimes(sortedAthletesGroups)
         val startLists = competitorGroups.map { (group, competitors) -> CompetitorsGroup(group, competitors) }
         return startLists.sortedBy { athletesGroup -> athletesGroup.group.toString() }
 
