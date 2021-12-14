@@ -2,7 +2,6 @@ package ru.emkn.kotlin.sms.services
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.skia.impl.interopScope
 
 private const val checkpointsLength = 100
 
@@ -44,23 +43,23 @@ object Athletes : IntIdTableWithCompetitionId("athletes") {
     val name = varchar("name", nameLength)
     val surname = varchar("surname", surnameLength)
     val birthYear = integer("birthYear")
-    val groupId = reference("groupId", Group, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val rankId = reference("rankId", Rank, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val teamId = reference("teamId", Team, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+    val groupId = reference("groupId", Groups, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+    val rankId = reference("rankId", Ranks, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+    val teamId = reference("teamId", Teams, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
 }
 
-object Team : IntIdTableWithCompetitionId("team") {
+object Teams : IntIdTableWithCompetitionId("team") {
     private const val teamLength = 65
     val team = varchar("team", teamLength).uniqueIndex()
 }
 
-object Group : IntIdTableWithCompetitionId("group") {
+object Groups : IntIdTableWithCompetitionId("group") {
     private const val groupLength = 65
     val group = varchar("group", groupLength).uniqueIndex()
     val distanceId = reference("distanceId", Distances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
 }
 
-object Rank : IntIdTableWithCompetitionId("rank") {
+object Ranks : IntIdTableWithCompetitionId("rank") {
     private const val rankLength = 32
     val rank = varchar("rank", rankLength).uniqueIndex()
 }
@@ -91,7 +90,7 @@ object CompetitorsData : IntIdTableWithCompetitionId("competitors") {
 
 object CheckpointsProtocols : IntIdTableWithCompetitionId("checkpointsProtocols") {
     private const val timeMeasurementLength = 8
-    val groupId = reference("groupId", Group, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+    val groupId = reference("groupId", Groups, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     val competitorNumber = reference("competitorNumber", Competitors, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     val timeMeasurement = varchar("timeMeasurement", timeMeasurementLength)
 }
