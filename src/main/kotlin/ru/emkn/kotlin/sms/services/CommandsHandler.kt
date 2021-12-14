@@ -124,42 +124,14 @@ object CommandsHandler {
         return protocols.sortedBy { groupResults -> groupResults.group.groupName }
     }
 
-    // генерация сплита одного участника
-
-    private fun getCompetitorSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
-        return if (competitorData.removed) {
-            null
-        } else {
-            // генерация сплитов: время на 1 КП - разница между временем отсечки и временем старта
-            // время на последующие КП - разница времен текущего и предыдущего КП
-            val splits = mutableListOf<CheckpointDuration>()
-            competitorData.checkpoints.forEachIndexed { index, _ ->
-                if (index == 0) {
-                    val firstCheckpoint = competitorData.checkpoints[0]
-                    splits.add(
-                        CheckpointDuration(
-                            firstCheckpoint.checkpoint,
-                            Duration.between(competitorData.competitor.startTime, firstCheckpoint.time)
-                        )
-                    )
-                } else {
-                    val currCheckpoint = competitorData.checkpoints[index]
-                    val prevCheckpoint = competitorData.checkpoints[index - 1]
-                    splits.add(
-                        CheckpointDuration(
-                            currCheckpoint.checkpoint,
-                            Duration.between(prevCheckpoint.time, currCheckpoint.time)
-                        )
-                    )
-                }
-            }
-            splits
-        }
-    }
 
     // генерация сплитов группы участников
 
     private fun generateSplitResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupSplitResults {
+
+        val distance = competitorsDataGroup.group.distance
+        val criteria = DISTANCE_CRITERIA[distance]
+            ?: throw IllegalStateException("all distances must be initialized in DISTANCE_CRITERIA")
 
         val mappedData: Map<Competitor, CompetitorData> =
             competitorsDataGroup.competitorsData.associateBy { competitorData ->
@@ -171,8 +143,8 @@ object CommandsHandler {
         val splitProtocols: List<CompetitorSplitResultInGroup> =
             protocols.results.map { competitorResultInGroup ->
                 val competitorData = mappedData[competitorResultInGroup.competitor]
-                assert(competitorData != null) { "mapped data contains information about all competitors" }
-                val splits = getCompetitorSplit(competitorData!!)
+                    ?: throw IllegalStateException("mapped data should contain information about all competitors")
+                val splits = criteria.getSplit(competitorData)
                 CompetitorSplitResultInGroup(competitorResultInGroup, splits)
             }
 
