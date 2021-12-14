@@ -34,7 +34,36 @@ interface DistanceCriteria {
     val distanceType: DistanceType
     fun isValid(competitorData: CompetitorData): Boolean
     fun getResult(competitorData: CompetitorData): Duration?
-    fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>?
+    fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
+        return if (!isValid(competitorData)) {
+            null
+        } else {
+            // генерация сплитов: время на 1 КП - разница между временем отсечки и временем старта
+            // время на последующие КП - разница времен текущего и предыдущего КП
+            val splits = mutableListOf<CheckpointDuration>()
+            competitorData.orderedCheckpoints.forEachIndexed { index, _ ->
+                if (index == 0) {
+                    val firstCheckpoint = competitorData.orderedCheckpoints[0]
+                    splits.add(
+                        CheckpointDuration(
+                            firstCheckpoint.checkpoint,
+                            Duration.between(competitorData.competitor.startTime, firstCheckpoint.time)
+                        )
+                    )
+                } else {
+                    val currCheckpoint = competitorData.orderedCheckpoints[index]
+                    val prevCheckpoint = competitorData.orderedCheckpoints[index - 1]
+                    splits.add(
+                        CheckpointDuration(
+                            currCheckpoint.checkpoint,
+                            Duration.between(prevCheckpoint.time, currCheckpoint.time)
+                        )
+                    )
+                }
+            }
+            splits
+        }
+    }
 }
 
 class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria {
@@ -79,37 +108,6 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
         }
     }
 
-    override fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
-        return if (!isValid(competitorData)) {
-            null
-        } else {
-            // генерация сплитов: время на 1 КП - разница между временем отсечки и временем старта
-            // время на последующие КП - разница времен текущего и предыдущего КП
-            val splits = mutableListOf<CheckpointDuration>()
-            competitorData.orderedCheckpoints.forEachIndexed { index, _ ->
-                if (index == 0) {
-                    val firstCheckpoint = competitorData.orderedCheckpoints[0]
-                    splits.add(
-                        CheckpointDuration(
-                            firstCheckpoint.checkpoint,
-                            Duration.between(competitorData.competitor.startTime, firstCheckpoint.time)
-                        )
-                    )
-                } else {
-                    val currCheckpoint = competitorData.orderedCheckpoints[index]
-                    val prevCheckpoint = competitorData.orderedCheckpoints[index - 1]
-                    splits.add(
-                        CheckpointDuration(
-                            currCheckpoint.checkpoint,
-                            Duration.between(prevCheckpoint.time, currCheckpoint.time)
-                        )
-                    )
-                }
-            }
-            splits
-        }
-    }
-
 }
 
 class ChoiceRoute(private val checkpointsCount: Int) : DistanceCriteria {
@@ -132,10 +130,13 @@ class ChoiceRoute(private val checkpointsCount: Int) : DistanceCriteria {
     }
 
     override fun getResult(competitorData: CompetitorData): Duration? {
-        TODO("Not yet implemented")
+        return if (!isValid(competitorData)) {
+            null
+        } else {
+            val finishTime = competitorData.orderedCheckpoints.last().time
+            val startTime = competitorData.competitor.startTime
+            Duration.between(startTime, finishTime)
+        }
     }
 
-    override fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
-        TODO("Not yet implemented")
-    }
 }
