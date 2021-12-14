@@ -17,11 +17,10 @@ fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCrit
         }
         "choice" -> {
             DistanceType.CHOICE
-            if (checkpoints.size != 1) {
-                throw InvalidConfigData("for Choice Route use one parameter: number of checkpoints")
+            if (checkpoints.size != 1 || checkpoints[0].toIntOrNull() == null) {
+                logger.error {  InvalidConfigData("for Choice Route use one parameter: number of checkpoints") }
             }
-            val checkpointsCount = checkpoints[0].toIntOrNull()
-                ?: throw InvalidConfigData("for Choice Route use one parameter: number of checkpoints")
+            val checkpointsCount : Int = checkpoints[0].toInt()
             ChoiceRoute(checkpointsCount)
         }
         else -> {
