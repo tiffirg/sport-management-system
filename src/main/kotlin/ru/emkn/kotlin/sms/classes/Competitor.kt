@@ -53,54 +53,34 @@ data class Competitor(
 open class CompetitorData(
     val competitor: Competitor,
     val checkpoints: List<CheckpointTime>,
-    val removed: Boolean
+    var removed: Boolean
 ) {
-    companion object {
-        fun checkCheckpoints(athleteStart: Competitor, checkpoints: List<CheckpointTime>): Boolean {
-            if (checkpoints.isEmpty()) {
-                logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                return false
-            }
-            val orderedCheckpoints = DISTANCE_CRITERIA[athleteStart.group.distance]!!
-            if (checkpoints.mapTo(mutableSetOf()) { it.checkpoint } != orderedCheckpoints.toSet()) {  // TODO(Fix algorithm)
-                logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                return false
-            }
-            val sortedData = checkpoints.sortedBy { el -> orderedCheckpoints.indexOfFirst { el.checkpoint == it } }
-            for (i in 1 until sortedData.size) {
-                if (sortedData[i - 1].time >= sortedData[i].time) {
-                    logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                    return false
-                }
-            }
-            return true
-        }
-    }
+    val orderedCheckpoints = checkpoints.sortedBy { it.time }
 }
 
 
 data class CompetitorResultInGroup(
-    val competitor: Competitor, val athleteNumberInGroup: Int,
-    val result: Duration?, val place: Int, var backlog: String
+    val competitor: Competitor, val athleteNumberInGroup: Int?,
+    val result: Duration?, val place: Int?, var backlog: Duration?
 ) {
     // Пример: 1, 22, Ананикян, Александр, 2002, 2р, СПбГУ, 00:08:11, 1, +00:00:00
     val listForResultsGroup: List<String>
         get() = listOf(
-            place.toString(),
+            place?.toString() ?: "-",
             competitor.athleteNumber.toString(),
             competitor.surname,
             competitor.name,
             competitor.birthYear.toString(),
             competitor.rank.toString(),
             competitor.teamName,
-            result.toString(),
-            place.toString(),
-            backlog
+            result.toResultFormat(),
+            place?.toString() ?: "",
+            backlog.toBacklogFormat()
         )
 }
 
 data class CompetitorResultInTeam(
-    val competitor: Competitor, val place: Int, val score: Int
+    val competitor: Competitor, val place: Int?, val score: Int
 ) {
     // Пример: 21, Шишкин, Владислав, 2002, 1ю, М10, 2, 77
     val listForResultsAthlete: List<String>
@@ -111,7 +91,7 @@ data class CompetitorResultInTeam(
         competitor.birthYear.toString(),
         competitor.rank.toString(),
         competitor.group.groupName,
-        place.toString(),
+        place?.toString() ?: "-",
         score.toString()
     )
 }
@@ -125,17 +105,17 @@ data class CompetitorSplitResultInGroup(
         get() {
             val competitor = competitorResultInGroup.competitor
             val res = mutableListOf<String>(
-                competitorResultInGroup.place.toString(),
+                competitorResultInGroup.place?.toString() ?: "-",
                 competitor.athleteNumber.toString(),
                 competitor.surname,
                 competitor.name,
                 competitor.birthYear.toString(),
                 competitor.rank.toString(),
                 competitor.teamName,
-                competitorResultInGroup.place.toString(),
-                competitorResultInGroup.backlog
+                competitorResultInGroup.place?.toString() ?: "",
+                competitorResultInGroup.backlog.toBacklogFormat()
             )
-            val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toString()) } ?: listOf()
+            val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toResultFormat()) } ?: listOf()
             res.addAll(stringSplits)
             return res
         }

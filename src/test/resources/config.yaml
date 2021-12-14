@@ -1,5 +1,5 @@
 eventName:
-  Первенство Пятой Бани
+  sampleEvent
 
 eventDate:
   20.02.2022
@@ -65,6 +65,7 @@ groups:
 
 criteria:
   - distance: М18 21 40 50
+    type: fixed
     checkpoints:
     - 31
     - 32
@@ -75,44 +76,25 @@ criteria:
     - 37
     - 38
     - 39
-    - 40
-    - 41
-    - 39
-    - 42
-    - 43
-    - 44
-    - 45
-    - 46
-    - 47
-    - 48
-    - 49
-    - 50
-    - 51
-    - 49
-    - 52
-    - 53
+
   - distance: МЖ9 10
+    type: fixed
     checkpoints:
     - 32
     - 46
     - 34
     - 33
     - 53
+
   - distance: Ж14
+    type: fixed
     checkpoints:
     - 47
     - 46
     - 45
-    - 34
-    - 33
-    - 32
-    - 48
-    - 52
-    - 51
-    - 50
-    - 49
-    - 53
+
   - distance: Ж12
+    type: fixed
     checkpoints:
     - 32
     - 46
@@ -124,89 +106,36 @@ criteria:
     - 50
     - 49
     - 53
+
   - distance: М12
+    type: fixed
     checkpoints:
     - 32
     - 46
     - 34
-    - 35
-    - 45
-    - 33
-    - 47
-    - 48
-    - 52
-    - 49
-    - 53
+
   - distance: М14
+    type: fixed
     checkpoints:
     - 31
     - 32
     - 33
     - 34
-    - 35
-    - 36
-    - 37
-    - 44
-    - 45
-    - 46
-    - 47
-    - 48
-    - 53
+
   - distance: Ж21 40 М60
+    type: fixed
     checkpoints:
     - 33
     - 34
-    - 35
-    - 36
-    - 43
-    - 42
-    - 39
-    - 40
-    - 38
-    - 37
-    - 44
-    - 45
-    - 46
-    - 32
-    - 48
-    - 49
-    - 50
-    - 51
-    - 49
-    - 52
-    - 53
+    - 33
+    - 34
+
   - distance: М16 Ж60
+    type: choice
     checkpoints:
-    - 31
-    - 32
-    - 33
-    - 34
-    - 35
-    - 36
-    - 43
-    - 37
-    - 44
-    - 45
-    - 46
-    - 47
-    - 48
-    - 49
-    - 51
-    - 52
-    - 53
-  - distance: Ж16  студенты
+    - 4
+
+  - distance: Ж16 студенты
+    type: choice
     checkpoints:
-    - 32
-    - 33
-    - 34
-    - 44
-    - 36
-    - 37
-    - 35
-    - 45
-    - 46
-    - 47
-    - 48
-    - 49
-    - 52
-    - 53
+    - 3

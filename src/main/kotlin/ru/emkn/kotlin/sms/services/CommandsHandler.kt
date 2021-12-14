@@ -1,5 +1,6 @@
 package ru.emkn.kotlin.sms.services
 
+import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.logger
@@ -14,6 +15,9 @@ object CommandsHandler {
         // формирование списков участников по группам
         val athleteGroups: Map<Group, List<Athlete>> =
             (applications.flatMap { team -> team.athletes }).groupBy { athlete -> athlete.group }
+
+        val sortedAthletesGroups = athleteGroups.toSortedMap(compareBy { it.groupName })
+
 
         // количество номеров, предусмотренных для участников из одной группы
         val maxGroupSize = ((athleteGroups.maxOf { it.value.size } / 10 + 1) * 10)
@@ -50,7 +54,7 @@ object CommandsHandler {
 
         }
 
-        val competitorGroups = generateStartTimes(athleteGroups)
+        val competitorGroups = generateStartTimes(sortedAthletesGroups)
         val startLists = competitorGroups.map { (group, competitors) -> CompetitorsGroup(group, competitors) }
         return startLists.sortedBy { athletesGroup -> athletesGroup.group.toString() }
 
@@ -58,43 +62,44 @@ object CommandsHandler {
 
     // вычисление отставания от лидера
 
-    private fun getBacklog(result: Duration?, leaderTime: Duration?): String {
+    private fun getBacklog(result: Duration?, leaderTime: Duration?): Duration? {
         return if (result == null) {
-            ""
-        } else {
-            val backlog = result - leaderTime
-            "+${backlog}"
-        }
-    }
-
-    // генерация результатов одного участника
-
-    private fun getCompetitorResult(competitorData: CompetitorData): Duration? {
-        return if (competitorData.removed) {
             null
         } else {
-            val finishTime = competitorData.checkpoints.last().time
-            val startTime = competitorData.competitor.startTime
-            Duration.between(startTime, finishTime)
+            result - leaderTime
         }
     }
+
 
     // генерация результатов одной группы
 
     private fun generateResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupResults {
 
-        // Участники сортируются по времени результата
-        // Если человек дисквалифицирован, то его результатом будет специальное значение
+        val distance = competitorsDataGroup.group.distance
+        val criteria = DISTANCE_CRITERIA[distance]
+            ?: throw IllegalStateException("all distances must be initialized in DISTANCE_CRITERIA")
+
+        // Сортировка по времени результата: если человек дисквалифицирован, то его результатом будет специальное значение
+
         val sortedCompetitorsData = competitorsDataGroup.competitorsData.sortedBy { competitorData ->
-            val result = getCompetitorResult(competitorData)
+            val result = criteria.getResult(competitorData)
             result?.seconds ?: Double.POSITIVE_INFINITY.toLong()
         }
 
         val protocols: List<CompetitorResultInGroup> = sortedCompetitorsData.mapIndexed { index, competitorData ->
+            val result = criteria.getResult(competitorData)
+            if (result == null) {
+                competitorData.removed = true
+                CompetitorResultInGroup(
+                    competitorData.competitor, index + 1,
+                    null, null, null
+                )
+            } else {
             CompetitorResultInGroup(
                 competitorData.competitor, index + 1,
-                getCompetitorResult(competitorData), index + 1, ""
+                result, index + 1, null
             )
+            }
         }
 
         // вычисление отставания от лидера
@@ -122,42 +127,14 @@ object CommandsHandler {
         return protocols.sortedBy { groupResults -> groupResults.group.groupName }
     }
 
-    // генерация сплита одного участника
-
-    private fun getCompetitorSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
-        return if (competitorData.removed) {
-            null
-        } else {
-            // генерация сплитов: время на 1 КП - разница между временем отсечки и временем старта
-            // время на последующие КП - разница времен текущего и предыдущего КП
-            val splits = mutableListOf<CheckpointDuration>()
-            competitorData.checkpoints.forEachIndexed { index, _ ->
-                if (index == 0) {
-                    val firstCheckpoint = competitorData.checkpoints[0]
-                    splits.add(
-                        CheckpointDuration(
-                            firstCheckpoint.checkpoint,
-                            Duration.between(competitorData.competitor.startTime, firstCheckpoint.time)
-                        )
-                    )
-                } else {
-                    val currCheckpoint = competitorData.checkpoints[index]
-                    val prevCheckpoint = competitorData.checkpoints[index - 1]
-                    splits.add(
-                        CheckpointDuration(
-                            currCheckpoint.checkpoint,
-                            Duration.between(prevCheckpoint.time, currCheckpoint.time)
-                        )
-                    )
-                }
-            }
-            splits
-        }
-    }
 
     // генерация сплитов группы участников
 
     private fun generateSplitResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupSplitResults {
+
+        val distance = competitorsDataGroup.group.distance
+        val criteria = DISTANCE_CRITERIA[distance]
+            ?: throw IllegalStateException("all distances must be initialized in DISTANCE_CRITERIA")
 
         val mappedData: Map<Competitor, CompetitorData> =
             competitorsDataGroup.competitorsData.associateBy { competitorData ->
@@ -169,8 +146,8 @@ object CommandsHandler {
         val splitProtocols: List<CompetitorSplitResultInGroup> =
             protocols.results.map { competitorResultInGroup ->
                 val competitorData = mappedData[competitorResultInGroup.competitor]
-                assert(competitorData != null) { "mapped data contains information about all competitors" }
-                val splits = getCompetitorSplit(competitorData!!)
+                    ?: throw IllegalStateException("mapped data should contain information about all competitors")
+                val splits = criteria.getSplit(competitorData)
                 CompetitorSplitResultInGroup(competitorResultInGroup, splits)
             }
 
@@ -215,7 +192,8 @@ object CommandsHandler {
         // генерация результатов одной команды
 
         fun generateTeamResult(teamName: String, teamResults: List<CompetitorResultInGroup>): TeamResults {
-            val data = teamResults.map { competitorResultInGroup ->
+            val sortedTeamResults = teamResults.sortedBy { it.competitor.athleteNumber }
+            val data = sortedTeamResults.map { competitorResultInGroup ->
                 val competitor = competitorResultInGroup.competitor
                 val score =  scoresByCompetitor[competitor]
                 assert(score != null) {"scoresByCompetitor contains information about all competitors"}
