@@ -103,7 +103,8 @@ object CsvHandler {
 
     fun generationSplitResults(path: String, data: List<GroupSplitResults>) {
         val maxDistance = data.maxOf { groupSplitsResult ->
-            groupSplitsResult.results.maxOf { competitorSplit -> competitorSplit.splits?.size ?: 0 } }
+            groupSplitsResult.results.maxOf { competitorSplit -> competitorSplit.splits?.size ?: 0 }
+        }
         csvWriter().open(path) {
             data.forEach { groupSplitResults ->
                 val group = groupSplitResults.group
@@ -142,8 +143,9 @@ object CsvHandler {
                     }
                     groupName = unit[0]
                 } else if (unit[0].toIntOrNull() != null) {
-                    // actually, checks if unit[i] doesn't equal to "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
-                    val place = unit[0].toInt()
+                    // checks if unit[i] doesn't equal to
+                    // "@№ п/п,Номер,Фамилия,Имя,Г.р.,Разр.,Команда,Результат,Место,Отставание"
+                    val place = unit[0].toIntOrNull()
                     val athleteNumber = unit[1].toInt()
                     val surname = unit[2]
                     val name = unit[3]
@@ -151,10 +153,18 @@ object CsvHandler {
                     val rank = toRank(unit[5])
                     val teamName = unit[6]
                     logger.debug { unit[7] }
-                    val result = Duration.between(LocalTime.MIN, unit[7].toLocalTime())  // TODO()
-                    val backlog = Duration.between(LocalTime.MIN, unit[9].toLocalTime())
-                    val athlete = Athlete(surname, name, birthYear, Group(groupName), rank, teamName)
-                    val competitor = Competitor(athleteNumber, LocalTime.of(0, 0), athlete)
+                    val result = if (unit[7] != "") {
+                        Duration.between(LocalTime.MIN, unit[7].toLocalTime())
+                    } else {
+                        null
+                    }
+                    val backlog = if (unit[9] != "") {
+                        Duration.between(LocalTime.MIN, unit[7].trim('+').toLocalTime())
+                    } else {
+                        null
+                    }
+                     val athlete = Athlete(surname, name, birthYear, Group(groupName), rank, teamName)
+                     val competitor = Competitor(athleteNumber, LocalTime.of(0, 0), athlete)
                     // TODO: we know it's a competitor, but we don't know his start time,
                     //  and we don't need it for scores
                     listOfAthletes.add(CompetitorResultInGroup(competitor, place, result, place, backlog))
@@ -247,13 +257,13 @@ object CsvHandler {
                     checkpoint = unit[0]
                 } else {
                     numberAthlete = unit[0].toIntOrNull() ?: throw IncorrectNumberAthleteException(unit[0])
-                        competitor = dataProtocolStart[numberAthlete]
-                            ?: throw IllegalStateException("athlete number is not in start protocol")
-                        competitorsData[competitor]!!.add(
-                            CheckpointTime(
-                                checkpoint, unit[1].toLocalTime() ?: throw InvalidTimeException(unit[1])
-                            )
+                    competitor = dataProtocolStart[numberAthlete]
+                        ?: throw IllegalStateException("athlete number is not in start protocol")
+                    competitorsData[competitor]!!.add(
+                        CheckpointTime(
+                            checkpoint, unit[1].toLocalTime() ?: throw InvalidTimeException(unit[1])
                         )
+                    )
                 }
             } catch (exception: Exception) {
                 logger.info { messageAboutMissAthleteCheckpointData(checkpoint, unit.joinToString(" ")) }

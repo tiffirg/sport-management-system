@@ -60,7 +60,7 @@ open class CompetitorData(
 
 
 data class CompetitorResultInGroup(
-    val competitor: Competitor, val athleteNumberInGroup: Int,
+    val competitor: Competitor, val athleteNumberInGroup: Int?,
     val result: Duration?, val place: Int?, var backlog: Duration?
 ) {
     // Пример: 1, 22, Ананикян, Александр, 2002, 2р, СПбГУ, 00:08:11, 1, +00:00:00

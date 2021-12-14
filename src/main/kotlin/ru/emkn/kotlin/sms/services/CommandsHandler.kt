@@ -192,7 +192,8 @@ object CommandsHandler {
         // генерация результатов одной команды
 
         fun generateTeamResult(teamName: String, teamResults: List<CompetitorResultInGroup>): TeamResults {
-            val data = teamResults.map { competitorResultInGroup ->
+            val sortedTeamResults = teamResults.sortedBy { it.competitor.athleteNumber }
+            val data = sortedTeamResults.map { competitorResultInGroup ->
                 val competitor = competitorResultInGroup.competitor
                 val score =  scoresByCompetitor[competitor]
                 assert(score != null) {"scoresByCompetitor contains information about all competitors"}
