@@ -33,7 +33,15 @@ fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCrit
 interface DistanceCriteria {
     val distanceType: DistanceType
     fun isValid(competitorData: CompetitorData): Boolean
-    fun getResult(competitorData: CompetitorData): Duration?
+    fun getResult(competitorData: CompetitorData): Duration? {
+        return if (!isValid(competitorData)) {
+            null
+        } else {
+            val finishTime = competitorData.orderedCheckpoints.last().time
+            val startTime = competitorData.competitor.startTime
+            Duration.between(startTime, finishTime)
+        }
+    }
     fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
         return if (!isValid(competitorData)) {
             null
@@ -98,16 +106,6 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
         return true
     }
 
-    override fun getResult(competitorData: CompetitorData): Duration? {
-        return if (!isValid(competitorData)) {
-            null
-        } else {
-            val finishTime = competitorData.orderedCheckpoints.last().time
-            val startTime = competitorData.competitor.startTime
-            Duration.between(startTime, finishTime)
-        }
-    }
-
 }
 
 class ChoiceRoute(private val checkpointsCount: Int) : DistanceCriteria {
@@ -127,16 +125,6 @@ class ChoiceRoute(private val checkpointsCount: Int) : DistanceCriteria {
             return false
         }
         return true
-    }
-
-    override fun getResult(competitorData: CompetitorData): Duration? {
-        return if (!isValid(competitorData)) {
-            null
-        } else {
-            val finishTime = competitorData.orderedCheckpoints.last().time
-            val startTime = competitorData.competitor.startTime
-            Duration.between(startTime, finishTime)
-        }
     }
 
 }
