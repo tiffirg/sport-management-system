@@ -7,6 +7,8 @@ class InvalidConfigException(pathConfig: String): Exception("$pathConfig: No suc
 
 class InvalidFormatConfigException(pathConfig: String): Exception("$pathConfig: Invalid config format")
 
+class InvalidConfigData(message: String): Exception("Config data is invalid: $message")
+
 // Commands
 class MissCommandException : Exception("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`")
 

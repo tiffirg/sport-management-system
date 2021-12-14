@@ -1,11 +1,33 @@
 package ru.emkn.kotlin.sms.classes
 
 import ru.emkn.kotlin.sms.logger
+import ru.emkn.kotlin.sms.utils.InvalidConfigData
 import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
 
 enum class DistanceType {
     FIXED, CHOICE
+}
+
+fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCriteria {
+    return when (typeName) {
+        "fixed" -> {
+            DistanceType.FIXED
+            FixedRoute(checkpoints)
+        }
+        "choice" -> {
+            DistanceType.CHOICE
+            if (checkpoints.size != 1) {
+                throw InvalidConfigData("for Choice Route use one parameter: number of checkpoints")
+            }
+            val checkpointsCount = checkpoints[0].toIntOrNull()
+                ?: throw InvalidConfigData("for Choice Route use one parameter: number of checkpoints")
+            ChoiceRoute(checkpointsCount)
+        }
+        else -> {
+            throw InvalidConfigData("$typeName is an invalid distance type")
+        }
+    }
 }
 
 interface DistanceCriteria {
