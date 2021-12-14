@@ -59,9 +59,22 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
 }
 
 class ChoiceRoute(private val checkpointsCount: Int) : DistanceCriteria {
+
     override val distanceType = DistanceType.CHOICE
+
     override fun isValid(competitorData: CompetitorData): Boolean {
-        TODO("Not yet implemented")
+        val competitor = competitorData.competitor
+        val checkpoints = competitorData.orderedCheckpoints
+        if (checkpoints.size != checkpointsCount) {
+            logger.info {
+                messageAboutIncorrectDataCheckpointOfAthlete(
+                    competitor,
+                    "invalid number of checkpoints"
+                )
+            }
+            return false
+        }
+        return true
     }
 
     override fun getResult(competitorData: CompetitorData): Duration? {
