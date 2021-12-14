@@ -1,6 +1,7 @@
 package ru.emkn.kotlin.sms
 
 import ru.emkn.kotlin.sms.classes.*
+import ru.emkn.kotlin.sms.services.CommandsHandler
 import ru.emkn.kotlin.sms.services.CsvHandler
 import ru.emkn.kotlin.sms.utils.InvalidFileException
 import ru.emkn.kotlin.sms.utils.messageAboutCancelCompetition
