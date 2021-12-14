@@ -127,15 +127,15 @@ criteria:
     checkpoints:
     - 33
     - 34
-    - 52
-    - 53
+    - 33
+    - 34
 
   - distance: М16 Ж60
     type: choice
     checkpoints:
-    - 3
+    - 4
 
   - distance: Ж16  студенты
     type: choice
     checkpoints:
-    - 4
+    - 3
