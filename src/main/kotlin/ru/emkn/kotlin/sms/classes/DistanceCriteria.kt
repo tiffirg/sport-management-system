@@ -69,10 +69,16 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
         return true
     }
 
-
     override fun getResult(competitorData: CompetitorData): Duration? {
-        TODO("Not yet implemented")
+        return if (!isValid(competitorData)) {
+            null
+        } else {
+            val finishTime = competitorData.orderedCheckpoints.last().time
+            val startTime = competitorData.competitor.startTime
+            Duration.between(startTime, finishTime)
+        }
     }
+
 
     override fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
         TODO("Not yet implemented")

@@ -53,7 +53,7 @@ data class Competitor(
 open class CompetitorData(
     val competitor: Competitor,
     val checkpoints: List<CheckpointTime>,
-    val removed: Boolean
+    var removed: Boolean
 ) {
     val orderedCheckpoints = checkpoints.sortedBy { it.time }
 }
@@ -66,7 +66,7 @@ data class CompetitorResultInGroup(
     // Пример: 1, 22, Ананикян, Александр, 2002, 2р, СПбГУ, 00:08:11, 1, +00:00:00
     val listForResultsGroup: List<String>
         get() = listOf(
-            place.toString(),
+            place?.toString() ?: "-",
             competitor.athleteNumber.toString(),
             competitor.surname,
             competitor.name,
@@ -74,7 +74,7 @@ data class CompetitorResultInGroup(
             competitor.rank.toString(),
             competitor.teamName,
             result.toResultFormat(),
-            place.toString(),
+            place?.toString() ?: "",
             backlog.toBacklogFormat()
         )
 }
@@ -91,7 +91,7 @@ data class CompetitorResultInTeam(
         competitor.birthYear.toString(),
         competitor.rank.toString(),
         competitor.group.groupName,
-        place.toString(),
+        place?.toString() ?: "-",
         score.toString()
     )
 }
@@ -105,14 +105,14 @@ data class CompetitorSplitResultInGroup(
         get() {
             val competitor = competitorResultInGroup.competitor
             val res = mutableListOf<String>(
-                competitorResultInGroup.place.toString(),
+                competitorResultInGroup.place?.toString() ?: "-",
                 competitor.athleteNumber.toString(),
                 competitor.surname,
                 competitor.name,
                 competitor.birthYear.toString(),
                 competitor.rank.toString(),
                 competitor.teamName,
-                competitorResultInGroup.place.toString(),
+                competitorResultInGroup.place?.toString() ?: "",
                 competitorResultInGroup.backlog.toBacklogFormat()
             )
             val stringSplits = splits?.flatMap { it -> listOf(it.checkpoint, it.duration.toResultFormat()) } ?: listOf()

@@ -1,5 +1,6 @@
 package ru.emkn.kotlin.sms.services
 
+import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.logger
@@ -66,34 +67,36 @@ object CommandsHandler {
         }
     }
 
-    // генерация результатов одного участника
-
-    private fun getCompetitorResult(competitorData: CompetitorData): Duration? {
-        return if (competitorData.removed) {
-            null
-        } else {
-            val finishTime = competitorData.checkpoints.last().time
-            val startTime = competitorData.competitor.startTime
-            Duration.between(startTime, finishTime)
-        }
-    }
 
     // генерация результатов одной группы
 
     private fun generateResultsGroup(competitorsDataGroup: CompetitorsDataGroup): GroupResults {
 
-        // Участники сортируются по времени результата
-        // Если человек дисквалифицирован, то его результатом будет специальное значение
+        val distance = competitorsDataGroup.group.distance
+        val criteria = DISTANCE_CRITERIA[distance]
+            ?: throw IllegalStateException("all distances must be initialized in DISTANCE_CRITERIA")
+
+        // Сортировка по времени результата: если человек дисквалифицирован, то его результатом будет специальное значение
+
         val sortedCompetitorsData = competitorsDataGroup.competitorsData.sortedBy { competitorData ->
-            val result = getCompetitorResult(competitorData)
+            val result = criteria.getResult(competitorData)
             result?.seconds ?: Double.POSITIVE_INFINITY.toLong()
         }
 
         val protocols: List<CompetitorResultInGroup> = sortedCompetitorsData.mapIndexed { index, competitorData ->
+            val result = criteria.getResult(competitorData)
+            if (result == null) {
+                competitorData.removed = true
+                CompetitorResultInGroup(
+                    competitorData.competitor, index + 1,
+                    null, null, null
+                )
+            } else {
             CompetitorResultInGroup(
                 competitorData.competitor, index + 1,
-                getCompetitorResult(competitorData), index + 1, null
+                result, index + 1, null
             )
+            }
         }
 
         // вычисление отставания от лидера
@@ -107,7 +110,6 @@ object CommandsHandler {
     }
 
     // генерация результатов всех участников
-    // TODO: не присваивать никакое место дисквалифицированным участникам
 
     fun generateResults(data: List<CompetitorData>): List<GroupResults> {
         val competitorsGroups =
