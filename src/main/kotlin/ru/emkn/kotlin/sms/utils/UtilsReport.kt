@@ -43,4 +43,10 @@ fun messageAboutCancelCompetition() = "Cancellation of the competition"
 
 fun messageAboutMissAthleteCheckpointData(checkpoint: String, unitData: String) = "`$checkpoint` $unitData: Incorrect checkpoint format"
 
-fun messageAboutIncorrectDataCheckpointOfAthlete(athlete: Competitor) = "Incorrect data on the checkpoint of the $athlete"
+fun messageAboutIncorrectDataCheckpointOfAthlete(athlete: Competitor, message: String? = null) : String {
+    var res = "Incorrect data on the checkpoint of the $athlete"
+    if (message != null) {
+        res += ":$message"
+    }
+    return res
+}

@@ -263,6 +263,6 @@ object CsvHandler {
                 }
             }
         }
-        return competitorsData.map { CompetitorData(it.key, it.value, CompetitorData.checkCheckpoints(it.key, it.value)) }
+        return competitorsData.map { CompetitorData(it.key, it.value, false) }
     }
 }

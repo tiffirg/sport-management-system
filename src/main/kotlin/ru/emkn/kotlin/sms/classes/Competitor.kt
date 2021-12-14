@@ -55,27 +55,7 @@ open class CompetitorData(
     val checkpoints: List<CheckpointTime>,
     val removed: Boolean
 ) {
-    companion object {
-        fun checkCheckpoints(athleteStart: Competitor, checkpoints: List<CheckpointTime>): Boolean {
-            if (checkpoints.isEmpty()) {
-                logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                return true
-            }
-            val orderedCheckpoints = DISTANCE_CRITERIA[athleteStart.group.distance]!!
-            if (checkpoints.mapTo(mutableSetOf()) { it.checkpoint } != orderedCheckpoints.toSet()) {  // TODO(Fix algorithm)
-                logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                return true
-            }
-            val sortedData = checkpoints.sortedBy { el -> orderedCheckpoints.indexOfFirst { el.checkpoint == it } }
-            for (i in 1 until sortedData.size) {
-                if (sortedData[i - 1].time >= sortedData[i].time) {
-                    logger.info { messageAboutIncorrectDataCheckpointOfAthlete(athleteStart) }
-                    return true
-                }
-            }
-            return false
-        }
-    }
+    val orderedCheckpoints = checkpoints.sortedBy { it.time }
 }
 
 
