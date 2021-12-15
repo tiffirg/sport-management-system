@@ -36,6 +36,10 @@ data class Competitor(
     val athlete: Athlete
 ) : Athlete(athlete) {
 
+    override fun toString(): String {
+        return "№$athleteNumber: $surname"
+    }
+
     //Пример: 21, Санников, Вадим, 2003, 3р, СПбГУ, 12:02:00
     val listForProtocolStart: List<String>
         get() = listOf(
