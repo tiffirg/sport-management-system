@@ -167,7 +167,7 @@ object CsvHandler {
                      val competitor = Competitor(athleteNumber, LocalTime.of(0, 0), athlete)
                     // TODO: we know it's a competitor, but we don't know his start time,
                     //  and we don't need it for scores
-                    listOfAthletes.add(CompetitorResultInGroup(competitor, place, result, place, backlog))
+                    listOfAthletes.add(CompetitorResultInGroup(competitor, result, place, backlog))
                 }
             }
         } catch (exception: Exception) {

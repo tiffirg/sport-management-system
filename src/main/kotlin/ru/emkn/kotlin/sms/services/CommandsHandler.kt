@@ -91,12 +91,12 @@ object CommandsHandler {
             if (result == null) {
                 competitorData.removed = true
                 CompetitorResultInGroup(
-                    competitorData.competitor, index + 1,
+                    competitorData.competitor,
                     null, null, null
                 )
             } else {
             CompetitorResultInGroup(
-                competitorData.competitor, index + 1,
+                competitorData.competitor,
                 result, index + 1, null
             )
             }
