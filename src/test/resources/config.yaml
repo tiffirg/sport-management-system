@@ -63,7 +63,27 @@ groups:
     distance: МЖ9 10
 
 
+checkpoints:
+  - 31
+  - 32
+  - 33
+  - 34
+  - 45
+  - 46
+  - 47
+  - 48
+  - 49
+  - 50
+  - 51
+  - 52
+  - 53
+  - 100
+  - 101
+  - 102
+  - 104
+
 criteria:
+
   - distance: М18 21 40 50
     type: choice
     checkpoints:

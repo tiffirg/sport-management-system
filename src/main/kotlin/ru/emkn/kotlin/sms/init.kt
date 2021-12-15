@@ -59,6 +59,7 @@ var RANKS: List<String> = listOf()
 var GROUP_NAMES: List<String> = listOf()
 var GROUP_DISTANCES: Map<String, String> = mapOf()
 var DISTANCE_CRITERIA: Map<String, DistanceCriteria> = mapOf()
+var CHECKPOINTS_LIST: List<String> = listOf()
 
 
 data class GroupData(
@@ -74,6 +75,7 @@ data class CriteriaData(
 
 data class ConfigData(
     val eventName: String, val eventDate: String, val eventTime: String, val eventSport: String,
+    val checkpoints: List<String>,
     val ranks: List<String>,
     val groups: List<GroupData>,
     val criteria: List<CriteriaData>
@@ -100,6 +102,7 @@ fun initConfig(pathConfig: String) {
             criteriaData ->
             Pair(criteriaData.distance, getCriteriaByType(criteriaData.type, criteriaData.checkpoints))
         }
+        CHECKPOINTS_LIST = config.checkpoints
     } catch (e: Exception) {
         logger.debug { e.message }
         throw InvalidFormatConfigException(pathConfig)
