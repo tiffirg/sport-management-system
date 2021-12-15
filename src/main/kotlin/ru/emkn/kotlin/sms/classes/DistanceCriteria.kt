@@ -12,16 +12,20 @@ enum class DistanceType {
 fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCriteria {
     return when (typeName) {
         "fixed" -> {
-            DistanceType.FIXED
             FixedRoute(checkpoints)
         }
         "choice" -> {
-            DistanceType.CHOICE
-            if (checkpoints.size != 1 || checkpoints[0].toIntOrNull() == null) {
-                logger.error {  InvalidConfigData("for Choice Route use one parameter: number of checkpoints") }
+            if (checkpoints.isEmpty()) {
+                throw InvalidConfigData("no parameters got for Choice Route")
+            } else {
+                val checkpointsCount: Int = checkpoints[0].toIntOrNull()
+                    ?: throw InvalidConfigData("first parameter for Choice Route must me the number of checkpoints")
+                if (checkpoints.size == 1) {
+                    ChoiceRoute(checkpointsCount, null)
+                } else {
+                    ChoiceRoute(checkpointsCount, checkpoints.subList(1, checkpointsCount))
+                }
             }
-            val checkpointsCount : Int = checkpoints[0].toInt()
-            ChoiceRoute(checkpointsCount)
         }
         else -> {
             throw InvalidConfigData("$typeName is an invalid distance type")
@@ -41,6 +45,7 @@ interface DistanceCriteria {
             Duration.between(startTime, finishTime)
         }
     }
+
     fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
         return if (!isValid(competitorData)) {
             null
@@ -73,7 +78,9 @@ interface DistanceCriteria {
     }
 }
 
-class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria {
+class FixedRoute(
+    private val checkpointsOrder: List<String>
+) : DistanceCriteria {
 
     override val distanceType = DistanceType.FIXED
 
@@ -107,7 +114,12 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
 
 }
 
-class ChoiceRoute(private val checkpointsCount: Int) : DistanceCriteria {
+class ChoiceRoute(
+    private val checkpointsCount: Int, private val checkpointsRange
+    : List<String>
+    ?
+) :
+    DistanceCriteria {
 
     override val distanceType = DistanceType.CHOICE
 

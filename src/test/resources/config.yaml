@@ -65,17 +65,13 @@ groups:
 
 criteria:
   - distance: М18 21 40 50
-    type: fixed
+    type: choice
     checkpoints:
-    - 31
-    - 32
-    - 33
-    - 34
-    - 35
-    - 36
-    - 37
-    - 38
-    - 39
+    - 2
+    - 100
+    - 101
+    - 102
+    - 104
 
   - distance: МЖ9 10
     type: fixed
