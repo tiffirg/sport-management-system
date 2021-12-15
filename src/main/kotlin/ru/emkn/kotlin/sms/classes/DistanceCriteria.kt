@@ -23,7 +23,7 @@ fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCrit
                 if (checkpoints.size == 1) {
                     ChoiceRoute(checkpointsCount, null)
                 } else {
-                    ChoiceRoute(checkpointsCount, checkpoints.subList(1, checkpointsCount))
+                    ChoiceRoute(checkpointsCount, checkpoints.subList(1, checkpoints.size))
                 }
             }
         }
@@ -148,7 +148,7 @@ class ChoiceRoute(private val checkpointsCount: Int, private val checkpointsRang
                 messageAboutIncorrectDataCheckpointOfAthlete(
                     competitor,
                     " not enough checkpoints for the choice route: " +
-                            "expected at least $checkpointsCount different checkpoints, but got only ${checkpoints.size}"
+                            "expected at least $checkpointsCount different checkpoints, but got only ${validCheckPointsSet.size}"
                 )
             }
             false
