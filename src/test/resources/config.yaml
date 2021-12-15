@@ -67,11 +67,7 @@ criteria:
   - distance: М18 21 40 50
     type: choice
     checkpoints:
-    - 2
-    - 100
-    - 101
-    - 102
-    - 104
+    - 3
 
   - distance: МЖ9 10
     type: fixed
@@ -134,4 +130,8 @@ criteria:
   - distance: Ж16 студенты
     type: choice
     checkpoints:
-    - 3
+    - 2
+    - 100
+    - 101
+    - 102
+    - 104
