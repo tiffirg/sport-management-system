@@ -36,6 +36,10 @@ data class Competitor(
     val athlete: Athlete
 ) : Athlete(athlete) {
 
+    override fun toString(): String {
+        return "№$athleteNumber: $surname"
+    }
+
     //Пример: 21, Санников, Вадим, 2003, 3р, СПбГУ, 12:02:00
     val listForProtocolStart: List<String>
         get() = listOf(
@@ -60,7 +64,7 @@ open class CompetitorData(
 
 
 data class CompetitorResultInGroup(
-    val competitor: Competitor, val athleteNumberInGroup: Int?,
+    val competitor: Competitor,
     val result: Duration?, val place: Int?, var backlog: Duration?
 ) {
     // Пример: 1, 22, Ананикян, Александр, 2002, 2р, СПбГУ, 00:08:11, 1, +00:00:00

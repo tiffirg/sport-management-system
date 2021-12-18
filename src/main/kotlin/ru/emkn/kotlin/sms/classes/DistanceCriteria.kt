@@ -12,16 +12,20 @@ enum class DistanceType {
 fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCriteria {
     return when (typeName) {
         "fixed" -> {
-            DistanceType.FIXED
             FixedRoute(checkpoints)
         }
         "choice" -> {
-            DistanceType.CHOICE
-            if (checkpoints.size != 1 || checkpoints[0].toIntOrNull() == null) {
-                logger.error {  InvalidConfigData("for Choice Route use one parameter: number of checkpoints") }
+            if (checkpoints.isEmpty()) {
+                throw InvalidConfigData("no parameters got for Choice Route")
+            } else {
+                val checkpointsCount: Int = checkpoints[0].toIntOrNull()
+                    ?: throw InvalidConfigData("first parameter for Choice Route must me the number of checkpoints")
+                if (checkpoints.size == 1) {
+                    ChoiceRoute(checkpointsCount, null)
+                } else {
+                    ChoiceRoute(checkpointsCount, checkpoints.subList(1, checkpoints.size))
+                }
             }
-            val checkpointsCount : Int = checkpoints[0].toInt()
-            ChoiceRoute(checkpointsCount)
         }
         else -> {
             throw InvalidConfigData("$typeName is an invalid distance type")
@@ -32,6 +36,7 @@ fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCrit
 interface DistanceCriteria {
     val distanceType: DistanceType
     fun isValid(competitorData: CompetitorData): Boolean
+
     fun getResult(competitorData: CompetitorData): Duration? {
         return if (!isValid(competitorData)) {
             null
@@ -41,6 +46,7 @@ interface DistanceCriteria {
             Duration.between(startTime, finishTime)
         }
     }
+
     fun getSplit(competitorData: CompetitorData): List<CheckpointDuration>? {
         return if (!isValid(competitorData)) {
             null
@@ -73,11 +79,20 @@ interface DistanceCriteria {
     }
 }
 
-class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria {
+class FixedRoute(
+    private val checkpointsOrder: List<String>
+) : DistanceCriteria {
 
     override val distanceType = DistanceType.FIXED
 
     override fun isValid(competitorData: CompetitorData): Boolean {
+
+        /*
+        В данном типе дистанции участник должен пройти чекпоинты строго в заданном checkpointsOrder порядке.
+        Один чекпоинт может встречаться в заданном списке несколько раз.
+        Любое нарушение порядка отметок или их количества приведут к дисквалификации участника
+         */
+
         val competitor = competitorData.competitor
         val checkpoints = competitorData.orderedCheckpoints
 
@@ -85,7 +100,7 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
             logger.info {
                 messageAboutIncorrectDataCheckpointOfAthlete(
                     competitor,
-                    "invalid number of checkpoints"
+                    " invalid checkpoints number for the fixed route"
                 )
             }
             return false
@@ -96,7 +111,7 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
                 logger.info {
                     messageAboutIncorrectDataCheckpointOfAthlete(
                         competitor,
-                        "invalid order of checkpoints"
+                        " invalid checkpoints order on the fixed route"
                     )
                 }
                 return false
@@ -107,23 +122,39 @@ class FixedRoute(private val checkpointsOrder: List<String>) : DistanceCriteria 
 
 }
 
-class ChoiceRoute(private val checkpointsCount: Int) : DistanceCriteria {
+class ChoiceRoute(private val checkpointsCount: Int, private val checkpointsRange: List<String>?) : DistanceCriteria {
 
     override val distanceType = DistanceType.CHOICE
 
     override fun isValid(competitorData: CompetitorData): Boolean {
+
+        /*
+        В данном типе дистанции участнику предлагается взять K (checkpointsCount) любых чекпоинтов
+        из определенного списка (checkpointsRange) или из любых доступных (checkpointsRange = null) чекпоинтов.
+        При этом повторное прохождение чекпоинта не учитывается, а также не учитывается отметка на
+        чекпоинтах не из заданного списка. За большее, чем указано, количество взятых чекпоинтов участник
+        не дисквалифицируется, но и не получает никаких преимуществ.
+         */
+
         val competitor = competitorData.competitor
         val checkpoints = competitorData.orderedCheckpoints
-        if (checkpoints.size != checkpointsCount) {
+        val validCheckPointsSet = if (checkpointsRange == null) {
+            checkpoints.toSet()
+        } else {
+            checkpoints.filter { checkpointsRange.contains(it.checkpoint) }.toSet()
+        }
+        return if (validCheckPointsSet.size < checkpointsCount) {
             logger.info {
                 messageAboutIncorrectDataCheckpointOfAthlete(
                     competitor,
-                    "invalid number of checkpoints"
+                    " not enough checkpoints for the choice route: " +
+                            "expected at least $checkpointsCount different checkpoints, but got only ${validCheckPointsSet.size}"
                 )
             }
-            return false
+            false
+        } else {
+            true
         }
-        return true
     }
 
 }

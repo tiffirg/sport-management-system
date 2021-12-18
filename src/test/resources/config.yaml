@@ -63,19 +63,31 @@ groups:
     distance: МЖ9 10
 
 
+checkpoints:
+  - 31
+  - 32
+  - 33
+  - 34
+  - 45
+  - 46
+  - 47
+  - 48
+  - 49
+  - 50
+  - 51
+  - 52
+  - 53
+  - 100
+  - 101
+  - 102
+  - 104
+
 criteria:
+
   - distance: М18 21 40 50
-    type: fixed
+    type: choice
     checkpoints:
-    - 31
-    - 32
-    - 33
-    - 34
-    - 35
-    - 36
-    - 37
-    - 38
-    - 39
+    - 3
 
   - distance: МЖ9 10
     type: fixed
@@ -138,4 +150,8 @@ criteria:
   - distance: Ж16 студенты
     type: choice
     checkpoints:
-    - 3
+    - 2
+    - 100
+    - 101
+    - 102
+    - 104
