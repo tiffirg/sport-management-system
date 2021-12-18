@@ -31,11 +31,6 @@ abstract class IntIdTableWithCompetitionId(name: String) : IntIdTable(name, "id"
         reference("competitionId", Competitions, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
 }
 
-abstract class TableWithCompetitionId(name: String) : Table(name) {
-    val competitionId =
-        reference("competitionId", Competitions, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-}
-
 object Athletes : IntIdTableWithCompetitionId("athletes") {
     private const val surnameLength = 32
     private const val nameLength = 32
