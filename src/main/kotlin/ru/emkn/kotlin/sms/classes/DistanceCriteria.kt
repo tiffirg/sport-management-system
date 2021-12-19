@@ -9,21 +9,24 @@ enum class DistanceType {
     FIXED, CHOICE
 }
 
-fun getCriteriaByType(typeName: String, checkpoints: List<String>): DistanceCriteria {
+fun getCriteriaByType(typeName: String, count: String, checkpoints: List<String>): DistanceCriteria {
+    val checkpointsCount: Int = count.toIntOrNull()
+        ?: throw InvalidConfigData("the count of checkpoints must be an integer")
     return when (typeName) {
         "fixed" -> {
+            if (checkpointsCount != checkpoints.size) {
+                throw InvalidConfigData("Checkpoints count and list of checkpoints size don't match")
+            }
             FixedRoute(checkpoints)
         }
         "choice" -> {
             if (checkpoints.isEmpty()) {
                 throw InvalidConfigData("no parameters got for Choice Route")
             } else {
-                val checkpointsCount: Int = checkpoints[0].toIntOrNull()
-                    ?: throw InvalidConfigData("first parameter for Choice Route must me the number of checkpoints")
-                if (checkpoints.size == 1) {
+                if (checkpoints.isEmpty()) {
                     ChoiceRoute(checkpointsCount, null)
                 } else {
-                    ChoiceRoute(checkpointsCount, checkpoints.subList(1, checkpoints.size))
+                    ChoiceRoute(checkpointsCount, checkpoints)
                 }
             }
         }
