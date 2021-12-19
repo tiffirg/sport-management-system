@@ -8,9 +8,11 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    google()
+    //maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    //google()
 }
+
+val exposedVersion: String by project
 
 dependencies {
     implementation(compose.desktop.currentOs)
@@ -25,10 +27,12 @@ dependencies {
     implementation("org.kodein.di:kodein-di-erased-jvm:6.4.1")
     implementation("org.kodein.di:kodein-di-framework-android-x:6.4.1")
 
-    implementation("org.jetbrains.exposed:exposed-core:0.34.1")
-    implementation("org.jetbrains.exposed:exposed-dao:0.34.1")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.34.1")
-    implementation("org.jetbrains.exposed:exposed-jodatime:0.34.1")
+    testImplementation(kotlin("test"))
+    implementation("com.h2database:h2:1.4.199")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    runtimeOnly("org.slf4j:slf4j-simple:1.7.32")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
     implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
