@@ -5,18 +5,24 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 
 fun main() {
     val db = GeneralDatabase()
-    db.create()
+    db.connect()
+    transaction {
+        TCompetition.all().forEach {
+            println(it.eventName)
+        }
+    }
 }
 
 
 interface DatabaseInterface {
-    fun create()
+    fun connect()
 }
 
-open class GeneralDatabase : DatabaseInterface {
+open class GeneralDatabase() : DatabaseInterface {
 
     val db: Database = Database.connect(url = "jdbc:h2:./database/competitions", driver = "org.h2.Driver")
 
@@ -26,8 +32,25 @@ open class GeneralDatabase : DatabaseInterface {
         }
     }
 
-    override fun create() {
-        SchemaUtils.create(TCompetitions)
+    override fun connect() {
+        transaction {
+            try { SchemaUtils.create(TCompetitions) } catch (e: Exception) {}
+            try { SchemaUtils.create(TGroups) } catch (e: Exception) {}
+            try { SchemaUtils.create(TRanks) } catch (e: Exception) {}
+            try { SchemaUtils.create(TAthletes) } catch (e: Exception) {}
+            try { SchemaUtils.create(TCompetitors) } catch (e: Exception) {}
+            try { SchemaUtils.create(TCompetitorsData) } catch (e: Exception) {}
+            try { SchemaUtils.create(TTeams) } catch (e: Exception) {}
+            try { SchemaUtils.create(TCheckpoints) } catch (e: Exception) {}
+            try { SchemaUtils.create(TDistances) } catch (e: Exception) {}
+            try { SchemaUtils.create(TDistancesToCheckpoints) } catch (e: Exception) {}
+            try { SchemaUtils.create(TCheckpointsProtocols) } catch (e: Exception) {}
+            try { SchemaUtils.create(TCheckpointsProtocolsToCompetitorsData) } catch (e: Exception) {}
+            try { SchemaUtils.create(TDurationAtCheckpointsToResultsGroupSplit) } catch (e: Exception) {}
+            try { SchemaUtils.create(TResultsGroup) } catch (e: Exception) {}
+            try { SchemaUtils.create(TResultsTeam) } catch (e: Exception) {}
+            try { SchemaUtils.create(TSplitsResultsGroup) } catch (e: Exception) {}
+        }
     }
 }
 
@@ -46,10 +69,10 @@ object TCompetitions : IntIdTable("competitions", "id") {
 class TCompetition(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCompetition>(TCompetitions)
 
-    val eventName by TCompetitions.eventName
-    val sport by TCompetitions.sport
-    val date by TCompetitions.date
-    val time by TCompetitions.time
+    var eventName by TCompetitions.eventName
+    var sport by TCompetitions.sport
+    var date by TCompetitions.date
+    var time by TCompetitions.time
 }
 
 abstract class IntIdTableWithCompetitionId(name: String) : IntIdTable(name, "id") {
@@ -259,7 +282,6 @@ object TDurationAtCheckpointsToResultsGroupSplit : IntIdTable("durationAtCheckpo
         )
 }
 
-
 object TSplitsResultsGroup : IntIdTable("splitsResultsGroup") {
     val resultsGroupId = reference(
         "resultsGroupId",
@@ -268,7 +290,6 @@ object TSplitsResultsGroup : IntIdTable("splitsResultsGroup") {
         onUpdate = ReferenceOption.CASCADE
     )
 }
-
 
 object TResultsTeam : IntIdTable("resultsGroup") {
     val competitorId = reference(
