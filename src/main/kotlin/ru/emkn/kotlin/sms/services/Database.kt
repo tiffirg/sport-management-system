@@ -5,16 +5,14 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import ru.emkn.kotlin.sms.*
 import java.io.File
 
 fun main() {
     val db = GeneralDatabase()
+    initConfig("src/test/resources/config.yaml")
     db.connect()
-    transaction {
-        TCompetition.all().forEach {
-            println(it.eventName)
-        }
-    }
+    db.addCompetiton()
 }
 
 
@@ -34,25 +32,115 @@ open class GeneralDatabase() : DatabaseInterface {
 
     override fun connect() {
         transaction {
-            try { SchemaUtils.create(TCompetitions) } catch (e: Exception) {}
-            try { SchemaUtils.create(TGroups) } catch (e: Exception) {}
-            try { SchemaUtils.create(TRanks) } catch (e: Exception) {}
-            try { SchemaUtils.create(TAthletes) } catch (e: Exception) {}
-            try { SchemaUtils.create(TCompetitors) } catch (e: Exception) {}
-            try { SchemaUtils.create(TCompetitorsData) } catch (e: Exception) {}
-            try { SchemaUtils.create(TTeams) } catch (e: Exception) {}
-            try { SchemaUtils.create(TCheckpoints) } catch (e: Exception) {}
-            try { SchemaUtils.create(TDistances) } catch (e: Exception) {}
-            try { SchemaUtils.create(TDistancesToCheckpoints) } catch (e: Exception) {}
-            try { SchemaUtils.create(TCheckpointsProtocols) } catch (e: Exception) {}
-            try { SchemaUtils.create(TCheckpointsProtocolsToCompetitorsData) } catch (e: Exception) {}
-            try { SchemaUtils.create(TDurationAtCheckpointsToResultsGroupSplit) } catch (e: Exception) {}
-            try { SchemaUtils.create(TResultsGroup) } catch (e: Exception) {}
-            try { SchemaUtils.create(TResultsTeam) } catch (e: Exception) {}
-            try { SchemaUtils.create(TSplitsResultsGroup) } catch (e: Exception) {}
+            try {
+                SchemaUtils.create(TCompetitions)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TGroups)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TRanks)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TAthletes)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TCompetitors)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TCompetitorsData)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TTeams)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TCheckpoints)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TDistances)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TDistancesToCheckpoints)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TCheckpointsProtocols)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TCheckpointsProtocolsToCompetitorsData)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TDurationAtCheckpointsToResultsGroupSplit)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TResultsGroup)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TResultsTeam)
+            } catch (e: Exception) {
+            }
+            try {
+                SchemaUtils.create(TSplitsResultsGroup)
+            } catch (e: Exception) {
+            }
+        }
+    }
+
+    // добавляем в бд данные из конфигурационного файла для конкретного соревнования
+    fun addCompetiton() {
+        transaction {
+            val competition = TCompetition.new {
+                eventName = EVENT_NAME
+                sport = EVENT_SPORT
+                date = EVENT_DATE_STRING
+                time = EVENT_TIME_STRING
+            }
+            RANKS.forEach {
+                TRank.new {
+                    competitionId = competition.id
+                    rank = it
+                }
+            }
+            DISTANCES.forEach { (it_distance, it_data) ->
+                TDistance.new {
+                    competitionId = competition.id
+                    distance = it_distance
+                    type = it_data.first
+                    checkpointsCount = it_data.second
+                }
+            }
+            GROUP_DISTANCES.forEach { (it_group, it_distance) ->
+                val distanceReference: TDistance = TDistance.all().find { it.distance == it_distance }
+                    ?: throw IllegalStateException("All distances must be stored in the database")
+                TGroup.new {
+                    competitionId = competition.id
+                    group = it_group
+                    distanceId = distanceReference.id
+                }
+            }
+            CHECKPOINTS_LIST.forEach { it_checkpoint ->
+                TCheckpoint.new {
+                    competitionId = competition.id
+                    checkpoint = it_checkpoint
+                }
+            }
         }
     }
 }
+
 
 
 object TCompetitions : IntIdTable("competitions", "id") {
@@ -107,6 +195,7 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
+
     val name by TAthletes.name
     val surname by TAthletes.surname
     val birthYear by TAthletes.birthYear
@@ -121,6 +210,7 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
+
     val team by TTeams.team
 }
 
@@ -133,7 +223,10 @@ object TGroups : IntIdTableWithCompetitionId("group") {
 
 class TGroup(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TGroup>(TGroups)
-    val group by TGroups.group
+
+    var competitionId by TGroups.competitionId
+    var group by TGroups.group
+    var distanceId by TGroups.distanceId
 }
 
 object TRanks : IntIdTableWithCompetitionId("rank") {
@@ -143,7 +236,9 @@ object TRanks : IntIdTableWithCompetitionId("rank") {
 
 class TRank(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TRank>(TRanks)
-    val rank by TRanks.rank
+
+    var competitionId by TRanks.competitionId
+    var rank by TRanks.rank
 }
 
 object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
@@ -153,7 +248,8 @@ object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
 
 class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
-    val checkpoint by TCheckpoints.checkpoint
+    var competitionId by TCheckpoints.competitionId
+    var checkpoint by TCheckpoints.checkpoint
 }
 
 object TDistancesToCheckpoints : Table("distancesToCheckpoints") {
@@ -174,10 +270,12 @@ object TDistances : IntIdTableWithCompetitionId("distances") {
 
 class TDistance(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TDistance>(TDistances)
-    val distance by TDistances.distance
-    val type by TDistances.type
-    val checkpointsCount by TDistances.checkpointsCount
-    val checkpoints by TCheckpoint via TDistancesToCheckpoints // many-to-many reference
+
+    var competitionId by TDistances.competitionId
+    var distance by TDistances.distance
+    var type by TDistances.type
+    var checkpointsCount by TDistances.checkpointsCount
+    var checkpoints by TCheckpoint via TDistancesToCheckpoints // many-to-many reference
 }
 
 object TCompetitors : IntIdTable("competitors") {
@@ -190,6 +288,7 @@ object TCompetitors : IntIdTable("competitors") {
 
 class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCompetitor>(TCompetitors)
+
     val athleteId by TCompetitors.athleteId
     val competitorNumber by TCompetitors.competitorNumber
     val startTime by TCompetitors.startTime
@@ -207,6 +306,7 @@ object TCompetitorsData : IntIdTable("competitorsData") {
 
 class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCompetitorData>(TCompetitorsData)
+
     val competitorId by TCompetitorsData.competitorId
     val isRemoved by TCompetitorsData.isRemoved
 }
@@ -242,6 +342,7 @@ object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
 
 class TCheckpointProtocol(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpointProtocol>(TCheckpointsProtocols)
+
     val competitionId by TCheckpointsProtocols.competitorId
     val checkpointId by TCheckpointsProtocols.checkpointId
     val timeMeasurement by TCheckpointsProtocols.timeMeasurement

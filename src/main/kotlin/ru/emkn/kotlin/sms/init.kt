@@ -58,6 +58,7 @@ var EVENT_SPORT = ""
 var RANKS: List<String> = listOf()
 var GROUP_NAMES: List<String> = listOf()
 var GROUP_DISTANCES: Map<String, String> = mapOf()
+var DISTANCES: Map<String, Pair<String, Int>> = mapOf()
 var DISTANCE_CRITERIA: Map<String, DistanceCriteria> = mapOf()
 var CHECKPOINTS_LIST: List<String> = listOf()
 
@@ -99,6 +100,10 @@ fun initConfig(pathConfig: String) {
         RANKS = config.ranks
         GROUP_NAMES = config.groups.map { it.group }
         GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
+        DISTANCES = config.criteria.associate {
+            criteriaData ->
+            Pair(criteriaData.distance, Pair(criteriaData.type, criteriaData.count.toInt()))
+        }
         DISTANCE_CRITERIA = config.criteria.associate {
             criteriaData ->
             Pair(criteriaData.distance, getCriteriaByType(criteriaData.type, criteriaData.count, criteriaData.checkpoints))
