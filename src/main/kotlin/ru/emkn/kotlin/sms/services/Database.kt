@@ -1,137 +1,232 @@
 package ru.emkn.kotlin.sms.services
 
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.*
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
+
+fun main() {
+    val db = GeneralDatabase()
+    db.create()
+}
 
 
 interface DatabaseInterface {
-    fun connect()
+    fun create()
 }
 
-class MySQLDatabase : DatabaseInterface {
-    override fun connect() {
-        TODO("Not yet implemented")
+open class GeneralDatabase : DatabaseInterface {
+    val db: Database = Database.connect(url = "jdbc:h2:./database/competitions", driver = "org.h2.Driver")
+
+    init {
+        transaction {
+            addLogger(StdOutSqlLogger)
+        }
+    }
+
+    override fun create() {
+        SchemaUtils.create(TCompetitions)
     }
 }
 
-object Competitions : IntIdTable("competitions", "id") {
+
+object TCompetitions : IntIdTable("competitions", "id") {
     private const val dateLength = 16
     private const val timeLength = 8
     private const val sportLength = 64
     private const val eventLength = 256
-    val eventName = varchar("event", eventLength).uniqueIndex()
-    val sport = varchar("sport", sportLength)
-    val date = varchar("date", dateLength)  // Example: 20.02.2022
-    val time = varchar("time", timeLength)  // Example: 12:00:00
+    val eventName = varchar(name = "event", length = eventLength).uniqueIndex()
+    val sport = varchar(name = "sport", length = sportLength)
+    val date = varchar(name = "date", length = dateLength)  // Example: 20.02.2022
+    val time = varchar(name = "time", length = timeLength)  // Example: 12:00:00
+}
+
+class TCompetition(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TCompetition>(TCompetitions)
+
+    val eventName by TCompetitions.eventName
+    val sport by TCompetitions.sport
+    val date by TCompetitions.date
+    val time by TCompetitions.time
 }
 
 abstract class IntIdTableWithCompetitionId(name: String) : IntIdTable(name, "id") {
     val competitionId =
-        reference("competitionId", Competitions, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+        reference(
+            name = "competitionId",
+            TCompetitions,
+            onDelete = ReferenceOption.CASCADE,
+            onUpdate = ReferenceOption.CASCADE
+        )
 }
 
-object Athletes : IntIdTableWithCompetitionId("athletes") {
+object TAthletes : IntIdTableWithCompetitionId("athletes") {
     private const val surnameLength = 32
     private const val nameLength = 32
-    val name = varchar("name", nameLength)
-    val surname = varchar("surname", surnameLength)
-    val birthYear = integer("birthYear")
-    val groupId = reference("groupId", Groups, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val rankId = reference("rankId", Ranks, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val teamId = reference("teamId", Teams, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+    val name = varchar(name = "name", length = nameLength)
+    val surname = varchar(name = "surname", surnameLength)
+    val birthYear = integer(name = "birthYear")
+    val groupId = reference(
+        name = "groupId", foreign = TGroups,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
+    val rankId = reference(
+        name = "rankId", foreign = TRanks,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
+    val teamId = reference(
+        name = "teamId", foreign = TTeams,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
 }
 
-object Teams : IntIdTableWithCompetitionId("team") {
+class TAthlete(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TAthlete>(TAthletes)
+    val name by TAthletes.name
+    val surname by TAthletes.surname
+    val birthYear by TAthletes.birthYear
+    val groupId by TAthletes.groupId
+    val rankId by TAthletes.rankId
+}
+
+object TTeams : IntIdTableWithCompetitionId("team") {
     private const val teamLength = 65
     val team = varchar("team", teamLength)
 }
 
-object Groups : IntIdTableWithCompetitionId("group") {
+class TTeam(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TTeam>(TTeams)
+    val team by TTeams.team
+}
+
+object TGroups : IntIdTableWithCompetitionId("group") {
     private const val groupLength = 65
     val group = varchar("group", groupLength)
     val distanceId =
-        reference("distanceId", Distances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+        reference("distanceId", TDistances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
 }
 
-object Ranks : IntIdTableWithCompetitionId("rank") {
+class TGroup(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TGroup>(TGroups)
+    val group by TGroups.group
+}
+
+object TRanks : IntIdTableWithCompetitionId("rank") {
     private const val rankLength = 32
     val rank = varchar("rank", rankLength)
 }
 
-object Checkpoints : IntIdTableWithCompetitionId("checkpoints") {
+class TRank(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TRank>(TRanks)
+    val rank by TRanks.rank
+}
+
+object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
     private const val checkpointLength = 16
     val checkpoint = varchar("checkpoint", checkpointLength)
 }
 
-object DistancesToCheckpoints : Table("distancesToCheckpoints") {
+class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
+    val checkpoint by TCheckpoints.checkpoint
+}
+
+object TDistancesToCheckpoints : Table("distancesToCheckpoints") {
     private val distanceId =
-        reference("distanceId", Distances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+        reference("distanceId", TDistances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     private val checkpointId =
-        reference("checkpointId", Checkpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+        reference("checkpointId", TCheckpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     override val primaryKey = PrimaryKey(distanceId, checkpointId)
 }
 
-object Distances : IntIdTableWithCompetitionId("distances") {
+object TDistances : IntIdTableWithCompetitionId("distances") {
     private const val distanceLength = 64
-    val distance = varchar("distance", distanceLength)
-    val isFixed = bool("isFixed")
-    val amountCheckpoints = integer("amountCheckpoints")
+    private const val typeLength = 64
+    val distance = varchar(name = "distance", length = distanceLength)
+    val type = varchar(name = "type", length = typeLength)
+    val checkpoints = integer("amountCheckpoints")
 }
 
-object Competitors : IntIdTable("competitors") {
+class TDistance(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TDistance>(TDistances)
+    val distance by TDistances.distance
+    // TODO: fix
+}
+
+object TCompetitors : IntIdTable("competitors") {
     private const val startTimeLength = 8
     val competitorNumber = integer("competitorNumber")
     val athleteId =
-        reference("athleteId", Athletes, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+        reference("athleteId", TAthletes, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     val startTime = varchar("startTime", startTimeLength)
 }
 
-object CompetitorsData : IntIdTable("competitorsData") {
+class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TCompetitor>(TCompetitors)
+    val athleteId by TCompetitors.athleteId
+    val competitorNumber by TCompetitors.competitorNumber
+    val startTime by TCompetitors.startTime
+}
+
+object TCompetitorsData : IntIdTable("competitorsData") {
     val competitorId = reference(
         "competitorId",
-        Competitors,
+        TCompetitors,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
     val isRemoved = bool("isRemoved").default(false)
 }
 
-object CheckpointsProtocolsToCompetitorsData : Table("CheckpointsProtocolsToCompetitorsData") {
+class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TCompetitorData>(TCompetitorsData)
+    val competitorId by TCompetitorsData.competitorId
+    val isRemoved by TCompetitorsData.isRemoved
+}
+
+object TCheckpointsProtocolsToCompetitorsData : Table("CheckpointsProtocolsToCompetitorsData") {
     private val checkpointProtocolId = reference(
         "checkpointProtocolId",
-        CheckpointsProtocols,
+        TCheckpointsProtocols,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
     private val competitorDataId = reference(
         "competitorDataId",
-        CompetitorsData,
+        TCompetitorsData,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
     override val primaryKey = PrimaryKey(checkpointProtocolId, competitorDataId)
 }
 
-object CheckpointsProtocols : IntIdTable("checkpointsProtocols") {
+object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
     private const val timeMeasurementLength = 8
     val competitorId = reference(
         "competitorId",
-        Competitors,
+        TCompetitors,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
     val checkpointId =
-        reference("checkpointId", Checkpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+        reference("checkpointId", TCheckpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     val timeMeasurement = varchar("timeMeasurement", timeMeasurementLength)
 }
 
-object ResultsGroup : IntIdTable("resultsGroup") {
+class TCheckpointProtocol(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TCheckpointProtocol>(TCheckpointsProtocols)
+    val competitionId by TCheckpointsProtocols.competitorId
+    val checkpointId by TCheckpointsProtocols.checkpointId
+    val timeMeasurement by TCheckpointsProtocols.timeMeasurement
+}
+
+object TResultsGroup : IntIdTable("resultsGroup") {
     private const val resultLength = 8
     private const val backlogLength = 9
     val competitorId = reference(
         "competitorId",
-        Competitors,
+        TCompetitors,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
@@ -140,35 +235,37 @@ object ResultsGroup : IntIdTable("resultsGroup") {
     val place = integer("place")
 }
 
-object DurationAtCheckpointsToResultsGroupSplit : IntIdTable("durationAtCheckpointsToResultsGroupSplit") {
+object TDurationAtCheckpointsToResultsGroupSplit : IntIdTable("durationAtCheckpointsToResultsGroupSplit") {
     private const val timeMeasurementAtCheckpointLength = 8
-    val checkpoint = reference("checkpointId", Checkpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
+    val checkpoint =
+        reference("checkpointId", TCheckpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     val durationAtCheckpoint = varchar("timeMeasurementAtCheckpoint", timeMeasurementAtCheckpointLength)
     val splitsResultGroupId =
         reference(
             "splitsResultGroupId",
-            SplitsResultsGroup,
+            TSplitsResultsGroup,
             onDelete = ReferenceOption.CASCADE,
             onUpdate = ReferenceOption.CASCADE
         )
 }
 
-object SplitsResultsGroup : IntIdTable("splitsResultsGroup") {
+object TSplitsResultsGroup : IntIdTable("splitsResultsGroup") {
     val resultsGroupId = reference(
         "resultsGroupId",
-        ResultsGroup,
+        TResultsGroup,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
 }
 
-object ResultsTeam : IntIdTable("resultsGroup") {
+object TResultsTeam : IntIdTable("resultsGroup") {
     val competitorId = reference(
         "competitorId",
-        Competitors,
+        TCompetitors,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
     val place = integer("place")
     val score = integer("score")
 }
+
