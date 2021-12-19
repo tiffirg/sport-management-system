@@ -17,6 +17,7 @@ interface DatabaseInterface {
 }
 
 open class GeneralDatabase : DatabaseInterface {
+
     val db: Database = Database.connect(url = "jdbc:h2:./database/competitions", driver = "org.h2.Driver")
 
     init {
@@ -145,13 +146,15 @@ object TDistances : IntIdTableWithCompetitionId("distances") {
     private const val typeLength = 64
     val distance = varchar(name = "distance", length = distanceLength)
     val type = varchar(name = "type", length = typeLength)
-    val checkpoints = integer("amountCheckpoints")
+    val checkpointsCount = integer("amountCheckpoints")
 }
 
 class TDistance(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TDistance>(TDistances)
     val distance by TDistances.distance
-    // TODO: fix
+    val type by TDistances.type
+    val checkpointsCount by TDistances.checkpointsCount
+    val checkpoints by TCheckpoint via TDistancesToCheckpoints // many-to-many reference
 }
 
 object TCompetitors : IntIdTable("competitors") {
@@ -235,6 +238,13 @@ object TResultsGroup : IntIdTable("resultsGroup") {
     val place = integer("place")
 }
 
+class TResultGroup(id: EntityID<Int>) : IntEntity(id) {
+    val competitorId by TResultsGroup.competitorId
+    val result by TResultsGroup.result
+    val backlog by TResultsGroup.backlog
+    val place by TResultsGroup.place
+}
+
 object TDurationAtCheckpointsToResultsGroupSplit : IntIdTable("durationAtCheckpointsToResultsGroupSplit") {
     private const val timeMeasurementAtCheckpointLength = 8
     val checkpoint =
@@ -249,6 +259,7 @@ object TDurationAtCheckpointsToResultsGroupSplit : IntIdTable("durationAtCheckpo
         )
 }
 
+
 object TSplitsResultsGroup : IntIdTable("splitsResultsGroup") {
     val resultsGroupId = reference(
         "resultsGroupId",
@@ -257,6 +268,7 @@ object TSplitsResultsGroup : IntIdTable("splitsResultsGroup") {
         onUpdate = ReferenceOption.CASCADE
     )
 }
+
 
 object TResultsTeam : IntIdTable("resultsGroup") {
     val competitorId = reference(
