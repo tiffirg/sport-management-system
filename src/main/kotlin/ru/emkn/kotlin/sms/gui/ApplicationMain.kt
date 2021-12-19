@@ -5,7 +5,7 @@ import androidx.compose.ui.window.ApplicationScope
 
 
 @Composable
-fun ApplicationScope.Application(applicationState: ApplicationState) {
+fun Application(applicationState: ApplicationState) {
     ApplicationWindow(applicationState.window)
 }
 

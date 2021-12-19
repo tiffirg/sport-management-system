@@ -1,4 +1,4 @@
-package ru.emkn.kotlin.sms.gui
+package ru.emkn.kotlin.sms.utils
 
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors

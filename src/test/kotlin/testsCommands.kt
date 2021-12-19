@@ -24,7 +24,7 @@ const val PATH_RESULTS_TEAM1_2 = "src/test/resources/resultsTeam1_2.csv"
 @ExperimentalCli
 internal class TestsCommands {
 
-    @AfterTest
+   @AfterTest
     fun afterTest() {
         val dir = File("src/test/resources/${EVENT_NAME}_$EVENT_DATE_STRING")
         if (dir.exists()) {

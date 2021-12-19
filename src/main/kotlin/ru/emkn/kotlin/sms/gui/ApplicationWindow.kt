@@ -5,18 +5,18 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -27,7 +27,8 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import kotlinx.coroutines.launch
-import ru.emkn.kotlin.sms.gui.TabType.*
+import ru.emkn.kotlin.sms.utils.*
+import ru.emkn.kotlin.sms.utils.TypeItemTab.*
 
 
 @Composable
@@ -37,15 +38,23 @@ fun ApplicationWindow(state: ApplicationWindowState) {
         title = LocalAppResources.current.titleApp,
         onCloseRequest = state.exit  // TODO("FIX")
     ) {
-        val darkTheme = remember { mutableStateOf(true) }
+        val darkTheme = remember { mutableStateOf(false) }
         MaterialTheme(colors = if (darkTheme.value) DarkGreenColorPalette else LightGreenColorPalette) {  // TODO("Refactoring")
             WindowMenuBar(state)
             WindowLayout(state, darkTheme)
 
-            if (state.openFileDialog.isAwaiting) {
+            if (state.stateOpenFileDialog.isAwaiting) {
                 FileDialog(
                     onResult = {
-                        state.openFileDialog.onResult(it)
+                        state.stateOpenFileDialog.onResult(it)
+                    }
+                )
+            }
+            if (state.stateOpenWarningDialog.isAwaiting) {
+                AlertDialog(
+                    message = state.stateOpenWarningDialog.message,
+                    onResult = {
+                        state.stateOpenWarningDialog.onResult(it)
                     }
                 )
             }
@@ -58,7 +67,7 @@ fun ApplicationWindow(state: ApplicationWindowState) {
 private fun FrameWindowScope.WindowMenuBar(state: ApplicationWindowState) {
     val scope = rememberCoroutineScope()
 
-    fun open() = scope.launch { state.open() }
+    fun open() = scope.launch { state.openFileDialog() }
     MenuBar {
         Menu("File", mnemonic = 'F') {
             Item(
@@ -88,18 +97,24 @@ private fun FrameWindowScope.WindowMenuBar(state: ApplicationWindowState) {
 
 @Composable
 private fun WindowLayout(state: ApplicationWindowState, darkTheme: MutableState<Boolean>) {
-    val tabItemState = remember { mutableStateOf(START_PROTOCOL) }
+    val itemTabState = remember { mutableStateOf(START_PROTOCOLS) }
+    val itemInformationListState: MutableState<TypeItemInformationList?> = remember { mutableStateOf(null) }
     Box {
         Row {
-            SideBar(state, darkTheme, tabItemState)
-//            BodyContent(tabItemState)
+            SideBar(state, darkTheme, itemTabState, itemInformationListState)
+            BodyContent(state, darkTheme, itemTabState, itemInformationListState)
         }
     }
 }
 
 @Composable
-fun SideBar(state: ApplicationWindowState, darkTheme: MutableState<Boolean>, tabItemState: MutableState<TabType>) {
-    val selectedIndex = remember { mutableStateOf(-1) }
+fun SideBar(
+    state: ApplicationWindowState,
+    darkTheme: MutableState<Boolean>,
+    itemTabState: MutableState<TypeItemTab>,
+    itemInformationListState: MutableState<TypeItemInformationList?>
+) {
+    val selectedIndex: MutableState<Int?> = remember { mutableStateOf(null) }
 
     Column(
         modifier = Modifier.fillMaxHeight().requiredWidth(250.dp).background(MaterialTheme.colors.surface)
@@ -130,21 +145,18 @@ fun SideBar(state: ApplicationWindowState, darkTheme: MutableState<Boolean>, tab
 
         }
         Spacer(modifier = Modifier.height(20.dp))
-        SideBarNavItem(START_PROTOCOL.tabName, Icons.Default.Add, tabItemState.value == START_PROTOCOL) {
-            tabItemState.value = START_PROTOCOL
-            selectedIndex.value = -1
-        }
-        SideBarNavItem(GROUP_RESULTS.tabName, Icons.Default.Info, tabItemState.value == GROUP_RESULTS) {
-            tabItemState.value = GROUP_RESULTS
-            selectedIndex.value = -1
-        }
-        SideBarNavItem(TEAM_RESULTS.tabName, Icons.Default.Done, tabItemState.value == TEAM_RESULTS) {
-            tabItemState.value = TEAM_RESULTS
-            selectedIndex.value = -1
+        for (tabType in TypeItemTab.values()) {
+            SideBarNavItem(
+                tabType.itemTab.title, tabType.itemTab.icon, itemTabState.value == tabType
+            ) {
+                itemTabState.value = tabType
+                itemInformationListState.value = null
+                selectedIndex.value = null
+            }
         }
         Spacer(modifier = Modifier.height(20.dp))
-        PlayListsSideBar(selectedIndex.value) {
-//            showAlbumDetailState.value = SpotifyDataProvider.albums[it]
+        InformationListSideBar(selectedIndex.value) {
+            itemInformationListState.value = TypeItemInformationList.values()[it]
             selectedIndex.value = it
         }
         Spacer(modifier = Modifier.height(100.dp))
@@ -174,17 +186,17 @@ fun SideBarNavItem(title: String, icon: ImageVector, selected: Boolean, onClick:
 }
 
 @Composable
-fun PlayListsSideBar(selectedIndex: Int, onPlayListSelected: (Int) -> Unit) {
+fun InformationListSideBar(selectedIndex: Int?, onPlayListSelected: (Int) -> Unit) {
     Text(
         "Information",
         modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
         color = MaterialTheme.colors.onSurface
     )
     LazyColumn {
-        itemsIndexed(DataProvider.informationList) { index, playlist ->
+        itemsIndexed(TypeItemInformationList.values()) { index, itemData ->
             Text(
-                playlist,
-                modifier = Modifier.padding(8.dp).clickable { TODO("onPlayListSelected.invoke(index)") },
+                itemData.item.title,
+                modifier = Modifier.padding(8.dp).clickable { onPlayListSelected.invoke(index) },
                 color = animateColorAsState(
                     if (index == selectedIndex) MaterialTheme.colors.onSurface else MaterialTheme.colors.onSecondary.copy(
                         alpha = 0.7f
@@ -197,24 +209,90 @@ fun PlayListsSideBar(selectedIndex: Int, onPlayListSelected: (Int) -> Unit) {
 }
 
 
-//@Composable
-//fun BodyContent(spotifyNavType: MutableState<TabType>) {
-//    if (album.value != null) {
-//        SpotifyDetailScreen(album.value!!) {
-//            album.value = null
-//        }
-//    } else {
-//        Crossfade(current = spotifyNavType) { spotifyNavType ->
-//            when (spotifyNavType) {
-//                SpotifyNavType.HOME -> SpotifyHome { onAlbumSelected ->
-//                    album.value = onAlbumSelected
-//                }
-//                SpotifyNavType.SEARCH -> SpotifySearchScreen { onAlbumSelected ->
-//                    album.value = onAlbumSelected
-//                }
-//                SpotifyNavType.LIBRARY -> SpotifyLibrary()
-//            }
-//        }
-//    }
-//}
+@Composable
+fun BodyContent(
+    state: ApplicationWindowState,
+    darkTheme: MutableState<Boolean>,
+    itemTabState: MutableState<TypeItemTab>,
+    itemInformationListState: MutableState<TypeItemInformationList?>
+) {
+    if (state.stage == Stage.NO_CONFIG) {
+        CurrentTabStatus("Select config")
+    }
+    val itemInformationList = itemInformationListState.value
+    if (itemInformationList != null) {
+        ContentItemInformation(state, itemInformationList)
+    } else {
+        Crossfade(targetState = itemTabState) {
+            when (itemTabState.value) {
+                START_PROTOCOLS -> ContentStartsProtocols(state)
+                GROUP_RESULTS -> ContentGroupResults(state)
+                TEAM_RESULTS -> ContentTeamResults(state)
+            }
+        }
+    }
+}
 
+@Composable
+fun CurrentTabStatus(message: String) {
+    val surfaceGradient =
+        Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+    Box(
+        modifier = Modifier.background(surfaceGradient).padding(8.dp).fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(message, color = MaterialTheme.colors.onBackground)
+    }
+}
+
+@Composable
+fun ContentStartsProtocols(state: ApplicationWindowState) {
+}
+
+@Composable
+fun ContentGroupResults(state: ApplicationWindowState) {
+
+}
+
+@Composable
+fun ContentTeamResults(state: ApplicationWindowState) {
+
+}
+
+@Composable
+fun ContentItemInformation(state: ApplicationWindowState, typeItem: TypeItemInformationList) {
+    val surfaceGradient =
+        Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+    Column(Modifier.background(surfaceGradient)) {
+        Scaffold(
+            Modifier.background(surfaceGradient),
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = typeItem.item.title) },
+                    actions = {
+                        Row(horizontalArrangement = Arrangement.End) {
+                            Button(modifier = Modifier.padding(10.dp), onClick = {
+
+                            }) {
+                                Text("SAVE")
+                            }
+                            Button(modifier = Modifier.padding(10.dp), onClick = {
+
+                            }) {
+                                Text("ADD")
+                            }
+                            Button(modifier = Modifier.padding(10.dp), onClick = {
+
+                            }) {
+                                Text("Import CSV")
+                            }
+                        }
+                    }
+                )
+            },
+            content = {
+                TableForItemInformationList(typeItem, surfaceGradient)
+            }
+        )
+    }
+}

@@ -30,10 +30,6 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.34.1")
     implementation("org.jetbrains.exposed:exposed-jodatime:0.34.1")
 
-    implementation("com.arkivanov.decompose:decompose:0.4.0")
-    implementation("com.arkivanov.decompose:extensions-compose-jetbrains:0.4.0")
-    implementation("com.arkivanov.mvikotlin:mvikotlin:2.0.4")
-
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
     implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     implementation ("org.jetbrains.kotlin:kotlin-reflect:1.5.31")

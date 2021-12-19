@@ -1,45 +1,65 @@
 package ru.emkn.kotlin.sms.gui
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.WindowState
 import kotlinx.coroutines.CompletableDeferred
+import ru.emkn.kotlin.sms.initConfig
 import ru.emkn.kotlin.sms.logger
 import java.nio.file.Path
-import kotlin.io.path.readText
+import kotlin.io.path.pathString
+
+enum class Stage {
+    NO_CONFIG,
+    CONFIG,
+    START_PROTOCOLS,
+    RESULTS_GROUP,
+    RESULTS_TEAM
+}
 
 class ApplicationWindowState(
     private val application: ApplicationState
 ) {
-    private var configPath: Path? = null   // TODO("Решить проблему")
-
+    private var configPath: Path? = null
 
     val window = WindowState()
 
-    val openFileDialog = DialogState<Path?>()
+    val stateOpenFileDialog = DialogState<Path?>()
+    val stateOpenWarningDialog = DialogState<Boolean>()
 
-    private fun open(path: Path) {
+    var stage = Stage.NO_CONFIG
+        private set
+
+    private suspend fun openConfig(path: Path) {
         configPath = path
         logger.debug { "Path from dialog $path" }
         try {
-            configPath?.readText() ?: error("ConfigPath not null")
-            TODO("Проверка файла конфига")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            TODO("Cannot read $path")
+            initConfig(path.pathString)
+            stage = Stage.CONFIG
+        } catch (exception: Exception) {
+            exception.printStackTrace()
+            logger.debug { exception }
+            stateOpenWarningDialog.message = "Can not read $path. Repeat operation?"
+            openWarningDialog()
         }
     }
-
-    suspend fun open() {
-        val path = openFileDialog.awaitResult()
+    
+    suspend fun openFileDialog() {
+        val path = stateOpenFileDialog.awaitResult()
         if (path != null) {
-            open(path)
-        }
-        else {
+            openConfig(path)
+        } else {
             logger.debug { "Closed File Dialog before getting path" }
-            TODO("Добавить окно с предупреждением")
-            if (configPath == null) {
-                open()
-            }
+            stateOpenWarningDialog.message = "Invalid configuration file format. Repeat operation?"
+            openWarningDialog()
+
+        }
+    }
+    suspend fun openWarningDialog() {
+        val result = stateOpenWarningDialog.awaitResult()
+        if (result) {
+            openFileDialog()
         }
     }
 
@@ -48,7 +68,7 @@ class ApplicationWindowState(
 
 class DialogState<T> {
     private var onResult: CompletableDeferred<T>? by mutableStateOf(null)
-
+    var message = ""
     val isAwaiting get() = onResult != null
 
     suspend fun awaitResult(): T {
