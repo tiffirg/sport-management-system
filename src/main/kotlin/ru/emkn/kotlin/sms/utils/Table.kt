@@ -27,7 +27,6 @@ fun TableForItemInformationList(typeItem: TypeItemInformationList, surfaceGradie
             TypeItemInformationList.ITEM_CHECKPOINTS -> {}
         }
     }
-
 }
 
 @Composable
@@ -52,22 +51,24 @@ fun showGroups() {
 @Composable
 fun showDistances() {
     LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-        val columnWeight = .25f
+        val distanceColumnWeight = .2f
+        val columnWeight = .15f
+        val checkpointsColumnWeight =.5f
         item {
             Row(Modifier.background(Color.Gray)) {
-                TableCell(text = "Group", weight = columnWeight)
+                TableCell(text = "Group", weight = distanceColumnWeight)
                 TableCell(text = "Type", weight = columnWeight)
                 TableCell(text = "Amount checkpoints", weight = columnWeight)
-                TableCell(text = "Checkpoints", weight = columnWeight)
+                TableCell(text = "Checkpoints", weight = checkpointsColumnWeight)
             }
         }
         items(DISTANCE_CRITERIA.toList()) {
             val (distance, criteria) = it
             Row(Modifier.fillMaxWidth()) {
-                TableCell(text = distance, weight = columnWeight)
-                TableCell(text = criteria.distanceType.name, weight = columnWeight)
-                TableCell(text = criteria.distanceType.name, weight = columnWeight)
-                TableCell(text = criteria.distanceType.name, weight = columnWeight)
+                TableCell(text = distance, weight = distanceColumnWeight)
+                TableCell(text = criteria.distanceType.value, weight = columnWeight)
+                TableCell(text = criteria.checkpointsCount.toString(), weight = columnWeight)
+                TableCell(text = criteria.checkpointsOrder.joinToString(), weight = checkpointsColumnWeight)
             }
         }
     }

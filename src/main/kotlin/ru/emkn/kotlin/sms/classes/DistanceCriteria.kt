@@ -5,8 +5,8 @@ import ru.emkn.kotlin.sms.utils.InvalidConfigData
 import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
 
-enum class DistanceType {
-    FIXED, CHOICE
+enum class DistanceType(val value: String) {
+    FIXED("fixed"), CHOICE("choice")
 }
 
 fun getCriteriaByType(typeName: String, count: String, checkpoints: List<String>): DistanceCriteria {
@@ -24,7 +24,7 @@ fun getCriteriaByType(typeName: String, count: String, checkpoints: List<String>
                 throw InvalidConfigData("no parameters got for Choice Route")
             } else {
                 if (checkpoints.isEmpty()) {
-                    ChoiceRoute(checkpointsCount, null)
+                    ChoiceRoute(checkpointsCount, listOf())
                 } else {
                     ChoiceRoute(checkpointsCount, checkpoints)
                 }
@@ -37,6 +37,8 @@ fun getCriteriaByType(typeName: String, count: String, checkpoints: List<String>
 }
 
 interface DistanceCriteria {
+    val checkpointsOrder: List<String>
+    val checkpointsCount: Int
     val distanceType: DistanceType
     fun isValid(competitorData: CompetitorData): Boolean
 
@@ -82,10 +84,8 @@ interface DistanceCriteria {
     }
 }
 
-class FixedRoute(
-    val checkpointsOrder: List<String>
-) : DistanceCriteria {
-
+class FixedRoute(override val checkpointsOrder: List<String>) : DistanceCriteria {
+    override val checkpointsCount = checkpointsOrder.size
     override val distanceType = DistanceType.FIXED
 
     override fun isValid(competitorData: CompetitorData): Boolean {
@@ -125,7 +125,7 @@ class FixedRoute(
 
 }
 
-class ChoiceRoute(val checkpointsCount: Int, val checkpointsRange: List<String>?) : DistanceCriteria {
+class ChoiceRoute(override val checkpointsCount: Int, override val checkpointsOrder: List<String>): DistanceCriteria  {
 
     override val distanceType = DistanceType.CHOICE
 
@@ -141,10 +141,10 @@ class ChoiceRoute(val checkpointsCount: Int, val checkpointsRange: List<String>?
 
         val competitor = competitorData.competitor
         val checkpoints = competitorData.orderedCheckpoints
-        val validCheckPointsSet = if (checkpointsRange == null) {
+        val validCheckPointsSet = if (checkpointsOrder.isEmpty()) {
             checkpoints.toSet()
         } else {
-            checkpoints.filter { checkpointsRange.contains(it.checkpoint) }.toSet()
+            checkpoints.filter { checkpointsOrder.contains(it.checkpoint) }.toSet()
         }
         return if (validCheckPointsSet.size < checkpointsCount) {
             logger.info {

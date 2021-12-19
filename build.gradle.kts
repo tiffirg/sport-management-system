@@ -33,6 +33,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.32")
+    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
     implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")

@@ -11,35 +11,47 @@ import ru.emkn.kotlin.sms.classes.CompetitorsGroup
 import ru.emkn.kotlin.sms.classes.Team
 import java.io.File
 
+
 fun main() {
     val db = GeneralDatabase()
     initConfig("src/test/resources/config.yaml")
-    db.addConfigData()
+    db.insertConfigData()
 }
-
 
 interface DatabaseInterface {
     val dbPath: String
     val db: Database
+
+    fun getCompetition(title: String): TCompetition?
+
+    fun insertConfigData()
 }
 
-open class GeneralDatabase : DatabaseInterface {
+class GeneralDatabase : DatabaseInterface {
     override val dbPath = "database/competitions"
-
-    override val db: Database by lazy {
-        connect()
-    }
-
+    override val db: Database
 
     init {
+        db = connect()
         transaction {
             addLogger(StdOutSqlLogger)
         }
     }
 
+    override fun getCompetition(title: String): TCompetition? {
+        var competition: TCompetition? = null
+        transaction {
+            val query = TCompetition.find { TCompetitions.eventName eq title }.limit(1)
+            if (!query.empty()) {
+                competition = query.first()
+            }
+        }
+        return competition
+    }
+
     private fun connect(): Database {
         val isExist = File(dbPath).exists()
-        val database = Database.connect(url = "jdbc:h2:./$dbPath", driver = "org.h2.Driver")
+        val database = Database.connect("jdbc:sqlite:Mydb.db" , "org.sqlite.JDBC")
         if (!isExist) {
             transaction {
                 SchemaUtils.create(
@@ -65,9 +77,7 @@ open class GeneralDatabase : DatabaseInterface {
         return database
     }
 
-
-    // добавляем в бд данные из конфигурационного файла для конкретного соревнования
-    fun addConfigData() {
+    override fun insertConfigData() {
         transaction {
             val competition = TCompetition.new {
                 eventName = EVENT_NAME
@@ -104,6 +114,7 @@ open class GeneralDatabase : DatabaseInterface {
                     checkpoint = it_checkpoint
                 }
             }
+
         }
     }
 
