@@ -7,6 +7,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.emkn.kotlin.sms.*
+import ru.emkn.kotlin.sms.classes.CompetitorsGroup
 import ru.emkn.kotlin.sms.classes.Team
 import java.io.File
 
@@ -106,6 +107,7 @@ open class GeneralDatabase : DatabaseInterface {
         }
     }
 
+    // добавление атлетов и команд в базу данных
     fun addApplications(competition: TCompetition, applications: List<Team>) {
         transaction {
             applications.forEach { application ->
@@ -126,6 +128,24 @@ open class GeneralDatabase : DatabaseInterface {
                         birthYear = athlete.birthYear
                         groupId = groupReference.id
                         rankId = rankReference.id
+                    }
+                }
+            }
+        }
+    }
+
+    // добавление участников соревнований
+    fun addProtocolsStart(competition: TCompetition, data: List<CompetitorsGroup>) {
+        transaction {
+            data.forEach { competitorsGroup ->
+                competitorsGroup.competitors.forEach { competitor ->
+                    val athleteReference: TAthlete = TAthlete.all().find {
+                        it.competitionId == competition.id && it.surname == competitor.surname && it.name == competitor.name
+                    } ?: throw IllegalStateException("Athlete ${competitor.surname} is not stored in database")
+                    TCompetitor.new {
+                        athleteId = athleteReference.id
+                        competitorNumber = competitor.athleteNumber
+                        startTime = competitor.startTime.toString()
                     }
                 }
             }
@@ -284,9 +304,9 @@ object TCompetitors : IntIdTable("competitors") {
 class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCompetitor>(TCompetitors)
 
-    val athleteId by TCompetitors.athleteId
-    val competitorNumber by TCompetitors.competitorNumber
-    val startTime by TCompetitors.startTime
+    var athleteId by TCompetitors.athleteId
+    var competitorNumber by TCompetitors.competitorNumber
+    var startTime by TCompetitors.startTime
 }
 
 object TCompetitorsData : IntIdTable("competitorsData") {
