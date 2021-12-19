@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.id.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.emkn.kotlin.sms.*
+import ru.emkn.kotlin.sms.classes.CompetitorsGroup
 import ru.emkn.kotlin.sms.classes.Team
 
 fun main() {
@@ -140,6 +141,7 @@ open class GeneralDatabase() : DatabaseInterface {
         }
     }
 
+    // добавление атлетов и команд в базу данных
     fun addApplications(competition: TCompetition, applications: List<Team>) {
         transaction {
             applications.forEach { application ->
@@ -149,9 +151,9 @@ open class GeneralDatabase() : DatabaseInterface {
                 }
                 application.athletes.forEach { athlete ->
 
-                    val groupReference : TGroup = TGroup.all().find { it.group == athlete.group.groupName }
+                    val groupReference: TGroup = TGroup.all().find { it.group == athlete.group.groupName }
                         ?: throw IllegalStateException("Group ${athlete.group.groupName} is not stored in database")
-                    val rankReference : TRank = TRank.all().find { it.rank == athlete.rank.rankName }
+                    val rankReference: TRank = TRank.all().find { it.rank == athlete.rank.rankName }
                         ?: throw IllegalStateException("Rank ${athlete.rank.rankName} is not stored in database")
                     TAthlete.new {
                         competitionId = competition.id
@@ -160,6 +162,24 @@ open class GeneralDatabase() : DatabaseInterface {
                         birthYear = athlete.birthYear
                         groupId = groupReference.id
                         rankId = rankReference.id
+                    }
+                }
+            }
+        }
+    }
+
+    // добавление участников соревнований
+    fun addProtocolsStart(competition: TCompetition, data: List<CompetitorsGroup>) {
+        transaction {
+            data.forEach { competitorsGroup ->
+                competitorsGroup.competitors.forEach { competitor ->
+                    val athleteReference: TAthlete = TAthlete.all().find {
+                        it.competitionId == competition.id && it.surname == competitor.surname && it.name == competitor.name
+                    } ?: throw IllegalStateException("Athlete ${competitor.surname} is not stored in database")
+                    TCompetitor.new {
+                        athleteId = athleteReference.id
+                        competitorNumber = competitor.athleteNumber
+                        startTime = competitor.startTime.toString()
                     }
                 }
             }
@@ -221,6 +241,7 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
+
     var competitionId by TAthletes.competitionId
     var name by TAthletes.name
     var surname by TAthletes.surname
@@ -236,6 +257,7 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
+
     var competitionId by TTeams.competitionId
     var team by TTeams.team
 }
@@ -316,9 +338,9 @@ object TCompetitors : IntIdTable("competitors") {
 class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCompetitor>(TCompetitors)
 
-    val athleteId by TCompetitors.athleteId
-    val competitorNumber by TCompetitors.competitorNumber
-    val startTime by TCompetitors.startTime
+    var athleteId by TCompetitors.athleteId
+    var competitorNumber by TCompetitors.competitorNumber
+    var startTime by TCompetitors.startTime
 }
 
 object TCompetitorsData : IntIdTable("competitorsData") {
