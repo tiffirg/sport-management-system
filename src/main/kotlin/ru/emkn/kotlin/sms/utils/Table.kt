@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +22,9 @@ fun TableForItemInformationList(typeItem: TypeItemInformationList, surfaceGradie
         when (typeItem) {
             TypeItemInformationList.ITEM_GROUPS -> showGroups()
             TypeItemInformationList.ITEM_DISTANCES -> showDistances()
+            TypeItemInformationList.ITEM_TEAMS -> {}
+            TypeItemInformationList.ITEM_COMPETITORS -> {}
+            TypeItemInformationList.ITEM_CHECKPOINTS -> {}
         }
     }
 
@@ -45,7 +49,6 @@ fun showGroups() {
         }
     }
 }
-
 @Composable
 fun showDistances() {
     LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
@@ -69,60 +72,68 @@ fun showDistances() {
         }
     }
 }
-//
-//
-//@Composable
-//fun LazyListScope.showTeams() {
-//    item {
-//        Row(Modifier.background(Color.Gray)) {
-//            TableCell(text = "Column 1", weight = column1Weight)
-//            TableCell(text = "Column 2", weight = column2Weight)
-//        }
-//    }
-//    items(tableData) {
-//        val (id, text) = it
-//        Row(Modifier.fillMaxWidth()) {
-//            TableCell(text = id.toString(), weight = column1Weight)
-//            TableCell(text = text, weight = column2Weight)
-//        }
-//    }
-//}
-//
-//
-//@Composable
-//fun LazyListScope.showCompetitors() {
-//    item {
-//        Row(Modifier.background(Color.Gray)) {
-//            TableCell(text = "Column 1", weight = column1Weight)
-//            TableCell(text = "Column 2", weight = column2Weight)
-//        }
-//    }
-//    items(tableData) {
-//        val (id, text) = it
-//        Row(Modifier.fillMaxWidth()) {
-//            TableCell(text = id.toString(), weight = column1Weight)
-//            TableCell(text = text, weight = column2Weight)
-//        }
-//    }
-//}
-//
-//@Composable
-//fun LazyListScope.showCheckpoints() {
-//    item {
-//        Row(Modifier.background(Color.Gray)) {
-//            TableCell(text = "Column 1", weight = column1Weight)
-//            TableCell(text = "Column 2", weight = column2Weight)
-//        }
-//    }
-//    items(tableData) {
-//        val (id, text) = it
-//        Row(Modifier.fillMaxWidth()) {
-//            TableCell(text = id.toString(), weight = column1Weight)
-//            TableCell(text = text, weight = column2Weight)
-//        }
-//    }
-//}
 
+
+@Composable
+fun LazyListScope.showTeams() {
+    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+        val columnWeight = .5f
+        item {
+            Row(Modifier.background(Color.Gray)) {
+                TableCell(text = "Group", weight = columnWeight)
+                TableCell(text = "Distance", weight = columnWeight)
+            }
+        }
+        items(GROUP_DISTANCES.toList()) {
+            val (group, distance) = it
+            Row(Modifier.fillMaxWidth()) {
+                TableCell(text = group, weight = columnWeight)
+                TableCell(text = distance, weight = columnWeight)
+            }
+        }
+    }
+}
+
+
+@Composable
+fun LazyListScope.showCompetitors() {
+    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+        val columnWeight = .5f
+        item {
+            Row(Modifier.background(Color.Gray)) {
+                TableCell(text = "Group", weight = columnWeight)
+                TableCell(text = "Distance", weight = columnWeight)
+            }
+        }
+        items(GROUP_DISTANCES.toList()) {
+            val (group, distance) = it
+            Row(Modifier.fillMaxWidth()) {
+                TableCell(text = group, weight = columnWeight)
+                TableCell(text = distance, weight = columnWeight)
+            }
+        }
+    }
+}
+
+@Composable
+fun LazyListScope.showCheckpoints() {
+    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+        val columnWeight = .5f
+        item {
+            Row(Modifier.background(Color.Gray)) {
+                TableCell(text = "Group", weight = columnWeight)
+                TableCell(text = "Distance", weight = columnWeight)
+            }
+        }
+        items(GROUP_DISTANCES.toList()) {
+            val (group, distance) = it
+            Row(Modifier.fillMaxWidth()) {
+                TableCell(text = group, weight = columnWeight)
+                TableCell(text = distance, weight = columnWeight)
+            }
+        }
+    }
+}
 
 @Composable
 fun RowScope.TableCell(

@@ -83,7 +83,7 @@ interface DistanceCriteria {
 }
 
 class FixedRoute(
-    private val checkpointsOrder: List<String>
+    val checkpointsOrder: List<String>
 ) : DistanceCriteria {
 
     override val distanceType = DistanceType.FIXED
@@ -125,7 +125,7 @@ class FixedRoute(
 
 }
 
-class ChoiceRoute(private val checkpointsCount: Int, private val checkpointsRange: List<String>?) : DistanceCriteria {
+class ChoiceRoute(val checkpointsCount: Int, val checkpointsRange: List<String>?) : DistanceCriteria {
 
     override val distanceType = DistanceType.CHOICE
 

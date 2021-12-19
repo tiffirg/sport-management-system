@@ -2,27 +2,33 @@ package ru.emkn.kotlin.sms.services
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.id.*
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.emkn.kotlin.sms.*
 import ru.emkn.kotlin.sms.classes.Team
+import java.io.File
 
 fun main() {
     val db = GeneralDatabase()
     initConfig("src/test/resources/config.yaml")
-    db.connect()
     db.addConfigData()
 }
 
 
 interface DatabaseInterface {
-    fun connect()
+    val dbPath: String
+    val db: Database
 }
 
-open class GeneralDatabase() : DatabaseInterface {
+open class GeneralDatabase : DatabaseInterface {
+    override val dbPath = "database/competitions"
 
-    val db: Database = Database.connect(url = "jdbc:h2:./database/competitions", driver = "org.h2.Driver")
+    override val db: Database by lazy {
+        connect()
+    }
+
 
     init {
         transaction {
@@ -30,74 +36,34 @@ open class GeneralDatabase() : DatabaseInterface {
         }
     }
 
-    override fun connect() {
-        transaction {
-            try {
-                SchemaUtils.create(TCompetitions)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TGroups)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TRanks)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TAthletes)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TCompetitors)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TCompetitorsData)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TTeams)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TCheckpoints)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TDistances)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TDistancesToCheckpoints)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TCheckpointsProtocols)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TCheckpointsProtocolsToCompetitorsData)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TDurationAtCheckpointsToResultsGroupSplit)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TResultsGroup)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TResultsTeam)
-            } catch (e: Exception) {
-            }
-            try {
-                SchemaUtils.create(TSplitsResultsGroup)
-            } catch (e: Exception) {
+    private fun connect(): Database {
+        val isExist = File(dbPath).exists()
+        val database = Database.connect(url = "jdbc:h2:./$dbPath", driver = "org.h2.Driver")
+        if (!isExist) {
+            transaction {
+                SchemaUtils.create(
+                    TCompetitions,
+                    TGroups,
+                    TRanks,
+                    TCheckpoints,
+                    TDistances,
+                    TDistancesToCheckpoints,
+                    TTeams,
+                    TAthletes,
+                    TCompetitors,
+                    TCompetitorsData,
+                    TCheckpointsProtocols,
+                    TCheckpointsProtocolsToCompetitorsData,
+                    TResultsGroup,
+                    TSplitsResultsGroup,
+                    TDurationAtCheckpointsToResultsGroupSplit,
+                    TResultsTeam
+                )
             }
         }
+        return database
     }
+
 
     // добавляем в бд данные из конфигурационного файла для конкретного соревнования
     fun addConfigData() {
@@ -149,9 +115,9 @@ open class GeneralDatabase() : DatabaseInterface {
                 }
                 application.athletes.forEach { athlete ->
 
-                    val groupReference : TGroup = TGroup.all().find { it.group == athlete.group.groupName }
+                    val groupReference: TGroup = TGroup.all().find { it.group == athlete.group.groupName }
                         ?: throw IllegalStateException("Group ${athlete.group.groupName} is not stored in database")
-                    val rankReference : TRank = TRank.all().find { it.rank == athlete.rank.rankName }
+                    val rankReference: TRank = TRank.all().find { it.rank == athlete.rank.rankName }
                         ?: throw IllegalStateException("Rank ${athlete.rank.rankName} is not stored in database")
                     TAthlete.new {
                         competitionId = competition.id
@@ -221,6 +187,7 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
+
     var competitionId by TAthletes.competitionId
     var name by TAthletes.name
     var surname by TAthletes.surname
@@ -236,6 +203,7 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
+
     var competitionId by TTeams.competitionId
     var team by TTeams.team
 }
