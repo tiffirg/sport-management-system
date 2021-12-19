@@ -70,6 +70,7 @@ data class GroupData(
 data class CriteriaData(
     val distance: String,
     val type: String,
+    val count: String,
     val checkpoints: List<String>
 )
 
@@ -100,7 +101,7 @@ fun initConfig(pathConfig: String) {
         GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
         DISTANCE_CRITERIA = config.criteria.associate {
             criteriaData ->
-            Pair(criteriaData.distance, getCriteriaByType(criteriaData.type, criteriaData.checkpoints))
+            Pair(criteriaData.distance, getCriteriaByType(criteriaData.type, criteriaData.count, criteriaData.checkpoints))
         }
         CHECKPOINTS_LIST = config.checkpoints
     } catch (e: Exception) {
