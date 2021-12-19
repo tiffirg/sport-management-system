@@ -6,13 +6,13 @@ import org.jetbrains.exposed.dao.id.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.emkn.kotlin.sms.*
-import java.io.File
+import ru.emkn.kotlin.sms.classes.Team
 
 fun main() {
     val db = GeneralDatabase()
     initConfig("src/test/resources/config.yaml")
     db.connect()
-    db.addCompetiton()
+    db.addConfigData()
 }
 
 
@@ -100,7 +100,7 @@ open class GeneralDatabase() : DatabaseInterface {
     }
 
     // добавляем в бд данные из конфигурационного файла для конкретного соревнования
-    fun addCompetiton() {
+    fun addConfigData() {
         transaction {
             val competition = TCompetition.new {
                 eventName = EVENT_NAME
@@ -139,8 +139,34 @@ open class GeneralDatabase() : DatabaseInterface {
             }
         }
     }
-}
 
+    fun addApplications(competition: TCompetition, applications: List<Team>) {
+        transaction {
+            applications.forEach { application ->
+                TTeam.new {
+                    competitionId = competition.id
+                    team = application.teamName
+                }
+                application.athletes.forEach { athlete ->
+
+                    val groupReference : TGroup = TGroup.all().find { it.group == athlete.group.groupName }
+                        ?: throw IllegalStateException("Group ${athlete.group.groupName} is not stored in database")
+                    val rankReference : TRank = TRank.all().find { it.rank == athlete.rank.rankName }
+                        ?: throw IllegalStateException("Rank ${athlete.rank.rankName} is not stored in database")
+                    TAthlete.new {
+                        competitionId = competition.id
+                        name = athlete.name
+                        surname = athlete.surname
+                        birthYear = athlete.birthYear
+                        groupId = groupReference.id
+                        rankId = rankReference.id
+                    }
+                }
+            }
+        }
+    }
+
+}
 
 
 object TCompetitions : IntIdTable("competitions", "id") {
@@ -195,12 +221,12 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
-
-    val name by TAthletes.name
-    val surname by TAthletes.surname
-    val birthYear by TAthletes.birthYear
-    val groupId by TAthletes.groupId
-    val rankId by TAthletes.rankId
+    var competitionId by TAthletes.competitionId
+    var name by TAthletes.name
+    var surname by TAthletes.surname
+    var birthYear by TAthletes.birthYear
+    var groupId by TAthletes.groupId
+    var rankId by TAthletes.rankId
 }
 
 object TTeams : IntIdTableWithCompetitionId("team") {
@@ -210,8 +236,8 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
-
-    val team by TTeams.team
+    var competitionId by TTeams.competitionId
+    var team by TTeams.team
 }
 
 object TGroups : IntIdTableWithCompetitionId("group") {
@@ -248,6 +274,7 @@ object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
 
 class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
+
     var competitionId by TCheckpoints.competitionId
     var checkpoint by TCheckpoints.checkpoint
 }
