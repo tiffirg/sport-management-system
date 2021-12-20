@@ -26,7 +26,7 @@ object App {
     private fun processCommandStart(command: CommandStart) {
         val data = CsvHandler.parseRequests(command.pathsRequests)
         if (data.isEmpty()) {
-            logger.info { messageAboutCancelCompetition() }
+            LOGGER.info { messageAboutCancelCompetition() }
             return
         }
         val startLists: List<CompetitorsGroup> = CommandsHandler.startProtocolsGeneration(data)

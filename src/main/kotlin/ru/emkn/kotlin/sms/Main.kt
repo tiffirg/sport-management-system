@@ -8,9 +8,11 @@ import ru.emkn.kotlin.sms.gui.Application
 import ru.emkn.kotlin.sms.utils.LocalAppResources
 import ru.emkn.kotlin.sms.utils.getAppResources
 import ru.emkn.kotlin.sms.gui.rememberApplicationState
+import ru.emkn.kotlin.sms.services.GeneralDatabase
 
 
-val logger = KotlinLogging.logger {}
+val LOGGER = KotlinLogging.logger {}
+val DB = GeneralDatabase()
 
 
 @OptIn(ExperimentalComposeUiApi::class)

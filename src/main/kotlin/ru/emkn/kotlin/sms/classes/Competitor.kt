@@ -1,9 +1,6 @@
 package ru.emkn.kotlin.sms.classes
 
-import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.TimeFormatter
-import ru.emkn.kotlin.sms.logger
-import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
 import java.time.LocalTime
 

@@ -5,8 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.WindowState
 import kotlinx.coroutines.CompletableDeferred
-import ru.emkn.kotlin.sms.initConfig
-import ru.emkn.kotlin.sms.logger
+import ru.emkn.kotlin.sms.*
 import java.nio.file.Path
 import kotlin.io.path.pathString
 
@@ -14,8 +13,8 @@ enum class Stage {
     NO_CONFIG,
     CONFIG,
     START_PROTOCOLS,
-    RESULTS_GROUP,
-    RESULTS_TEAM
+    GROUP_RESULTS,
+    TEAM_RESULTS
 }
 
 class ApplicationWindowState(
@@ -33,13 +32,28 @@ class ApplicationWindowState(
 
     private suspend fun openConfig(path: Path) {
         configPath = path
-        logger.debug { "Path from dialog $path" }
+        LOGGER.debug { "Path from dialog $path" }
         try {
             initConfig(path.pathString)
             stage = Stage.CONFIG
+            val competitionDb = DB.getCompetition(EVENT_NAME)
+            if (competitionDb != null) {
+                COMPETITION_ID = competitionDb.id.value
+                DB.installConfig(competitionDb.id.value)
+                stage = when {
+                    DB.checkStartsProtocols(competitionDb.id.value) -> Stage.START_PROTOCOLS
+                    DB.checkResultsGroup(competitionDb.id.value) -> Stage.GROUP_RESULTS
+                    DB.checkResultsGroup(competitionDb.id.value) -> Stage.TEAM_RESULTS
+                    else -> Stage.CONFIG
+                }
+            }
+            else {
+                COMPETITION_ID = DB.insertConfigData().id.value
+            }
+
         } catch (exception: Exception) {
             exception.printStackTrace()
-            logger.debug { exception }
+            LOGGER.debug { exception }
             stateOpenWarningDialog.message = "Can not read $path. Repeat operation?"
             openWarningDialog()
         }
@@ -50,7 +64,7 @@ class ApplicationWindowState(
         if (path != null) {
             openConfig(path)
         } else {
-            logger.debug { "Closed File Dialog before getting path" }
+            LOGGER.debug { "Closed File Dialog before getting path" }
             stateOpenWarningDialog.message = "Invalid configuration file format. Repeat operation?"
             openWarningDialog()
 

@@ -3,7 +3,7 @@ package ru.emkn.kotlin.sms.services
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.EVENT_TIME
 import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.logger
+import ru.emkn.kotlin.sms.LOGGER
 import java.time.Duration
 
 object CommandsHandler {
@@ -123,7 +123,7 @@ object CommandsHandler {
         val protocols = competitorsGroups.map { competitorsDataGroup ->
             generateResultsGroup(competitorsDataGroup)
         }
-        logger.debug { protocols }
+        LOGGER.debug { protocols }
         return protocols.sortedBy { groupResults -> groupResults.group.groupName }
     }
 

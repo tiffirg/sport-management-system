@@ -67,8 +67,8 @@ class ItemCheckpoints: ItemInformationList() {
 }
 
 enum class TypeItemInformationList(val item: ItemInformationList) {
-    ITEM_GROUPS(ItemGroups()),
     ITEM_DISTANCES(ItemDistances()),
+    ITEM_GROUPS(ItemGroups()),
     ITEM_TEAMS(ItemTeams()),
     ITEM_COMPETITORS(ItemCompetitors()),
     ITEM_CHECKPOINTS(ItemCheckpoints())

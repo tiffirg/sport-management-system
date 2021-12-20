@@ -1,6 +1,6 @@
 package ru.emkn.kotlin.sms.classes
 
-import ru.emkn.kotlin.sms.logger
+import ru.emkn.kotlin.sms.LOGGER
 import ru.emkn.kotlin.sms.utils.InvalidConfigData
 import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
@@ -100,7 +100,7 @@ class FixedRoute(override val checkpointsOrder: List<String>) : DistanceCriteria
         val checkpoints = competitorData.orderedCheckpoints
 
         if (checkpoints.size != checkpointsOrder.size) {
-            logger.info {
+            LOGGER.info {
                 messageAboutIncorrectDataCheckpointOfAthlete(
                     competitor,
                     " invalid checkpoints number for the fixed route"
@@ -111,7 +111,7 @@ class FixedRoute(override val checkpointsOrder: List<String>) : DistanceCriteria
 
         checkpointsOrder.forEachIndexed { ind, checkpointName ->
             if (checkpoints[ind].checkpoint != checkpointName) {
-                logger.info {
+                LOGGER.info {
                     messageAboutIncorrectDataCheckpointOfAthlete(
                         competitor,
                         " invalid checkpoints order on the fixed route"
@@ -147,7 +147,7 @@ class ChoiceRoute(override val checkpointsCount: Int, override val checkpointsOr
             checkpoints.filter { checkpointsOrder.contains(it.checkpoint) }.toSet()
         }
         return if (validCheckPointsSet.size < checkpointsCount) {
-            logger.info {
+            LOGGER.info {
                 messageAboutIncorrectDataCheckpointOfAthlete(
                     competitor,
                     " not enough checkpoints for the choice route: " +

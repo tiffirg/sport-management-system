@@ -7,8 +7,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.emkn.kotlin.sms.*
-import ru.emkn.kotlin.sms.classes.CompetitorsGroup
-import ru.emkn.kotlin.sms.classes.Team
+import ru.emkn.kotlin.sms.classes.*
 import java.io.File
 
 
@@ -16,20 +15,28 @@ fun main() {
     val db = GeneralDatabase()
     initConfig("src/test/resources/config.yaml")
     db.insertConfigData()
+    db.installConfig(1)
 }
 
 interface DatabaseInterface {
-    val dbPath: String
-    val db: Database
-
     fun getCompetition(title: String): TCompetition?
 
-    fun insertConfigData()
+    fun insertConfigData(): TCompetition
+
+    fun installConfig(competitionId: Int)
+
+    fun checkStartsProtocols(competitionId: Int): Boolean
+
+    fun checkResultsGroup(competitionId: Int): Boolean
+
+    fun checkTeamResults(competitionId: Int): Boolean
+
+    fun insertGroupOf(title: String, distance: String): Boolean
 }
 
 class GeneralDatabase : DatabaseInterface {
-    override val dbPath = "database/competitions"
-    override val db: Database
+    private val dbPath = "database/competitions"
+    private val db: Database
 
     init {
         db = connect()
@@ -51,7 +58,7 @@ class GeneralDatabase : DatabaseInterface {
 
     private fun connect(): Database {
         val isExist = File(dbPath).exists()
-        val database = Database.connect("jdbc:sqlite:Mydb.db" , "org.sqlite.JDBC")
+        val database = Database.connect(url = "jdbc:h2:./${dbPath}", driver = "org.h2.Driver")
         if (!isExist) {
             transaction {
                 SchemaUtils.create(
@@ -77,9 +84,10 @@ class GeneralDatabase : DatabaseInterface {
         return database
     }
 
-    override fun insertConfigData() {
+    override fun insertConfigData(): TCompetition {
+        lateinit var competition: TCompetition
         transaction {
-            val competition = TCompetition.new {
+            competition = TCompetition.new {
                 eventName = EVENT_NAME
                 sport = EVENT_SPORT
                 date = EVENT_DATE_STRING
@@ -91,17 +99,18 @@ class GeneralDatabase : DatabaseInterface {
                     rank = it
                 }
             }
-            DISTANCES.forEach { (it_distance, it_data) ->
+            DISTANCE_CRITERIA.forEach { (it_distance, criteria) ->
                 TDistance.new {
                     competitionId = competition.id
                     distance = it_distance
-                    type = it_data.first
-                    checkpointsCount = it_data.second
+                    type = criteria.distanceType
+                    checkpointsCount = criteria.checkpointsCount
                 }
             }
             GROUP_DISTANCES.forEach { (it_group, it_distance) ->
-                val distanceReference: TDistance = TDistance.all().find { it.distance == it_distance }
-                    ?: throw IllegalStateException("All distances must be stored in the database")
+                val distanceReference =
+                    TDistance.find { (TDistances.distance eq it_distance) and (TDistances.competitionId eq competition.id) }
+                        .limit(1).first()
                 TGroup.new {
                     competitionId = competition.id
                     group = it_group
@@ -114,8 +123,75 @@ class GeneralDatabase : DatabaseInterface {
                     checkpoint = it_checkpoint
                 }
             }
+            DISTANCE_CRITERIA.forEach { (distance, criteria) ->
+                val distanceReference =
+                    TDistance.find { (TDistances.distance eq distance) and (TDistances.competitionId eq competition.id) }
+                        .limit(1).first()
+                criteria.checkpointsOrder.forEach { checkpoint ->
+                    if (checkpoint.isNotEmpty()) {
+                        val checkpointReference =
+                            TCheckpoint.find { (TCheckpoints.checkpoint eq checkpoint) and (TCheckpoints.competitionId eq competition.id) }
+                                .limit(1)
+                        TDistancesToCheckpoints.insert {
+                            it[distanceId] = distanceReference.id
+                            it[checkpointId] = checkpointReference.first().id
+                        }
+                    }
+                }
 
+            }
         }
+        return competition
+    }
+
+    override fun installConfig(competitionId: Int) {
+        transaction {
+            val dataGroupTable = TGroup.find { TGroups.competitionId eq competitionId }
+            val dataDistanceGroup = TDistance.find { TDistances.competitionId eq competitionId }
+            RANKS = TRank.find { TRanks.competitionId eq competitionId }.map { it.rank }
+            GROUP_NAMES = dataGroupTable.map { it.group }
+            CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }.map { it.checkpoint }
+            GROUP_DISTANCES = dataGroupTable.associate {
+                it.group to TDistance.find { (TDistances.id eq it.distanceId) and (TDistances.competitionId eq competitionId) }
+                    .limit(1).first().distance
+            }
+            DISTANCE_CRITERIA = dataDistanceGroup.associate { distanceData ->
+                val checkpoints = distanceData.checkpoints.map { it.checkpoint }
+                distanceData.distance to when (distanceData.type) {
+                    DistanceType.FIXED -> FixedRoute(checkpoints)
+                    DistanceType.CHOICE -> ChoiceRoute(distanceData.checkpointsCount, checkpoints)
+                }
+            }
+        }
+
+    }
+
+    override fun checkStartsProtocols(competitionId: Int): Boolean = false
+
+    override fun checkResultsGroup(competitionId: Int): Boolean = false
+
+    override fun checkTeamResults(competitionId: Int): Boolean = false
+
+    override fun insertGroupOf(title: String, distance: String): Boolean {
+        var result = false
+        transaction {
+            val query =
+                TDistance.find { (TDistances.distance eq distance) and (TDistances.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (query.empty()) {
+                return@transaction
+            }
+            val distanceData = query.first()
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+            TGroup.new {
+                competitionId = competition.id
+                group = title
+                distanceId = distanceData.id
+            }
+            result = true
+        }
+        LOGGER.debug { "Database: insertGroupOf | $result" }
+        return result
     }
 
     // добавление атлетов и команд в базу данных
@@ -128,10 +204,10 @@ class GeneralDatabase : DatabaseInterface {
                 }
                 application.athletes.forEach { athlete ->
 
-                    val groupReference: TGroup = TGroup.all().find { it.group == athlete.group.groupName }
-                        ?: throw IllegalStateException("Group ${athlete.group.groupName} is not stored in database")
-                    val rankReference: TRank = TRank.all().find { it.rank == athlete.rank.rankName }
-                        ?: throw IllegalStateException("Rank ${athlete.rank.rankName} is not stored in database")
+                    val groupReference: TGroup =
+                        TGroup.find { TGroups.group eq athlete.group.groupName }.limit(1).first()
+                    val rankReference: TRank =
+                        TRank.find { TRanks.rank eq (athlete.rank.rankName ?: "") }.limit(1).first()
                     TAthlete.new {
                         competitionId = competition.id
                         name = athlete.name
@@ -278,19 +354,25 @@ class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     var checkpoint by TCheckpoints.checkpoint
 }
 
-object TDistancesToCheckpoints : Table("distancesToCheckpoints") {
-    private val distanceId =
+object TDistancesToCheckpoints : IntIdTable("distancesToCheckpoints") {
+    val distanceId =
         reference("distanceId", TDistances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    private val checkpointId =
+    val checkpointId =
         reference("checkpointId", TCheckpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    override val primaryKey = PrimaryKey(distanceId, checkpointId)
 }
 
 object TDistances : IntIdTableWithCompetitionId("distances") {
     private const val distanceLength = 64
     private const val typeLength = 64
     val distance = varchar(name = "distance", length = distanceLength)
-    val type = varchar(name = "type", length = typeLength)
+    val type = customEnumeration(
+        "type",
+        "ENUM('FIXED', 'CHOICE')",
+        { value ->
+            DistanceType.values().find { it.name == value }
+                ?: throw IllegalArgumentException("Unknown Distance Type  value")
+        },
+        { it.value })
     val checkpointsCount = integer("amountCheckpoints")
 }
 

@@ -5,7 +5,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import ru.emkn.kotlin.sms.GROUP_NAMES
 import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.toLocalTime
-import ru.emkn.kotlin.sms.logger
+import ru.emkn.kotlin.sms.LOGGER
 import ru.emkn.kotlin.sms.utils.*
 import java.io.File
 import java.time.Duration
@@ -20,7 +20,7 @@ object CsvHandler {
         for (path in paths) {
             request = parseRequest(path)
             if (request == null) {
-                logger.info(messageAboutMissTeam(path))
+                LOGGER.info(messageAboutMissTeam(path))
                 continue
             }
             teams.add(request)
@@ -67,7 +67,7 @@ object CsvHandler {
                 }
             }
         } catch (exception: Exception) {
-            logger.debug { exception.message }
+            LOGGER.debug { exception.message }
         }
         return competitors
     }
@@ -152,7 +152,7 @@ object CsvHandler {
                     val birthYear = unit[4].toInt()
                     val rank = toRank(unit[5])
                     val teamName = unit[6]
-                    logger.debug { unit[7] }
+                    LOGGER.debug { unit[7] }
                     val result = if (unit[7] != "") {
                         Duration.between(LocalTime.MIN, unit[7].toLocalTime())
                     } else {
@@ -171,7 +171,7 @@ object CsvHandler {
                 }
             }
         } catch (exception: Exception) {
-            logger.debug { exception.message }
+            LOGGER.debug { exception.message }
             throw IncorrectResultsGroupException(path)
         }
 
@@ -215,9 +215,9 @@ object CsvHandler {
                     )
                 )
             } catch (exception: Exception) {
-                logger.info { messageAboutMissAthleteRequest(teamName, unit.joinToString(" ")) }
+                LOGGER.info { messageAboutMissAthleteRequest(teamName, unit.joinToString(" ")) }
                 if (exception is ExceptionData) {
-                    logger.info { exception.message }
+                    LOGGER.info { exception.message }
                 }
             }
         }
@@ -266,9 +266,9 @@ object CsvHandler {
                     )
                 }
             } catch (exception: Exception) {
-                logger.info { messageAboutMissAthleteCheckpointData(checkpoint, unit.joinToString(" ")) }
+                LOGGER.info { messageAboutMissAthleteCheckpointData(checkpoint, unit.joinToString(" ")) }
                 if (exception is ExceptionData) {
-                    logger.info { exception.message }
+                    LOGGER.info { exception.message }
                 } else {
                     return null
                 }

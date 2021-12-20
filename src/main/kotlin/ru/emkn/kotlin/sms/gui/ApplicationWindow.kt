@@ -36,10 +36,10 @@ fun ApplicationWindow(state: ApplicationWindowState) {
     Window(
         state = state.window,
         title = LocalAppResources.current.titleApp,
-        onCloseRequest = state.exit  // TODO("FIX")
+        onCloseRequest = state.exit
     ) {
         val darkTheme = remember { mutableStateOf(false) }
-        MaterialTheme(colors = if (darkTheme.value) DarkGreenColorPalette else LightGreenColorPalette) {  // TODO("Refactoring")
+        MaterialTheme(colors = if (darkTheme.value) DarkGreenColorPalette else LightGreenColorPalette) {
             WindowMenuBar(state)
             WindowLayout(state, darkTheme)
 
@@ -82,22 +82,12 @@ private fun FrameWindowScope.WindowMenuBar(state: ApplicationWindowState) {
                 shortcut = KeyShortcut(Key.Escape, ctrl = true)
             )
         }
-        Menu("Help", mnemonic = 'H') {
-            Item(
-                text = "About",
-                onClick = { TODO("Ссылка на README") }
-            )
-            Item(
-                text = "Help",
-                onClick = { TODO("Ссылка на DOCS") }
-            )
-        }
     }
 }
 
 @Composable
 private fun WindowLayout(state: ApplicationWindowState, darkTheme: MutableState<Boolean>) {
-    val itemTabState = remember { mutableStateOf(START_PROTOCOLS) }
+    val itemTabState: MutableState<TypeItemTab?> = remember { mutableStateOf(START_PROTOCOLS) }
     val itemInformationListState: MutableState<TypeItemInformationList?> = remember { mutableStateOf(null) }
     Box {
         Row {
@@ -111,7 +101,7 @@ private fun WindowLayout(state: ApplicationWindowState, darkTheme: MutableState<
 fun SideBar(
     state: ApplicationWindowState,
     darkTheme: MutableState<Boolean>,
-    itemTabState: MutableState<TypeItemTab>,
+    itemTabState: MutableState<TypeItemTab?>,
     itemInformationListState: MutableState<TypeItemInformationList?>
 ) {
     val selectedIndex: MutableState<Int?> = remember { mutableStateOf(null) }
@@ -158,6 +148,7 @@ fun SideBar(
         InformationListSideBar(selectedIndex.value) {
             itemInformationListState.value = TypeItemInformationList.values()[it]
             selectedIndex.value = it
+            itemTabState.value = null
         }
         Spacer(modifier = Modifier.height(100.dp))
     }
@@ -213,7 +204,7 @@ fun InformationListSideBar(selectedIndex: Int?, onPlayListSelected: (Int) -> Uni
 fun BodyContent(
     state: ApplicationWindowState,
     darkTheme: MutableState<Boolean>,
-    itemTabState: MutableState<TypeItemTab>,
+    itemTabState: MutableState<TypeItemTab?>,
     itemInformationListState: MutableState<TypeItemInformationList?>
 ) {
     if (state.stage == Stage.NO_CONFIG) {
@@ -221,13 +212,16 @@ fun BodyContent(
     }
     val itemInformationList = itemInformationListState.value
     if (itemInformationList != null) {
-        ContentItemInformation(state, itemInformationList)
+        Crossfade(targetState = itemInformationListState) {
+            ContentItemInformation(state, itemInformationList)
+        }
     } else {
         Crossfade(targetState = itemTabState) {
-            when (itemTabState.value) {
-                START_PROTOCOLS -> ContentStartsProtocols(state)
-                GROUP_RESULTS -> ContentGroupResults(state)
-                TEAM_RESULTS -> ContentTeamResults(state)
+            when {
+                state.stage == Stage.CONFIG -> CurrentTabStatus("Load Data")
+                itemTabState.value == START_PROTOCOLS -> ContentStartsProtocols(state)
+                itemTabState.value == GROUP_RESULTS -> ContentGroupResults(state)
+                itemTabState.value == TEAM_RESULTS -> ContentTeamResults(state)
             }
         }
     }
@@ -263,6 +257,7 @@ fun ContentTeamResults(state: ApplicationWindowState) {
 fun ContentItemInformation(state: ApplicationWindowState, typeItem: TypeItemInformationList) {
     val surfaceGradient =
         Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+    val addButtonState = remember { mutableStateOf(false) }
     Column(Modifier.background(surfaceGradient)) {
         Scaffold(
             Modifier.background(surfaceGradient),
@@ -277,21 +272,21 @@ fun ContentItemInformation(state: ApplicationWindowState, typeItem: TypeItemInfo
                                 Text("SAVE")
                             }
                             Button(modifier = Modifier.padding(10.dp), onClick = {
-
+                                addButtonState.value = true
                             }) {
                                 Text("ADD")
-                            }
-                            Button(modifier = Modifier.padding(10.dp), onClick = {
-
-                            }) {
-                                Text("Import CSV")
                             }
                         }
                     }
                 )
             },
             content = {
-                TableForItemInformationList(typeItem, surfaceGradient)
+                    TableForItemInformationList(
+                        state = state,
+                        addButtonState = addButtonState,
+                        typeItem = typeItem,
+                        surfaceGradient = surfaceGradient
+                    )
             }
         )
     }
