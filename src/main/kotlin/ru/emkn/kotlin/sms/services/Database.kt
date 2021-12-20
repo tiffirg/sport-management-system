@@ -35,6 +35,9 @@ interface DatabaseInterface {
     // удаление одной группы участников из базы данных
     fun deleteGroupOf(title: String): Boolean
 
+    // изменение одной группы участников
+    fun updateGroupOf(title: String, newDistance: String) : Boolean
+
     fun checkStartsProtocols(competitionId: Int): Boolean
 
     fun checkResultsGroup(competitionId: Int): Boolean
@@ -217,6 +220,31 @@ class GeneralDatabase : DatabaseInterface {
             result = true
         }
         LOGGER.debug { "Database: deleteGroupOf | $result" }
+        return result
+    }
+
+    // изменение одной группы участников
+    override fun updateGroupOf(title: String, newDistance: String) : Boolean {
+        var result = false
+        transaction {
+            val distanceQuery =
+                TDistance.find { (TDistances.distance eq newDistance) and (TDistances.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (distanceQuery.empty()) {
+                return@transaction
+            }
+            val distanceData = distanceQuery.first()
+            val groupQuery =
+                TGroup.find { (TGroups.group eq title) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (groupQuery.empty()) {
+                return@transaction
+            }
+            result = true
+            val groupData = groupQuery.first()
+            groupData.distanceId = distanceData.id
+        }
+        LOGGER.debug { "Database: insertGroupOf | $result" }
         return result
     }
 
