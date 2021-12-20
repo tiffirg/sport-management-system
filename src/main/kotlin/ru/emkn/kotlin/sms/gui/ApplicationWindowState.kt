@@ -13,8 +13,7 @@ enum class Stage {
     NO_CONFIG,
     CONFIG,
     START_PROTOCOLS,
-    GROUP_RESULTS,
-    TEAM_RESULTS
+    RESULTS,
 }
 
 class ApplicationWindowState(
@@ -42,8 +41,7 @@ class ApplicationWindowState(
                 LOGGER.debug { "checkStartsProtocols | ${DB.checkStartsProtocols(competitionDb.id.value)}" }
                 stage = when {
                     DB.checkStartsProtocols(competitionDb.id.value) -> Stage.START_PROTOCOLS
-                    DB.checkResultsGroup(competitionDb.id.value) -> Stage.GROUP_RESULTS
-                    DB.checkResultsGroup(competitionDb.id.value) -> Stage.TEAM_RESULTS
+                    DB.checkResultsGroup(competitionDb.id.value) -> Stage.RESULTS
                     else -> Stage.CONFIG
                 }
             }

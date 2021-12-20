@@ -94,8 +94,6 @@ interface DatabaseInterface {
 
     fun checkResultsGroup(competitionId: Int): Boolean
 
-    fun checkTeamResults(competitionId: Int): Boolean
-
     fun getTeamsWithAthletes(): List<Team>?
 
     fun getTeams(): List<TTeam>?
@@ -175,7 +173,6 @@ class GeneralDatabase : DatabaseInterface {
                     res.add(record)
                 }
             }
-
         }
         return res.ifEmpty { null }
     }
@@ -444,9 +441,7 @@ class GeneralDatabase : DatabaseInterface {
 
     override fun checkStartsProtocols(competitionId: Int): Boolean = getTeamsWithAthletes() != null
 
-    override fun checkResultsGroup(competitionId: Int): Boolean = false
-
-    override fun checkTeamResults(competitionId: Int): Boolean = false
+    override fun checkResultsGroup(competitionId: Int): Boolean = getCheckpoints() != null
 
     override fun getTeamsWithAthletes(): List<Team>? {
         var teams: List<Team>? = null
