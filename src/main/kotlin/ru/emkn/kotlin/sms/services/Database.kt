@@ -82,8 +82,11 @@ interface DatabaseInterface {
     // добавление одного спортсмена
     fun insertAthleteOf(athlete: Athlete): Int?
 
-    // добавление участников соревнований
-    fun insertCompetitions(data: List<CompetitorsGroup>) : Boolean
+    // добавление участников соревнования
+    fun insertCompetitors(data: List<CompetitorsGroup>) : Boolean
+
+    // удаление участников соревнования
+    fun deleteCompetitors() : Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
@@ -592,8 +595,8 @@ class GeneralDatabase : DatabaseInterface {
         return athleteId
     }
 
-    // добавление участников соревнований
-    override fun insertCompetitions(data: List<CompetitorsGroup>) : Boolean {
+    // добавление участников соревнования
+    override fun insertCompetitors(data: List<CompetitorsGroup>) : Boolean {
         var result = false
         transaction {
             data.forEach { competitorsGroup ->
@@ -615,6 +618,24 @@ class GeneralDatabase : DatabaseInterface {
             }
         }
         return result
+    }
+
+    // удаление участников соревнования
+    override fun deleteCompetitors() : Boolean {
+        var result = false
+        transaction {
+            val competition = TCompetition.findById(COMPETITION_ID)
+                ?: return@transaction
+            TCompetitor.all().forEach { competitor ->
+                val athlete = TAthlete.findById(competitor.athleteId)
+                    ?: return@transaction
+                if (athlete.competitionId == competition.id) {
+                    competitor.delete()
+                }
+                result = true
+            }
+        }
+        return  result
     }
 
 }
