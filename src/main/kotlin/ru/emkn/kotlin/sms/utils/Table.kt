@@ -18,6 +18,7 @@ import ru.emkn.kotlin.sms.DB
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.GROUP_DISTANCES
 import ru.emkn.kotlin.sms.GROUP_NAMES
+import ru.emkn.kotlin.sms.classes.Athlete
 import ru.emkn.kotlin.sms.classes.ChoiceRoute
 import ru.emkn.kotlin.sms.classes.DistanceType
 import ru.emkn.kotlin.sms.classes.FixedRoute
@@ -32,9 +33,9 @@ fun TableForItemInformationList(
         when (typeItem) {
             TypeItemInformationList.ITEM_GROUPS -> showGroups(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_DISTANCES -> showDistances(addButtonState, surfaceGradient)
-            TypeItemInformationList.ITEM_TEAMS -> {}
-            TypeItemInformationList.ITEM_COMPETITORS -> {}
-            TypeItemInformationList.ITEM_CHECKPOINTS -> {}
+            TypeItemInformationList.ITEM_TEAMS -> showTeams(addButtonState, surfaceGradient)
+            TypeItemInformationList.ITEM_COMPETITORS -> showCompetitors(addButtonState, surfaceGradient)
+            TypeItemInformationList.ITEM_CHECKPOINTS -> showCheckpoints(addButtonState, surfaceGradient)
         }
     }
 }
@@ -126,65 +127,131 @@ fun showDistances(addButtonState: MutableState<Boolean>, surfaceGradient: Brush)
     }
 }
 
-
 @Composable
-fun LazyListScope.showTeams() {
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-        val columnWeight = .5f
-        item {
-            Row(Modifier.background(Color.Gray)) {
-                TableHeaderCell(text = "Group", weight = columnWeight)
-                TableHeaderCell(text = "Distance", weight = columnWeight)
+fun showTeams(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
+    val columnWeight = .5f
+    val teams = remember { mutableStateListOf<String>() }
+    val team = remember { mutableStateOf("") }
+    val info = remember { mutableStateOf("") }
+    Row(Modifier.fillMaxWidth()) {
+        TableAddCell(team, weight = columnWeight)
+        TableAddCell(info, weight = columnWeight)
+    }
+    Box(Modifier.background(surfaceGradient)) {
+        LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+            item {
+                Row(Modifier.background(Color.Gray)) {
+                    TableHeaderCell(text = "Team", weight = columnWeight)
+                    TableHeaderCell(text = "Info", weight = columnWeight)
+                }
+            }
+            items(teams) { team ->
+                Row(Modifier.fillMaxWidth()) {
+                    TableCell(text = team, weight = columnWeight)
+                    TableCell(text = "null", weight = columnWeight)
+                }
             }
         }
-        items(GROUP_DISTANCES.toList()) {
-            val (group, distance) = it
-            Row(Modifier.fillMaxWidth()) {
-                TableCell(text = group, weight = columnWeight)
-                TableCell(text = distance, weight = columnWeight)
-            }
+    }
+    if (addButtonState.value) {
+        if (DB.insertTeamOf(team.value)) {
+            TODO()
         }
+        addButtonState.value = false
     }
 }
 
 
 @Composable
-fun LazyListScope.showCompetitors() {
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-        val columnWeight = .5f
-        item {
-            Row(Modifier.background(Color.Gray)) {
-                TableHeaderCell(text = "Group", weight = columnWeight)
-                TableHeaderCell(text = "Distance", weight = columnWeight)
+fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
+    val columnWeight = .15f
+    val competitors = remember { mutableStateListOf<Athlete>() }
+    val name = remember { mutableStateOf("") }
+    val surname = remember { mutableStateOf("") }
+    val birthYear = remember { mutableStateOf("") }
+    val group = remember { mutableStateOf("") }
+    val rank = remember { mutableStateOf("") }
+    val team = remember { mutableStateOf("") }
+    Row(Modifier.fillMaxWidth()) {
+        TableAddCell(name, weight = columnWeight)
+        TableAddCell(surname, weight = columnWeight)
+        TableAddCell(birthYear, weight = columnWeight)
+        TableAddCell(group, weight = columnWeight)
+        TableAddCell(rank, weight = columnWeight)
+        TableAddCell(team, weight = columnWeight)
+    }
+    Box(Modifier.background(surfaceGradient)) {
+        LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+
+            item {
+                Row(Modifier.background(Color.Gray)) {
+                    TableHeaderCell(text = "Name", weight = columnWeight)
+                    TableHeaderCell(text = "Surname", weight = columnWeight)
+                    TableHeaderCell(text = "Birth Year", weight = columnWeight)
+                    TableHeaderCell(text = "Group", weight = columnWeight)
+                    TableHeaderCell(text = "Rank", weight = columnWeight)
+                    TableHeaderCell(text = "Team", weight = columnWeight)
+                }
+            }
+            items(competitors) { competitor ->
+                Row(Modifier.fillMaxWidth()) {
+                    TableCell(text = competitor.name, weight = columnWeight)
+                    TableCell(text = competitor.surname, weight = columnWeight)
+                    TableCell(text = competitor.birthYear.toString(), weight = columnWeight)
+                    TableCell(text = competitor.group.groupName, weight = columnWeight)
+                    TableCell(text = competitor.rank.rankName?: "null", weight = columnWeight)
+                    TableCell(text = competitor.teamName, weight = columnWeight)
+                }
             }
         }
-        items(GROUP_DISTANCES.toList()) {
-            val (group, distance) = it
-            Row(Modifier.fillMaxWidth()) {
-                TableCell(text = group, weight = columnWeight)
-                TableCell(text = distance, weight = columnWeight)
-            }
+    }
+    if (addButtonState.value) {
+        if (DB.insertTeamOf(team.value)) {
+            TODO()
         }
+        addButtonState.value = false
     }
 }
 
 @Composable
-fun LazyListScope.showCheckpoints() {
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-        val columnWeight = .5f
-        item {
-            Row(Modifier.background(Color.Gray)) {
-                TableHeaderCell(text = "Group", weight = columnWeight)
-                TableHeaderCell(text = "Distance", weight = columnWeight)
+fun showCheckpoints(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
+    val columnWeight = .15f
+    val competitors = remember { mutableStateListOf<Athlete>() }
+    val team = remember { mutableStateOf("") }
+    val info = remember { mutableStateOf("") }
+    Row(Modifier.fillMaxWidth()) {
+        TableAddCell(team, weight = columnWeight)
+        TableAddCell(info, weight = columnWeight)
+    }
+    Box(Modifier.background(surfaceGradient)) {
+        LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+            item {
+                Row(Modifier.background(Color.Gray)) {
+                    TableHeaderCell(text = "Name", weight = columnWeight)
+                    TableHeaderCell(text = "Surname", weight = columnWeight)
+                    TableHeaderCell(text = "Birth Year", weight = columnWeight)
+                    TableHeaderCell(text = "Group", weight = columnWeight)
+                    TableHeaderCell(text = "Rank", weight = columnWeight)
+                    TableHeaderCell(text = "Team", weight = columnWeight)
+                }
+            }
+            items(competitors) { competitor ->
+                Row(Modifier.fillMaxWidth()) {
+                    TableCell(text = competitor.name, weight = columnWeight)
+                    TableCell(text = competitor.surname, weight = columnWeight)
+                    TableCell(text = competitor.birthYear.toString(), weight = columnWeight)
+                    TableCell(text = competitor.group.groupName, weight = columnWeight)
+                    TableCell(text = competitor.rank.rankName?: "null", weight = columnWeight)
+                    TableCell(text = competitor.teamName, weight = columnWeight)
+                }
             }
         }
-        items(GROUP_DISTANCES.toList()) {
-            val (group, distance) = it
-            Row(Modifier.fillMaxWidth()) {
-                TableCell(text = group, weight = columnWeight)
-                TableCell(text = distance, weight = columnWeight)
-            }
+    }
+    if (addButtonState.value) {
+        if (DB.insertTeamOf(team.value)) {
+            TODO()
         }
+        addButtonState.value = false
     }
 }
 
