@@ -249,7 +249,7 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
         CurrentTabStatus("Not Data")
     } else {
         val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
-        DB.insertCompetitions(startProtocols)
+        DB.insertCompetitors(startProtocols)
         val surfaceGradient =
             Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
         Column(Modifier.background(surfaceGradient)) {
