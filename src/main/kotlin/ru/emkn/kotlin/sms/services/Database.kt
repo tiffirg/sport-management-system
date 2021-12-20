@@ -1,9 +1,28 @@
 package ru.emkn.kotlin.sms.services
 
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
+import TAthlete
+import TAthletes
+import TCheckpoint
+import TCheckpoints
+import TCheckpointsProtocols
+import TCheckpointsProtocolsToCompetitorsData
+import TCompetition
+import TCompetitions
+import TCompetitorData
+import TCompetitors
+import TCompetitorsData
+import TDistances
+import TDistancesToCheckpoints
+import TDurationAtCheckpointsToResultsGroupSplit
+import TGroup
+import TGroups
+import TRank
+import TRanks
+import TResultsGroup
+import TResultsTeam
+import TSplitsResultsGroup
+import TTeam
+import TTeams
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.emkn.kotlin.sms.*
@@ -18,10 +37,15 @@ fun main() {
     db.installConfigData(1)
 }
 
+data class CheckpointRecord(val competitorNumber: Int, val checkpoint: String, val timeMeasurement: String)
+
 interface DatabaseInterface {
 
     // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
+
+    // получить сущности всех чекпоинтов
+    fun getCheckpoints(): List<CheckpointRecord>?
 
     // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
@@ -29,15 +53,17 @@ interface DatabaseInterface {
     // загрузка данных конфигурационного файла из базы данных
     fun installConfigData(competitionId: Int)
 
-    // добавление одной группы участников в базу данных
-    fun insertGroupOf(title: String, distance: String): Boolean
-
+    // добавление одной дистанции в базу данных
     fun insertDistanceOf(
         title: String,
         distanceType: DistanceType,
         amountCheckpoints: Int,
         checkpoints: List<String>
     ): Boolean
+
+    // добавление одной группы участников в базу данных
+    fun insertGroupOf(title: String, distance: String): Boolean
+
 
     // удаление одной группы участников из базы данных
     fun deleteGroupOf(title: String): Boolean
@@ -52,14 +78,7 @@ interface DatabaseInterface {
     fun insertTeamOf(title: String): Boolean
 
     // добавление одного спортсмена
-    fun insertAthleteOf(
-        newName: String, newSurname: String, newBirthYear: Int,
-        rankName: String, groupName: String, teamName: String
-    ): Boolean
-
-    fun getTeams(): List<TTeam>?
-
-    fun getAthletes(): List<Pair<Int, Athlete>>?
+    fun insertAthleteOf(athlete: Athlete): Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
@@ -120,6 +139,30 @@ class GeneralDatabase : DatabaseInterface {
             }
         }
         return competition
+    }
+
+    // получить сущности всех чекпоинтов
+    override fun getCheckpoints(): List<CheckpointRecord>? {
+        val res = mutableListOf<CheckpointRecord>()
+        transaction {
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+            TCheckpointProtocol.all().forEach { tCheckpointProtocol ->
+                if (tCheckpointProtocol.competitionId == competition.id) {
+                    val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
+                        ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
+                    val timeMeasurement = tCheckpointProtocol.timeMeasurement
+                    val competitorData =
+                        TCompetitorData.all().find { it.checkpointProtocol.contains(tCheckpointProtocol) }
+                            ?: throw IllegalStateException("getCheckpoints: no such competitorData in the database")
+                    val competitor = TCompetitor.findById(competitorData.competitorId)
+                        ?: throw IllegalStateException("getCheckpoints: no such competitor in the database")
+                    val record = CheckpointRecord(competitor.competitorNumber, checkpointString, timeMeasurement)
+                    res.add(record)
+                }
+            }
+
+        }
+        return res.ifEmpty { null }
     }
 
     // загрузка данных конфигурационного файла в базу данных
@@ -207,37 +250,38 @@ class GeneralDatabase : DatabaseInterface {
 
     }
 
-    override fun getTeams(): List<TTeam>? {
-        var teams: List<TTeam>? = null
+    // добавление одной дистанции в базу данных
+    override fun insertDistanceOf(
+        title: String,
+        distanceType: DistanceType,
+        amountCheckpoints: Int,
+        checkpoints: List<String>
+    ): Boolean {
+        var result = true
         transaction {
-            val query = TTeam.find { TTeams.competitionId eq COMPETITION_ID }
-            if (!query.empty()) {
-                teams = query.toList()
-            }
-        }
-        return teams
-    }
+            try {
+                val tCheckpointsList = checkpoints.map {
+                    TCheckpoint.find {
+                        (TCheckpoints.checkpoint eq it) and (
+                                TCheckpoints.competitionId eq COMPETITION_ID)
+                    }.first()
+                }
+                val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+                val tDistance = TDistance.new {
+                    competitionId = competition.id
+                    distance = title
+                    type = distanceType
+                    checkpointsCount = amountCheckpoints
 
-    override fun getAthletes(): List<Pair<Int, Athlete>>? {
-        var athletes: List<Pair<Int, Athlete>>? = null
+                }
+                tDistance.checkpoints = SizedCollection(tCheckpointsList)
+            } catch (e: Exception) {
+                LOGGER.debug { e }
+                result = false
+            }
 
-        transaction {
-            val query = TAthlete.find { TAthletes.competitionId eq COMPETITION_ID }
-            if (query.empty()) {
-                return@transaction
-            }
-            athletes = query.toList().map {
-                it.id.value to Athlete(
-                    it.name,
-                    it.surname,
-                    it.birthYear,
-                    Group(TGroup.find { TGroups.id eq it.groupId }.first().group),
-                    Rank(TRank.find { TGroups.id eq it.groupId }.first().rank),
-                    TGroup.find { TGroups.id eq it.groupId }.first().group
-                )
-            }
         }
-        return athletes
+        return result
     }
 
     // добавление одной группы участников в базу данных
@@ -365,18 +409,11 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // добавление одного спортсмена
-    override fun insertAthleteOf(
-        newName: String,
-        newSurname: String,
-        newBirthYear: Int,
-        rankName: String,
-        groupName: String,
-        teamName: String
-    ): Boolean {
+    override fun insertAthleteOf(athlete: Athlete): Boolean {
         var result = false
         transaction {
             val athleteQuery =
-                TAthlete.find { (TAthletes.name eq newName) and (TAthletes.surname eq newSurname) and (TTeams.competitionId eq COMPETITION_ID) }
+                TAthlete.find { (TAthletes.name eq athlete.name) and (TAthletes.surname eq athlete.surname) and (TTeams.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (!athleteQuery.empty()) {
                 return@transaction
@@ -384,13 +421,14 @@ class GeneralDatabase : DatabaseInterface {
             val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
 
             val groupQuery =
-                TGroup.find { (TGroups.group eq groupName) and (TGroups.competitionId eq COMPETITION_ID) }
+                TGroup.find { (TGroups.group eq athlete.group.groupName) and (TGroups.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (groupQuery.empty()) {
                 return@transaction
             }
             val newGroup = groupQuery.first()
 
+            val rankName = athlete.rank.rankName ?: ""
             val rankQuery =
                 TRank.find { (TRanks.rank eq rankName) and (TGroups.competitionId eq COMPETITION_ID) }
                     .limit(1)
@@ -400,7 +438,7 @@ class GeneralDatabase : DatabaseInterface {
             val newRank = rankQuery.first()
 
             val teamQuery =
-                TTeam.find { (TTeams.team eq teamName) and (TTeams.competitionId eq COMPETITION_ID) }
+                TTeam.find { (TTeams.team eq athlete.teamName) and (TTeams.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (teamQuery.empty()) {
                 return@transaction
@@ -409,8 +447,8 @@ class GeneralDatabase : DatabaseInterface {
 
             TAthlete.new {
                 competitionId = competition.id
-                name = newName
-                surname = newSurname
+                name = athlete.name
+                surname = athlete.surname
                 groupId = newGroup.id
                 rankId = newRank.id
                 teamId = newTeam.id
@@ -418,39 +456,6 @@ class GeneralDatabase : DatabaseInterface {
             result = true
         }
         LOGGER.debug { "Database: insertAthleteOf | $result" }
-        return result
-    }
-
-    override fun insertDistanceOf(
-        title: String,
-        distanceType: DistanceType,
-        amountCheckpoints: Int,
-        checkpoints: List<String>
-    ): Boolean {
-        var result = true
-        transaction {
-            try {
-                val tCheckpointsList = checkpoints.map {
-                    TCheckpoint.find {
-                        (TCheckpoints.checkpoint eq it) and (
-                                TCheckpoints.competitionId eq COMPETITION_ID)
-                    }.first()
-                }
-                val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
-                val tDistance = TDistance.new {
-                    competitionId = competition.id
-                    distance = title
-                    type = distanceType
-                    checkpointsCount = amountCheckpoints
-
-                }
-                tDistance.checkpoints = SizedCollection(tCheckpointsList)
-            } catch (e: Exception) {
-                LOGGER.debug { e }
-                result = false
-            }
-
-        }
         return result
     }
 
@@ -473,275 +478,3 @@ class GeneralDatabase : DatabaseInterface {
     }
 
 }
-
-
-object TCompetitions : IntIdTable("competitions", "id") {
-    private const val dateLength = 16
-    private const val timeLength = 8
-    private const val sportLength = 64
-    private const val eventLength = 256
-    val eventName = varchar(name = "event", length = eventLength).uniqueIndex()
-    val sport = varchar(name = "sport", length = sportLength)
-    val date = varchar(name = "date", length = dateLength)  // Example: 20.02.2022
-    val time = varchar(name = "time", length = timeLength)  // Example: 12:00:00
-}
-
-class TCompetition(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TCompetition>(TCompetitions)
-
-    var eventName by TCompetitions.eventName
-    var sport by TCompetitions.sport
-    var date by TCompetitions.date
-    var time by TCompetitions.time
-}
-
-abstract class IntIdTableWithCompetitionId(name: String) : IntIdTable(name, "id") {
-    val competitionId =
-        reference(
-            name = "competitionId",
-            TCompetitions,
-            onDelete = ReferenceOption.CASCADE,
-            onUpdate = ReferenceOption.CASCADE
-        )
-}
-
-object TAthletes : IntIdTableWithCompetitionId("athletes") {
-    private const val surnameLength = 32
-    private const val nameLength = 32
-    val name = varchar(name = "name", length = nameLength)
-    val surname = varchar(name = "surname", surnameLength)
-    val birthYear = integer(name = "birthYear")
-    val groupId = reference(
-        name = "groupId", foreign = TGroups,
-        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
-    )
-    val rankId = reference(
-        name = "rankId", foreign = TRanks,
-        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
-    )
-    val teamId = reference(
-        name = "teamId", foreign = TTeams,
-        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
-    )
-}
-
-class TAthlete(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TAthlete>(TAthletes)
-
-    var competitionId by TAthletes.competitionId
-    var name by TAthletes.name
-    var surname by TAthletes.surname
-    var birthYear by TAthletes.birthYear
-    var groupId by TAthletes.groupId
-    var rankId by TAthletes.rankId
-    var teamId by TAthletes.teamId
-}
-
-object TTeams : IntIdTableWithCompetitionId("team") {
-    private const val teamLength = 65
-    val team = varchar("team", teamLength)
-}
-
-class TTeam(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TTeam>(TTeams)
-
-    var competitionId by TTeams.competitionId
-    var team by TTeams.team
-}
-
-object TGroups : IntIdTableWithCompetitionId("group") {
-    private const val groupLength = 65
-    val group = varchar("group", groupLength)
-    val distanceId =
-        reference("distanceId", TDistances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-}
-
-class TGroup(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TGroup>(TGroups)
-
-    var competitionId by TGroups.competitionId
-    var group by TGroups.group
-    var distanceId by TGroups.distanceId
-}
-
-object TRanks : IntIdTableWithCompetitionId("rank") {
-    private const val rankLength = 32
-    val rank = varchar("rank", rankLength)
-}
-
-class TRank(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TRank>(TRanks)
-
-    var competitionId by TRanks.competitionId
-    var rank by TRanks.rank
-}
-
-object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
-    private const val checkpointLength = 16
-    val checkpoint = varchar("checkpoint", checkpointLength)
-}
-
-class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
-
-    var competitionId by TCheckpoints.competitionId
-    var checkpoint by TCheckpoints.checkpoint
-}
-
-object TDistancesToCheckpoints : IntIdTable("distancesToCheckpoints") {
-    val distanceId =
-        reference("distanceId", TDistances, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val checkpointId =
-        reference("checkpointId", TCheckpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-}
-
-object TDistances : IntIdTableWithCompetitionId("distances") {
-    private const val distanceLength = 64
-    private const val typeLength = 64
-    val distance = varchar(name = "distance", length = distanceLength)
-    val type = customEnumeration(
-        "type",
-        "ENUM('FIXED', 'CHOICE')",
-        { value ->
-            DistanceType.values().find { it.name == value }
-                ?: throw IllegalArgumentException("Unknown Distance Type  value")
-        },
-        { it.name })
-    val checkpointsCount = integer("amountCheckpoints")
-}
-
-class TDistance(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TDistance>(TDistances)
-
-    var competitionId by TDistances.competitionId
-    var distance by TDistances.distance
-    var type by TDistances.type
-    var checkpointsCount by TDistances.checkpointsCount
-    var checkpoints by TCheckpoint via TDistancesToCheckpoints // many-to-many reference
-}
-
-object TCompetitors : IntIdTable("competitors") {
-    private const val startTimeLength = 8
-    val competitorNumber = integer("competitorNumber")
-    val athleteId =
-        reference("athleteId", TAthletes, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val startTime = varchar("startTime", startTimeLength)
-}
-
-class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TCompetitor>(TCompetitors)
-
-    var athleteId by TCompetitors.athleteId
-    var competitorNumber by TCompetitors.competitorNumber
-    var startTime by TCompetitors.startTime
-}
-
-object TCompetitorsData : IntIdTable("competitorsData") {
-    val competitorId = reference(
-        "competitorId",
-        TCompetitors,
-        onDelete = ReferenceOption.CASCADE,
-        onUpdate = ReferenceOption.CASCADE
-    )
-    val isRemoved = bool("isRemoved").default(false)
-}
-
-class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TCompetitorData>(TCompetitorsData)
-
-    val competitorId by TCompetitorsData.competitorId
-    val isRemoved by TCompetitorsData.isRemoved
-}
-
-object TCheckpointsProtocolsToCompetitorsData : Table("CheckpointsProtocolsToCompetitorsData") {
-    private val checkpointProtocolId = reference(
-        "checkpointProtocolId",
-        TCheckpointsProtocols,
-        onDelete = ReferenceOption.CASCADE,
-        onUpdate = ReferenceOption.CASCADE
-    )
-    private val competitorDataId = reference(
-        "competitorDataId",
-        TCompetitorsData,
-        onDelete = ReferenceOption.CASCADE,
-        onUpdate = ReferenceOption.CASCADE
-    )
-    override val primaryKey = PrimaryKey(checkpointProtocolId, competitorDataId)
-}
-
-object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
-    private const val timeMeasurementLength = 8
-    val competitorId = reference(
-        "competitorId",
-        TCompetitors,
-        onDelete = ReferenceOption.CASCADE,
-        onUpdate = ReferenceOption.CASCADE
-    )
-    val checkpointId =
-        reference("checkpointId", TCheckpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val timeMeasurement = varchar("timeMeasurement", timeMeasurementLength)
-}
-
-class TCheckpointProtocol(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TCheckpointProtocol>(TCheckpointsProtocols)
-
-    val competitionId by TCheckpointsProtocols.competitorId
-    val checkpointId by TCheckpointsProtocols.checkpointId
-    val timeMeasurement by TCheckpointsProtocols.timeMeasurement
-}
-
-object TResultsGroup : IntIdTable("resultsGroup") {
-    private const val resultLength = 8
-    private const val backlogLength = 9
-    val competitorId = reference(
-        "competitorId",
-        TCompetitors,
-        onDelete = ReferenceOption.CASCADE,
-        onUpdate = ReferenceOption.CASCADE
-    )
-    val result = varchar("result", resultLength)
-    val backlog = varchar("backlog", backlogLength)
-    val place = integer("place")
-}
-
-class TResultGroup(id: EntityID<Int>) : IntEntity(id) {
-    val competitorId by TResultsGroup.competitorId
-    val result by TResultsGroup.result
-    val backlog by TResultsGroup.backlog
-    val place by TResultsGroup.place
-}
-
-object TDurationAtCheckpointsToResultsGroupSplit : IntIdTable("durationAtCheckpointsToResultsGroupSplit") {
-    private const val timeMeasurementAtCheckpointLength = 8
-    val checkpoint =
-        reference("checkpointId", TCheckpoints, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
-    val durationAtCheckpoint = varchar("timeMeasurementAtCheckpoint", timeMeasurementAtCheckpointLength)
-    val splitsResultGroupId =
-        reference(
-            "splitsResultGroupId",
-            TSplitsResultsGroup,
-            onDelete = ReferenceOption.CASCADE,
-            onUpdate = ReferenceOption.CASCADE
-        )
-}
-
-object TSplitsResultsGroup : IntIdTable("splitsResultsGroup") {
-    val resultsGroupId = reference(
-        "resultsGroupId",
-        TResultsGroup,
-        onDelete = ReferenceOption.CASCADE,
-        onUpdate = ReferenceOption.CASCADE
-    )
-}
-
-object TResultsTeam : IntIdTable("resultsGroup") {
-    val competitorId = reference(
-        "competitorId",
-        TCompetitors,
-        onDelete = ReferenceOption.CASCADE,
-        onUpdate = ReferenceOption.CASCADE
-    )
-    val place = integer("place")
-    val score = integer("score")
-}
-
