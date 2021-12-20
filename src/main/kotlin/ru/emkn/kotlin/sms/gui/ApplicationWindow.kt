@@ -27,6 +27,7 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import kotlinx.coroutines.launch
+import ru.emkn.kotlin.sms.COMPETITION_ID
 import ru.emkn.kotlin.sms.DB
 import ru.emkn.kotlin.sms.services.CommandsHandler
 import ru.emkn.kotlin.sms.utils.*
@@ -248,6 +249,7 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
         state.stage = Stage.CONFIG
         CurrentTabStatus("Not Data")
     } else {
+        state.stage = Stage.RESULTS
         val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
         DB.insertCompetitions(startProtocols)
         val surfaceGradient =
@@ -283,7 +285,39 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
 
 @Composable
 fun ContentGroupResults(state: ApplicationWindowState) {
-
+    if (DB.checkResultsGroup(COMPETITION_ID)) {
+        CurrentTabStatus("Not Data")
+    } else {
+        state.stage = Stage.RESULTS
+//        val results = CommandsHandler.generateResults(teamsList)
+//        DB.insertCompetitions(startProtocols)
+//        val surfaceGradient =
+//            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+//        Column(Modifier.background(surfaceGradient)) {
+//            Scaffold(
+//                Modifier.background(surfaceGradient),
+//                topBar = {
+//                    TopAppBar(
+//                        title = { Text(text = "Start Protocols") },
+//                        actions = {
+//                            Row(horizontalArrangement = Arrangement.End) {
+//                                Button(modifier = Modifier.padding(10.dp), onClick = {
+//
+//                                }) {
+//                                    Text("TOSS")
+//                                }
+//                            }
+//                        }
+//                    )
+//                },
+//                content = {
+//                    TableForStartProtocols(
+//                        surfaceGradient = surfaceGradient
+//                    )
+//                }
+//            )
+//        }
+    }
 }
 
 @Composable
