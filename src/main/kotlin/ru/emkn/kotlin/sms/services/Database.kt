@@ -86,6 +86,9 @@ interface DatabaseInterface {
     // добавление одного спортсмена
     fun insertAthleteOf(athlete: Athlete): Int?
 
+    // добавление участников соревнований
+    fun insertProtocolsStart(data: List<CompetitorsGroup>) : Boolean
+
     fun checkStartsProtocols(competitionId: Int): Boolean
 
     fun checkResultsGroup(competitionId: Int): Boolean
@@ -560,21 +563,29 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // добавление участников соревнований
-    fun addProtocolsStart(competition: TCompetition, data: List<CompetitorsGroup>) {
+    override fun insertProtocolsStart(data: List<CompetitorsGroup>) : Boolean {
+        var result = false
         transaction {
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
             data.forEach { competitorsGroup ->
                 competitorsGroup.competitors.forEach { competitor ->
-                    val athleteReference: TAthlete = TAthlete.all().find {
-                        it.competitionId == competition.id && it.surname == competitor.surname && it.name == competitor.name
-                    } ?: throw IllegalStateException("Athlete ${competitor.surname} is not stored in database")
+                    val athleteQuery = TAthlete.find {
+                        (TAthletes.competitionId eq competition.id)  and (TAthletes.surname eq competitor.surname)
+                    }.limit(1)
+                    if (athleteQuery.empty()) {
+                        throw IllegalStateException("Athlete ${competitor.surname} is not stored in database")
+                    }
+                    val athleteReference = athleteQuery.first()
                     TCompetitor.new {
                         athleteId = athleteReference.id
                         competitorNumber = competitor.athleteNumber
                         startTime = competitor.startTime.toString()
                     }
                 }
+                result = true
             }
         }
+        return result
     }
 
 }
