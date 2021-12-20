@@ -183,20 +183,25 @@ class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
     var checkpointProtocol by TCheckpointProtocol via TCheckpointsProtocolsToCompetitorsData // many-to-many reference
 }
 
-object TCheckpointsProtocolsToCompetitorsData : Table("CheckpointsProtocolsToCompetitorsData") {
-    private val checkpointProtocolId = reference(
+object TCheckpointsProtocolsToCompetitorsData : IntIdTable("CheckpointsProtocolsToCompetitorsData") {
+    val checkpointProtocolId = reference(
         "checkpointProtocolId",
         TCheckpointsProtocols,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
-    private val competitorDataId = reference(
+    val competitorDataId = reference(
         "competitorDataId",
         TCompetitorsData,
         onDelete = ReferenceOption.CASCADE,
         onUpdate = ReferenceOption.CASCADE
     )
-    override val primaryKey = PrimaryKey(checkpointProtocolId, competitorDataId)
+}
+
+class TCheckpointProtocolToCompetitorData(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TCheckpointProtocolToCompetitorData>(TCheckpointsProtocolsToCompetitorsData)
+    var checkpointProtocolId by TCheckpointsProtocolsToCompetitorsData.checkpointProtocolId
+    var competitorDataId by TCheckpointsProtocolsToCompetitorsData.competitorDataId
 }
 
 object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
@@ -214,9 +219,9 @@ object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
 
 class TCheckpointProtocol(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpointProtocol>(TCheckpointsProtocols)
-    val competitionId by TCheckpointsProtocols.competitorId
-    val checkpointId by TCheckpointsProtocols.checkpointId
-    val timeMeasurement by TCheckpointsProtocols.timeMeasurement
+    var competitionId by TCheckpointsProtocols.competitorId
+    var checkpointId by TCheckpointsProtocols.checkpointId
+    var timeMeasurement by TCheckpointsProtocols.timeMeasurement
 }
 
 object TResultsGroup : IntIdTable("resultsGroup") {

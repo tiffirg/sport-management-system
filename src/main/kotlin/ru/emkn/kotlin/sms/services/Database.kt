@@ -4,6 +4,7 @@ import TAthlete
 import TAthletes
 import TCheckpoint
 import TCheckpointProtocol
+import TCheckpointProtocolToCompetitorData
 import TCheckpoints
 import TCheckpointsProtocols
 import TCheckpointsProtocolsToCompetitorsData
@@ -47,8 +48,11 @@ interface DatabaseInterface {
     // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
 
-    // получить сущности всех чекпоинтов
+    // получить записи о всех чекпоинтах
     fun getCheckpoints(): List<CheckpointRecord>?
+
+    // добавить запись об одном чекпоинте
+    fun insertCheckpointOf(record: CheckpointRecord) : Boolean
 
     // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
@@ -66,7 +70,6 @@ interface DatabaseInterface {
 
     // добавление одной группы участников в базу данных
     fun insertGroupOf(title: String, distance: String): Boolean
-
 
     // удаление одной группы участников из базы данных
     fun deleteGroupOf(title: String): Boolean
@@ -149,7 +152,7 @@ class GeneralDatabase : DatabaseInterface {
         return competition
     }
 
-    // получить сущности всех чекпоинтов
+    // получить записи о всех чекпоинтах
     override fun getCheckpoints(): List<CheckpointRecord>? {
         val res = mutableListOf<CheckpointRecord>()
         transaction {
@@ -171,6 +174,51 @@ class GeneralDatabase : DatabaseInterface {
 
         }
         return res.ifEmpty { null }
+    }
+
+    // добавить один чекпоинт в базу данных
+    override fun insertCheckpointOf(record: CheckpointRecord) : Boolean {
+        var result = false
+        val competitorNumber = record.competitorNumber
+        val checkpointString = record.checkpoint
+        val timeMeasurementString = record.timeMeasurement
+        lateinit var tCompetitorData: TCompetitorData
+        lateinit var tCheckpointProtocol: TCheckpointProtocol
+        transaction {
+
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+
+            val competitorQuery = TCompetitor.find { TCompetitors.competitorNumber eq competitorNumber }.limit(1)
+            if (competitorQuery.empty()) {
+                return@transaction
+            }
+            val competitor = competitorQuery.first()
+
+            val competitorDataQuery = TCompetitorData.find {TCompetitorsData.competitorId eq competitor.id }.limit(1)
+            if (competitorDataQuery.empty()) {
+                return@transaction
+            }
+            tCompetitorData = competitorDataQuery.first()
+
+            val checkpointQuery = TCheckpoint.find {TCheckpoints.checkpoint eq checkpointString}.limit(1)
+            if (checkpointQuery.empty()){
+                return@transaction
+            }
+            val checkpoint = checkpointQuery.first()
+            tCheckpointProtocol = TCheckpointProtocol.new {
+                competitionId = competition.id
+                checkpointId = checkpoint.id
+                timeMeasurement = timeMeasurementString
+            }
+        }
+        transaction {
+            TCheckpointProtocolToCompetitorData.new {
+                checkpointProtocolId = tCheckpointProtocol.id
+                competitorDataId = tCompetitorData.id
+            }
+            result = true
+        }
+        return result
     }
 
     override fun getTeams(): List<TTeam>? {
