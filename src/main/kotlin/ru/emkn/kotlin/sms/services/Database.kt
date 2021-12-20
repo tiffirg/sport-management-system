@@ -8,6 +8,7 @@ import TCheckpointsProtocols
 import TCheckpointsProtocolsToCompetitorsData
 import TCompetition
 import TCompetitions
+import TCompetitorData
 import TCompetitors
 import TCompetitorsData
 import TDistances
@@ -36,13 +37,15 @@ fun main() {
     db.installConfigData(1)
 }
 
+data class CheckpointRecord(val competitorNumber: Int, val checkpoint: String, val timeMeasurement: String)
+
 interface DatabaseInterface {
 
     // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
 
     // получить сущности всех чекпоинтов
-    fun getCheckpoints() : List<TCheckpoint>
+    fun getCheckpoints(): List<CheckpointRecord>?
 
     // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
@@ -139,11 +142,27 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // получить сущности всех чекпоинтов
-    override fun getCheckpoints() : List<TCheckpoint> {
+    override fun getCheckpoints(): List<CheckpointRecord>? {
+        val res = mutableListOf<CheckpointRecord>()
         transaction {
             val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+            TCheckpointProtocol.all().forEach { tCheckpointProtocol ->
+                if (tCheckpointProtocol.competitionId == competition.id) {
+                    val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
+                        ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
+                    val timeMeasurement = tCheckpointProtocol.timeMeasurement
+                    val competitorData =
+                        TCompetitorData.all().find { it.checkpointProtocol.contains(tCheckpointProtocol) }
+                            ?: throw IllegalStateException("getCheckpoints: no such competitorData in the database")
+                    val competitor = TCompetitor.findById(competitorData.competitorId)
+                        ?: throw IllegalStateException("getCheckpoints: no such competitor in the database")
+                    val record = CheckpointRecord(competitor.competitorNumber, checkpointString, timeMeasurement)
+                    res.add(record)
+                }
+            }
+
         }
-        TODO()
+        return res.ifEmpty { null }
     }
 
     // загрузка данных конфигурационного файла в базу данных
