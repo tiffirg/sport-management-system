@@ -249,9 +249,11 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
         state.stage = Stage.CONFIG
         CurrentTabStatus("Not Data")
     } else {
-        state.stage = Stage.RESULTS
-        val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
-        DB.insertCompetitors(startProtocols)
+        val competitors = DB.getCompetitors()
+        if (competitors.isEmpty()) {
+            val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
+            DB.insertCompetitors(startProtocols)
+        }
         val surfaceGradient =
             Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
         Column(Modifier.background(surfaceGradient)) {
@@ -273,6 +275,7 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
                 },
                 content = {
                     TableForStartProtocols(
+                        competitors,
                         surfaceGradient = surfaceGradient
                     )
                 }
@@ -285,44 +288,57 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
 
 @Composable
 fun ContentGroupResults(state: ApplicationWindowState) {
-    if (DB.checkResultsGroup(COMPETITION_ID)) {
+    if (!DB.checkResultsGroup(COMPETITION_ID)) {
         CurrentTabStatus("Not Data")
     } else {
         state.stage = Stage.RESULTS
 //        val results = CommandsHandler.generateResults(teamsList)
 //        DB.insertCompetitions(startProtocols)
-//        val surfaceGradient =
-//            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
-//        Column(Modifier.background(surfaceGradient)) {
-//            Scaffold(
-//                Modifier.background(surfaceGradient),
-//                topBar = {
-//                    TopAppBar(
-//                        title = { Text(text = "Start Protocols") },
-//                        actions = {
-//                            Row(horizontalArrangement = Arrangement.End) {
-//                                Button(modifier = Modifier.padding(10.dp), onClick = {
-//
-//                                }) {
-//                                    Text("TOSS")
-//                                }
-//                            }
-//                        }
-//                    )
-//                },
-//                content = {
-//                    TableForStartProtocols(
-//                        surfaceGradient = surfaceGradient
-//                    )
-//                }
-//            )
-//        }
+        val surfaceGradient =
+            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+        Column(Modifier.background(surfaceGradient)) {
+            Scaffold(
+                Modifier.background(surfaceGradient),
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = "Group Results") },
+                        actions = {
+                            Row(horizontalArrangement = Arrangement.End) {
+                                Button(modifier = Modifier.padding(10.dp), onClick = {
+                                }) {
+                                    Text("SPLITS")
+                                }
+                            }
+                        }
+                    )
+                },
+                content = {
+                    TableForGroupResults(surfaceGradient)
+                }
+            )
+        }
     }
 }
 
 @Composable
 fun ContentTeamResults(state: ApplicationWindowState) {
-
+    if (state.stage == Stage.RESULTS) {
+        val surfaceGradient =
+            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+        Column(Modifier.background(surfaceGradient)) {
+            Scaffold(
+                Modifier.background(surfaceGradient),
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = "Team Results") }
+                    )
+                },
+                content = {
+                    TableForTeamResults(surfaceGradient)
+                }
+            )
+        }
+    }
 }
 
 @Composable
