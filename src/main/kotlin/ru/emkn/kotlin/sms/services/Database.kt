@@ -29,15 +29,17 @@ interface DatabaseInterface {
     // загрузка данных конфигурационного файла из базы данных
     fun installConfigData(competitionId: Int)
 
-    // добавление одной группы участников в базу данных
-    fun insertGroupOf(title: String, distance: String): Boolean
-
+    // добавление одной дистанции в базу данных
     fun insertDistanceOf(
         title: String,
         distanceType: DistanceType,
         amountCheckpoints: Int,
         checkpoints: List<String>
     ): Boolean
+
+    // добавление одной группы участников в базу данных
+    fun insertGroupOf(title: String, distance: String): Boolean
+
 
     // удаление одной группы участников из базы данных
     fun deleteGroupOf(title: String): Boolean
@@ -200,6 +202,40 @@ class GeneralDatabase : DatabaseInterface {
 
     }
 
+    // добавление одной дистанции в базу данных
+    override fun insertDistanceOf(
+        title: String,
+        distanceType: DistanceType,
+        amountCheckpoints: Int,
+        checkpoints: List<String>
+    ): Boolean {
+        var result = true
+        transaction {
+            try {
+                val tCheckpointsList = checkpoints.map {
+                    TCheckpoint.find {
+                        (TCheckpoints.checkpoint eq it) and (
+                                TCheckpoints.competitionId eq COMPETITION_ID)
+                    }.first()
+                }
+                val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+                val tDistance = TDistance.new {
+                    competitionId = competition.id
+                    distance = title
+                    type = distanceType
+                    checkpointsCount = amountCheckpoints
+
+                }
+                tDistance.checkpoints = SizedCollection(tCheckpointsList)
+            } catch (e: Exception) {
+                LOGGER.debug { e }
+                result = false
+            }
+
+        }
+        return result
+    }
+
     // добавление одной группы участников в базу данных
     override fun insertGroupOf(title: String, distance: String): Boolean {
         var result = false
@@ -303,7 +339,6 @@ class GeneralDatabase : DatabaseInterface {
         }
     }
 
-
     // добавление одной команды
     override fun insertTeamOf(title: String): Boolean {
         var result = false
@@ -373,39 +408,6 @@ class GeneralDatabase : DatabaseInterface {
             result = true
         }
         LOGGER.debug { "Database: insertAthleteOf | $result" }
-        return result
-    }
-
-    override fun insertDistanceOf(
-        title: String,
-        distanceType: DistanceType,
-        amountCheckpoints: Int,
-        checkpoints: List<String>
-    ): Boolean {
-        var result = true
-        transaction {
-            try {
-                val tCheckpointsList = checkpoints.map {
-                    TCheckpoint.find {
-                        (TCheckpoints.checkpoint eq it) and (
-                                TCheckpoints.competitionId eq COMPETITION_ID)
-                    }.first()
-                }
-                val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
-                val tDistance = TDistance.new {
-                    competitionId = competition.id
-                    distance = title
-                    type = distanceType
-                    checkpointsCount = amountCheckpoints
-
-                }
-                tDistance.checkpoints = SizedCollection(tCheckpointsList)
-            } catch (e: Exception) {
-                LOGGER.debug { e }
-                result = false
-            }
-
-        }
         return result
     }
 
@@ -603,9 +605,9 @@ object TCompetitorsData : IntIdTable("competitorsData") {
 
 class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCompetitorData>(TCompetitorsData)
-
-    val competitorId by TCompetitorsData.competitorId
-    val isRemoved by TCompetitorsData.isRemoved
+    var competitorId by TCompetitorsData.competitorId
+    var isRemoved by TCompetitorsData.isRemoved
+    var checkpointProtocol by TCheckpointProtocol via TCheckpointsProtocolsToCompetitorsData // many-to-many reference
 }
 
 object TCheckpointsProtocolsToCompetitorsData : Table("CheckpointsProtocolsToCompetitorsData") {
@@ -639,7 +641,6 @@ object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
 
 class TCheckpointProtocol(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpointProtocol>(TCheckpointsProtocols)
-
     val competitionId by TCheckpointsProtocols.competitorId
     val checkpointId by TCheckpointsProtocols.checkpointId
     val timeMeasurement by TCheckpointsProtocols.timeMeasurement
