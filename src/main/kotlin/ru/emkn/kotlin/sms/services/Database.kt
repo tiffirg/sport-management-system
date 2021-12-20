@@ -168,7 +168,7 @@ class GeneralDatabase : DatabaseInterface {
     )
 
     private fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor {
-        var athlete : Athlete? = null
+        var athlete: Athlete? = null
         transaction {
             val tAthlete = TAthlete.findById(tCompetitor.athleteId) ?: return@transaction
             athlete = athleteFromTAthlete(tAthlete)
@@ -220,7 +220,7 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     fun TCheckpointProtocoltoCheckpointTime(tCheckpointProtocol: TCheckpointProtocol): CheckpointTime {
-        var checkpointTime : CheckpointTime? = null
+        var checkpointTime: CheckpointTime? = null
         transaction {
             val checkpointId = tCheckpointProtocol.checkpointId
             val checkpoint = TCheckpoint.findById(checkpointId)?.checkpoint ?: return@transaction
@@ -254,8 +254,8 @@ class GeneralDatabase : DatabaseInterface {
         val competitorNumber = record.competitorNumber
         val checkpointString = record.checkpoint
         val timeMeasurementString = record.timeMeasurement.format(TimeFormatter)
-        lateinit var tCompetitorData: TCompetitorData
-        lateinit var tCheckpointProtocol: TCheckpointProtocol
+        var tCompetitorData: TCompetitorData? = null
+        var tCheckpointProtocol: TCheckpointProtocol? = null
         transaction {
 
             val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
@@ -284,9 +284,11 @@ class GeneralDatabase : DatabaseInterface {
             }
         }
         transaction {
-            TCheckpointProtocolToCompetitorData.new {
-                checkpointProtocolId = tCheckpointProtocol.id
-                competitorDataId = tCompetitorData.id
+            if (tCheckpointProtocol != null && tCompetitorData != null) {
+                TCheckpointProtocolToCompetitorData.new {
+                    checkpointProtocolId = tCheckpointProtocol!!.id
+                    competitorDataId = tCompetitorData!!.id
+                }
             }
             result = true
         }
