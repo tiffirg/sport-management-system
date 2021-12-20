@@ -89,10 +89,11 @@ interface DatabaseInterface {
 
     fun checkTeamResults(competitionId: Int): Boolean
 
+    fun getTeamsWithAthletes(): List<Team>?
+
     fun getTeams(): List<TTeam>?
 
     fun getAthletes(): List<Pair<Int, Athlete>>?
-
 }
 
 class GeneralDatabase : DatabaseInterface {
@@ -192,18 +193,18 @@ class GeneralDatabase : DatabaseInterface {
                 return@transaction
             }
             athletes = query.toList().map {
-                it.id.value to Athlete(
-                    it.name,
-                    it.surname,
-                    it.birthYear,
-                    Group(TGroup.find { TGroups.id eq it.groupId }.first().group),
-                    Rank(TRank.find { TRanks.id eq it.rankId }.first().rank),
-                    TTeam.find { TTeams.id eq it.teamId }.first().team
-                )
+                it.id.value to athleteFromTAthlete(it)
             }
         }
         return athletes
     }
+
+    private fun athleteFromTAthlete(tAthlete: TAthlete) = Athlete(
+        tAthlete.name, tAthlete.surname, tAthlete.birthYear,
+        Group(TGroup.find { TGroups.id eq tAthlete.groupId }.first().group),
+        Rank(TRank.find { TRanks.id eq tAthlete.rankId }.first().rank),
+        TTeam.find { TTeams.id eq tAthlete.teamId }.first().team
+    )
 
     // загрузка данных конфигурационного файла в базу данных
     override fun insertConfigData(): TCompetition {
@@ -260,7 +261,6 @@ class GeneralDatabase : DatabaseInterface {
                         }
                     }
                 }
-
             }
         }
         return competition
@@ -390,11 +390,24 @@ class GeneralDatabase : DatabaseInterface {
         return result
     }
 
-    override fun checkStartsProtocols(competitionId: Int): Boolean = false
+    override fun checkStartsProtocols(competitionId: Int): Boolean = getTeamsWithAthletes() != null
 
     override fun checkResultsGroup(competitionId: Int): Boolean = false
 
     override fun checkTeamResults(competitionId: Int): Boolean = false
+
+    override fun getTeamsWithAthletes(): List<Team>? {
+        val teams: List<Team>? = null
+        transaction {
+            getTeams()?.map {
+                Team(
+                    it.team,
+                    TAthlete.find { (TAthletes.teamId eq it.id) and (TAthletes.competitionId eq COMPETITION_ID) }
+                        .map { tAthlete -> athleteFromTAthlete(tAthlete) })
+            }
+        }
+        return null
+    }
 
     // добавление атлетов и команд в базу данных
     override fun insertApplications(competition: TCompetition, applications: List<Team>) {

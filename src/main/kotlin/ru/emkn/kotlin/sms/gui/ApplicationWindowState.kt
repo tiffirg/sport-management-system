@@ -28,7 +28,6 @@ class ApplicationWindowState(
     val stateOpenWarningDialog = DialogState<Boolean>()
 
     var stage = Stage.NO_CONFIG
-        private set
 
     private suspend fun openConfig(path: Path) {
         configPath = path
