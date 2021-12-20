@@ -445,16 +445,16 @@ class GeneralDatabase : DatabaseInterface {
     override fun checkTeamResults(competitionId: Int): Boolean = false
 
     override fun getTeamsWithAthletes(): List<Team>? {
-        val teams: List<Team>? = null
+        var teams: List<Team>? = null
         transaction {
-            getTeams()?.map {
+            teams = getTeams()?.map {
                 Team(
                     it.team,
                     TAthlete.find { (TAthletes.teamId eq it.id) and (TAthletes.competitionId eq COMPETITION_ID) }
                         .map { tAthlete -> athleteFromTAthlete(tAthlete) })
             }
         }
-        return null
+        return teams
     }
 
     // добавление атлетов и команд в базу данных

@@ -95,7 +95,7 @@ private fun WindowLayout(state: ApplicationWindowState, darkTheme: MutableState<
     Box {
         Row {
             SideBar(darkTheme, itemTabState, itemInformationListState)
-            BodyContent(state, darkTheme, itemTabState, itemInformationListState)
+            BodyContent(state, itemTabState, itemInformationListState)
         }
     }
 }
@@ -205,7 +205,6 @@ fun InformationListSideBar(selectedIndex: Int?, onPlayListSelected: (Int) -> Uni
 @Composable
 fun BodyContent(
     state: ApplicationWindowState,
-    darkTheme: MutableState<Boolean>,
     itemTabState: MutableState<TypeItemTab?>,
     itemInformationListState: MutableState<TypeItemInformationList?>
 ) {
