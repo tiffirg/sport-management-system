@@ -56,7 +56,7 @@ var EVENT_DATE_STRING = ""
 var EVENT_TIME_STRING = ""
 var EVENT_TIME: LocalTime = LocalTime.MIN
 var EVENT_SPORT = ""
-var RANKS: MutableList<String> = mutableListOf()
+var RANK_NAMES: MutableList<String> = mutableListOf()
 var GROUP_NAMES: MutableList<String> = mutableListOf()
 var GROUP_DISTANCES: MutableMap<String, String> = mutableMapOf()
 var DISTANCE_CRITERIA: MutableMap<String, DistanceCriteria> = mutableMapOf()
@@ -97,7 +97,7 @@ fun initConfig(pathConfig: String) {
         EVENT_TIME_STRING = config.eventTime
         EVENT_TIME = checkConfigLocalTime(config.eventTime)
         EVENT_SPORT = config.eventSport
-        RANKS = config.ranks
+        RANK_NAMES = config.ranks
         GROUP_NAMES = config.groups.mapTo(mutableListOf()) { it.group }
         GROUP_DISTANCES = config.groups.associateTo(mutableMapOf()) { groupData -> Pair(groupData.group, groupData.distance) }
         DISTANCE_CRITERIA = config.criteria.associateTo(mutableMapOf()) {

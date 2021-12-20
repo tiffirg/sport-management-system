@@ -15,15 +15,45 @@ fun main() {
     val db = GeneralDatabase()
     initConfig("src/test/resources/config.yaml")
     db.insertConfigData()
-    db.installConfig(1)
+    db.installConfigData(1)
 }
 
 interface DatabaseInterface {
+
+    // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
 
+    // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
 
-    fun installConfig(competitionId: Int)
+    // загрузка данных конфигурационного файла из базы данных
+    fun installConfigData(competitionId: Int)
+
+    // добавление одной группы участников в базу данных
+    fun insertGroupOf(title: String, distance: String): Boolean
+
+    fun insertDistanceOf(title: String,
+                         distanceType: DistanceType,
+                         amountCheckpoints: Int,
+                         checkpoints: List<String>): Boolean
+
+    // удаление одной группы участников из базы данных
+    fun deleteGroupOf(title: String): Boolean
+
+    // изменение одной группы участников
+    fun updateGroupOf(title: String, newDistance: String): Boolean
+
+    // добавление атлетов и команд в базу данных
+    fun insertApplications(competition: TCompetition, applications: List<Team>)
+
+    // добавление одной команды
+    fun insertTeamOf(title: String): Boolean
+
+    // добавление одного спортсмена
+    fun insertAthleteOf(
+        newName: String, newSurname: String, newBirthYear: Int,
+        rankName: String, groupName: String, teamName: String
+    ): Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
@@ -31,15 +61,13 @@ interface DatabaseInterface {
 
     fun checkTeamResults(competitionId: Int): Boolean
 
-    fun insertGroupOf(title: String, distance: String): Boolean
-
-    fun insertDistanceOf(title: String, distanceType: DistanceType, amountCheckpoints: Int, checkpoints: List<String>): Boolean
 }
 
 class GeneralDatabase : DatabaseInterface {
     private val dbPath = "database/competitions"
     private val db: Database
 
+    // создание базы данных: подключение файла с базой данных и создание логгера
     init {
         db = connect()
         transaction {
@@ -47,17 +75,7 @@ class GeneralDatabase : DatabaseInterface {
         }
     }
 
-    override fun getCompetition(title: String): TCompetition? {
-        var competition: TCompetition? = null
-        transaction {
-            val query = TCompetition.find { TCompetitions.eventName eq title }.limit(1)
-            if (!query.empty()) {
-                competition = query.first()
-            }
-        }
-        return competition
-    }
-
+    // подключить базу данных и загрузить еще не созданные таблицы
     private fun connect(): Database {
         val isExist = File(dbPath).exists()
         val database = Database.connect(url = "jdbc:h2:./${dbPath}", driver = "org.h2.Driver")
@@ -86,6 +104,19 @@ class GeneralDatabase : DatabaseInterface {
         return database
     }
 
+    // получить сущность соревнования по названию
+    override fun getCompetition(title: String): TCompetition? {
+        var competition: TCompetition? = null
+        transaction {
+            val query = TCompetition.find { TCompetitions.eventName eq title }.limit(1)
+            if (!query.empty()) {
+                competition = query.first()
+            }
+        }
+        return competition
+    }
+
+    // загрузка данных конфигурационного файла в базу данных
     override fun insertConfigData(): TCompetition {
         lateinit var competition: TCompetition
         transaction {
@@ -95,7 +126,7 @@ class GeneralDatabase : DatabaseInterface {
                 date = EVENT_DATE_STRING
                 time = EVENT_TIME_STRING
             }
-            RANKS.forEach {
+            RANK_NAMES.forEach {
                 TRank.new {
                     competitionId = competition.id
                     rank = it
@@ -146,11 +177,12 @@ class GeneralDatabase : DatabaseInterface {
         return competition
     }
 
-    override fun installConfig(competitionId: Int) {
+    // загрузка данных конфигурационного файла из базы данных
+    override fun installConfigData(competitionId: Int) {
         transaction {
             val dataGroupTable = TGroup.find { TGroups.competitionId eq competitionId }
             val dataDistanceGroup = TDistance.find { TDistances.competitionId eq competitionId }
-            RANKS = TRank.find { TRanks.competitionId eq competitionId }.mapTo(mutableListOf()) { it.rank }
+            RANK_NAMES = TRank.find { TRanks.competitionId eq competitionId }.mapTo(mutableListOf()) { it.rank }
             GROUP_NAMES = dataGroupTable.mapTo(mutableListOf()) { it.group }
             CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }.mapTo(mutableListOf()) { it.checkpoint }
             GROUP_DISTANCES = dataGroupTable.associateTo(mutableMapOf()) {
@@ -168,18 +200,13 @@ class GeneralDatabase : DatabaseInterface {
 
     }
 
-    override fun checkStartsProtocols(competitionId: Int): Boolean = false
-
-    override fun checkResultsGroup(competitionId: Int): Boolean = false
-
-    override fun checkTeamResults(competitionId: Int): Boolean = false
-
+    // добавление одной группы участников в базу данных
     override fun insertGroupOf(title: String, distance: String): Boolean {
         var result = false
         transaction {
             val query =
                 TDistance.find { (TDistances.distance eq distance) and (TDistances.competitionId eq COMPETITION_ID) }
-            LOGGER.debug( "Database: insertGroupOf | empty | ${query.empty()}" )
+                    .limit(1)
             if (query.empty()) {
                 return@transaction
             }
@@ -192,7 +219,166 @@ class GeneralDatabase : DatabaseInterface {
             }
             result = true
         }
-        LOGGER.debug { "Database: insertGroupOf| $result" }
+        LOGGER.debug { "Database: insertGroupOf | $result" }
+        return result
+    }
+
+    // удаление одной группы участников из базы данных
+    override fun deleteGroupOf(title: String): Boolean {
+        var result = false
+        transaction {
+            val query =
+                TGroup.find { (TGroups.group eq title) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (query.empty()) {
+                return@transaction
+            }
+            val group = query.first()
+            group.delete()
+            result = true
+        }
+        LOGGER.debug { "Database: deleteGroupOf | $result" }
+        return result
+    }
+
+    // изменение одной группы участников
+    override fun updateGroupOf(title: String, newDistance: String): Boolean {
+        var result = false
+        transaction {
+            val distanceQuery =
+                TDistance.find { (TDistances.distance eq newDistance) and (TDistances.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (distanceQuery.empty()) {
+                return@transaction
+            }
+            val distanceData = distanceQuery.first()
+            val groupQuery =
+                TGroup.find { (TGroups.group eq title) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (groupQuery.empty()) {
+                return@transaction
+            }
+            result = true
+            val groupData = groupQuery.first()
+            groupData.distanceId = distanceData.id
+        }
+        LOGGER.debug { "Database: insertGroupOf | $result" }
+        return result
+    }
+
+    override fun checkStartsProtocols(competitionId: Int): Boolean = false
+
+    override fun checkResultsGroup(competitionId: Int): Boolean = false
+
+    override fun checkTeamResults(competitionId: Int): Boolean = false
+
+    // добавление атлетов и команд в базу данных
+    override fun insertApplications(competition: TCompetition, applications: List<Team>) {
+        transaction {
+            applications.forEach { application ->
+                TTeam.new {
+                    competitionId = competition.id
+                    team = application.teamName
+                }
+                application.athletes.forEach { athlete ->
+
+                    val groupReference: TGroup =
+                        TGroup.find { TGroups.group eq athlete.group.groupName }.limit(1).first()
+                    val rankReference: TRank =
+                        TRank.find { TRanks.rank eq (athlete.rank.rankName ?: "") }.limit(1).first()
+                    val teamReference: TTeam =
+                        TTeam.find {TTeams.team eq (athlete.teamName)}.limit(1).first()
+
+                    TAthlete.new {
+                        competitionId = competition.id
+                        name = athlete.name
+                        surname = athlete.surname
+                        birthYear = athlete.birthYear
+                        groupId = groupReference.id
+                        rankId = rankReference.id
+                        teamId = teamReference.id
+                    }
+                }
+            }
+        }
+    }
+
+
+    // добавление одной команды
+    override fun insertTeamOf(title: String): Boolean {
+        var result = false
+        transaction {
+            val query =
+                TTeam.find { (TTeams.team eq title) and (TTeams.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (!query.empty()) {
+                return@transaction
+            }
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+            TTeam.new {
+                competitionId = competition.id
+                team = title
+            }
+            result = true
+        }
+        LOGGER.debug { "Database: insertTeamOf | $result" }
+        return result
+    }
+
+    // добавление одного спортсмена
+    override fun insertAthleteOf(
+        newName: String,
+        newSurname: String,
+        newBirthYear: Int,
+        rankName: String,
+        groupName: String,
+        teamName: String
+    ): Boolean {
+        var result = false
+        transaction {
+            val athleteQuery =
+                TAthlete.find { (TAthletes.name eq newName) and (TAthletes.surname eq newSurname) and (TTeams.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (!athleteQuery.empty()) {
+                return@transaction
+            }
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+
+            val groupQuery =
+                TGroup.find { (TGroups.group eq groupName) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (groupQuery.empty()) {
+                return@transaction
+            }
+            val newGroup = groupQuery.first()
+
+            val rankQuery =
+                TRank.find { (TRanks.rank eq rankName) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (rankQuery.empty()) {
+                return@transaction
+            }
+            val newRank = rankQuery.first()
+
+            val teamQuery =
+                TTeam.find {(TTeams.team eq teamName) and (TTeams.competitionId eq COMPETITION_ID)}
+                    .limit(1)
+            if (teamQuery.empty()) {
+                return@transaction
+            }
+            val newTeam = teamQuery.first()
+
+            TAthlete.new {
+                competitionId = competition.id
+                name = newName
+                surname = newSurname
+                groupId = newGroup.id
+                rankId = newRank.id
+                teamId = newTeam.id
+            }
+            result = true
+        }
+        LOGGER.debug { "Database: insertAthleteOf | $result" }
         return result
     }
 
@@ -228,33 +414,6 @@ class GeneralDatabase : DatabaseInterface {
 
         }
         return result
-    }
-
-    // добавление атлетов и команд в базу данных
-    fun addApplications(competition: TCompetition, applications: List<Team>) {
-        transaction {
-            applications.forEach { application ->
-                TTeam.new {
-                    competitionId = competition.id
-                    team = application.teamName
-                }
-                application.athletes.forEach { athlete ->
-
-                    val groupReference: TGroup =
-                        TGroup.find { TGroups.group eq athlete.group.groupName }.limit(1).first()
-                    val rankReference: TRank =
-                        TRank.find { TRanks.rank eq (athlete.rank.rankName ?: "") }.limit(1).first()
-                    TAthlete.new {
-                        competitionId = competition.id
-                        name = athlete.name
-                        surname = athlete.surname
-                        birthYear = athlete.birthYear
-                        groupId = groupReference.id
-                        rankId = rankReference.id
-                    }
-                }
-            }
-        }
     }
 
     // добавление участников соревнований
@@ -330,13 +489,13 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
-
     var competitionId by TAthletes.competitionId
     var name by TAthletes.name
     var surname by TAthletes.surname
     var birthYear by TAthletes.birthYear
     var groupId by TAthletes.groupId
     var rankId by TAthletes.rankId
+    var teamId by TAthletes.teamId
 }
 
 object TTeams : IntIdTableWithCompetitionId("team") {
@@ -346,7 +505,6 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
-
     var competitionId by TTeams.competitionId
     var team by TTeams.team
 }
@@ -360,7 +518,6 @@ object TGroups : IntIdTableWithCompetitionId("group") {
 
 class TGroup(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TGroup>(TGroups)
-
     var competitionId by TGroups.competitionId
     var group by TGroups.group
     var distanceId by TGroups.distanceId
@@ -373,7 +530,6 @@ object TRanks : IntIdTableWithCompetitionId("rank") {
 
 class TRank(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TRank>(TRanks)
-
     var competitionId by TRanks.competitionId
     var rank by TRanks.rank
 }
@@ -385,7 +541,6 @@ object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
 
 class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
-
     var competitionId by TCheckpoints.competitionId
     var checkpoint by TCheckpoints.checkpoint
 }
