@@ -63,7 +63,6 @@ class ItemCompetitors: ItemInformationList() {
 
 class ItemCheckpoints: ItemInformationList() {
     override val title = "Контрольные пункты"
-
 }
 
 enum class TypeItemInformationList(val item: ItemInformationList) {

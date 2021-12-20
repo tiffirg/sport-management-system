@@ -56,11 +56,11 @@ var EVENT_DATE_STRING = ""
 var EVENT_TIME_STRING = ""
 var EVENT_TIME: LocalTime = LocalTime.MIN
 var EVENT_SPORT = ""
-var RANKS: List<String> = listOf()
-var GROUP_NAMES: List<String> = listOf()
-var GROUP_DISTANCES: Map<String, String> = mapOf()
-var DISTANCE_CRITERIA: Map<String, DistanceCriteria> = mapOf()
-var CHECKPOINTS_LIST: List<String> = listOf()
+var RANKS: MutableList<String> = mutableListOf()
+var GROUP_NAMES: MutableList<String> = mutableListOf()
+var GROUP_DISTANCES: MutableMap<String, String> = mutableMapOf()
+var DISTANCE_CRITERIA: MutableMap<String, DistanceCriteria> = mutableMapOf()
+var CHECKPOINTS_LIST: MutableList<String> = mutableListOf()
 
 
 data class GroupData(
@@ -72,15 +72,15 @@ data class CriteriaData(
     val distance: String,
     val type: String,
     val count: String,
-    val checkpoints: List<String>
+    val checkpoints: MutableList<String>
 )
 
 data class ConfigData(
     val eventName: String, val eventDate: String, val eventTime: String, val eventSport: String,
-    val checkpoints: List<String>,
-    val ranks: List<String>,
-    val groups: List<GroupData>,
-    val criteria: List<CriteriaData>
+    val checkpoints: MutableList<String>,
+    val ranks: MutableList<String>,
+    val groups: MutableList<GroupData>,
+    val criteria: MutableList<CriteriaData>
 )
 
 
@@ -98,9 +98,9 @@ fun initConfig(pathConfig: String) {
         EVENT_TIME = checkConfigLocalTime(config.eventTime)
         EVENT_SPORT = config.eventSport
         RANKS = config.ranks
-        GROUP_NAMES = config.groups.map { it.group }
-        GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
-        DISTANCE_CRITERIA = config.criteria.associate {
+        GROUP_NAMES = config.groups.mapTo(mutableListOf()) { it.group }
+        GROUP_DISTANCES = config.groups.associateTo(mutableMapOf()) { groupData -> Pair(groupData.group, groupData.distance) }
+        DISTANCE_CRITERIA = config.criteria.associateTo(mutableMapOf()) {
             criteriaData ->
             Pair(criteriaData.distance, getCriteriaByType(criteriaData.type, criteriaData.count, criteriaData.checkpoints))
         }

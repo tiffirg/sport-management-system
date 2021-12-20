@@ -32,6 +32,8 @@ interface DatabaseInterface {
     fun checkTeamResults(competitionId: Int): Boolean
 
     fun insertGroupOf(title: String, distance: String): Boolean
+
+    fun insertDistanceOf(title: String, distanceType: DistanceType, amountCheckpoints: Int, checkpoints: List<String>): Boolean
 }
 
 class GeneralDatabase : DatabaseInterface {
@@ -148,14 +150,14 @@ class GeneralDatabase : DatabaseInterface {
         transaction {
             val dataGroupTable = TGroup.find { TGroups.competitionId eq competitionId }
             val dataDistanceGroup = TDistance.find { TDistances.competitionId eq competitionId }
-            RANKS = TRank.find { TRanks.competitionId eq competitionId }.map { it.rank }
-            GROUP_NAMES = dataGroupTable.map { it.group }
-            CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }.map { it.checkpoint }
-            GROUP_DISTANCES = dataGroupTable.associate {
+            RANKS = TRank.find { TRanks.competitionId eq competitionId }.mapTo(mutableListOf()) { it.rank }
+            GROUP_NAMES = dataGroupTable.mapTo(mutableListOf()) { it.group }
+            CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }.mapTo(mutableListOf()) { it.checkpoint }
+            GROUP_DISTANCES = dataGroupTable.associateTo(mutableMapOf()) {
                 it.group to TDistance.find { (TDistances.id eq it.distanceId) and (TDistances.competitionId eq competitionId) }
                     .limit(1).first().distance
             }
-            DISTANCE_CRITERIA = dataDistanceGroup.associate { distanceData ->
+            DISTANCE_CRITERIA = dataDistanceGroup.associateTo(mutableMapOf()) { distanceData ->
                 val checkpoints = distanceData.checkpoints.map { it.checkpoint }
                 distanceData.distance to when (distanceData.type) {
                     DistanceType.FIXED -> FixedRoute(checkpoints)
@@ -177,7 +179,7 @@ class GeneralDatabase : DatabaseInterface {
         transaction {
             val query =
                 TDistance.find { (TDistances.distance eq distance) and (TDistances.competitionId eq COMPETITION_ID) }
-                    .limit(1)
+            LOGGER.debug( "Database: insertGroupOf | empty | ${query.empty()}" )
             if (query.empty()) {
                 return@transaction
             }
@@ -190,7 +192,41 @@ class GeneralDatabase : DatabaseInterface {
             }
             result = true
         }
-        LOGGER.debug { "Database: insertGroupOf | $result" }
+        LOGGER.debug { "Database: insertGroupOf| $result" }
+        return result
+    }
+
+    override fun insertDistanceOf(
+        title: String,
+        distanceType: DistanceType,
+        amountCheckpoints: Int,
+        checkpoints: List<String>
+    ): Boolean {
+        var result = true
+        transaction {
+            try {
+                val tCheckpointsList = checkpoints.map {
+                    TCheckpoint.find {
+                        (TCheckpoints.checkpoint eq it) and (
+                                TCheckpoints.competitionId eq COMPETITION_ID)
+                    }.first()
+                }
+                val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+                val tDistance = TDistance.new {
+                    competitionId = competition.id
+                    distance = title
+                    type = distanceType
+                    checkpointsCount = amountCheckpoints
+
+                }
+                tDistance.checkpoints = SizedCollection(tCheckpointsList)
+            }
+            catch (e: Exception) {
+                LOGGER.debug { e }
+                result = false
+            }
+
+        }
         return result
     }
 
@@ -372,7 +408,7 @@ object TDistances : IntIdTableWithCompetitionId("distances") {
             DistanceType.values().find { it.name == value }
                 ?: throw IllegalArgumentException("Unknown Distance Type  value")
         },
-        { it.value })
+        { it.name })
     val checkpointsCount = integer("amountCheckpoints")
 }
 

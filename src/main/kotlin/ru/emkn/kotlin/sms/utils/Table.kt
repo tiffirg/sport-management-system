@@ -6,12 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -19,19 +17,21 @@ import androidx.compose.ui.unit.dp
 import ru.emkn.kotlin.sms.DB
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.GROUP_DISTANCES
-import ru.emkn.kotlin.sms.gui.ApplicationWindowState
+import ru.emkn.kotlin.sms.GROUP_NAMES
+import ru.emkn.kotlin.sms.classes.ChoiceRoute
+import ru.emkn.kotlin.sms.classes.DistanceType
+import ru.emkn.kotlin.sms.classes.FixedRoute
 
 @Composable
 fun TableForItemInformationList(
-    state: ApplicationWindowState,
     addButtonState: MutableState<Boolean>,
     typeItem: TypeItemInformationList,
     surfaceGradient: Brush
 ) {
     Column {
         when (typeItem) {
-            TypeItemInformationList.ITEM_GROUPS -> showGroups(state, addButtonState, surfaceGradient)
-            TypeItemInformationList.ITEM_DISTANCES -> showDistances()
+            TypeItemInformationList.ITEM_GROUPS -> showGroups(addButtonState, surfaceGradient)
+            TypeItemInformationList.ITEM_DISTANCES -> showDistances(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_TEAMS -> {}
             TypeItemInformationList.ITEM_COMPETITORS -> {}
             TypeItemInformationList.ITEM_CHECKPOINTS -> {}
@@ -40,7 +40,7 @@ fun TableForItemInformationList(
 }
 
 @Composable
-fun showGroups(state: ApplicationWindowState, addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
+fun showGroups(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
     val group = remember { mutableStateOf("") }
     val distance = remember { mutableStateOf("") }
     Row(Modifier.fillMaxWidth()) {
@@ -66,33 +66,63 @@ fun showGroups(state: ApplicationWindowState, addButtonState: MutableState<Boole
         }
     }
     if (addButtonState.value) {
-        DB.insertGroupOf(group.value, distance.value)
+        if (DB.insertGroupOf(group.value, distance.value)) {
+            GROUP_NAMES.add(group.value)
+            GROUP_DISTANCES[group.value] = distance.value
+        }
+        addButtonState.value = false
     }
 }
 
 @Composable
-fun showDistances() {
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-        val distanceColumnWeight = .2f
-        val columnWeight = .15f
-        val checkpointsColumnWeight = .5f
-        item {
-            Row(Modifier.background(Color.Gray)) {
-                TableHeaderCell(text = "Group", weight = distanceColumnWeight)
-                TableHeaderCell(text = "Type", weight = columnWeight)
-                TableHeaderCell(text = "Amount checkpoints", weight = columnWeight)
-                TableHeaderCell(text = "Checkpoints", weight = checkpointsColumnWeight)
+fun showDistances(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
+    val distanceColumnWeight = .2f
+    val columnWeight = .15f
+    val checkpointsColumnWeight = .5f
+
+    val distance = remember { mutableStateOf("") }
+    val distanceType = remember { mutableStateOf("") }
+    val amountCheckpoints = remember { mutableStateOf("") }
+    val checkpoints = remember { mutableStateOf("") }
+    Row(Modifier.fillMaxWidth()) {
+        TableAddCell(distance, weight = .5f)
+        TableAddCell(distanceType, weight = .5f)
+        TableAddCell(amountCheckpoints, weight = .5f)
+        TableAddCell(checkpoints, weight = .5f)
+    }
+    Box(Modifier.background(surfaceGradient)) {
+        LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+
+            item {
+                Row(Modifier.background(Color.Gray)) {
+                    TableHeaderCell(text = "distance", weight = distanceColumnWeight)
+                    TableHeaderCell(text = "Type", weight = columnWeight)
+                    TableHeaderCell(text = "Amount checkpoints", weight = columnWeight)
+                    TableHeaderCell(text = "Checkpoints", weight = checkpointsColumnWeight)
+                }
+            }
+            items(DISTANCE_CRITERIA.toList()) {
+                val (distance, criteria) = it
+                Row(Modifier.fillMaxWidth()) {
+                    TableCell(text = distance, weight = distanceColumnWeight)
+                    TableCell(text = criteria.distanceType.name, weight = columnWeight)
+                    TableCell(text = criteria.checkpointsCount.toString(), weight = columnWeight)
+                    TableCell(text = criteria.checkpointsOrder.joinToString(), weight = checkpointsColumnWeight)
+                }
             }
         }
-        items(DISTANCE_CRITERIA.toList()) {
-            val (distance, criteria) = it
-            Row(Modifier.fillMaxWidth()) {
-                TableCell(text = distance, weight = distanceColumnWeight)
-                TableCell(text = criteria.distanceType.value, weight = columnWeight)
-                TableCell(text = criteria.checkpointsCount.toString(), weight = columnWeight)
-                TableCell(text = criteria.checkpointsOrder.joinToString(), weight = checkpointsColumnWeight)
+    }
+    if (addButtonState.value) {
+        val type = DistanceType.valueOf(distanceType.value)
+        val checkpointsList = checkpoints.value.split(", ")
+        if (DB.insertDistanceOf(distance.value, type, amountCheckpoints.value.toInt(), checkpointsList)) {
+            DISTANCE_CRITERIA[distance.value] = when (DistanceType.valueOf(distanceType.value)) {
+                DistanceType.FIXED -> FixedRoute(checkpointsList)
+                DistanceType.CHOICE -> ChoiceRoute(amountCheckpoints.value.toInt(), checkpointsList)
             }
+
         }
+        addButtonState.value = false
     }
 }
 

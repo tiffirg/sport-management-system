@@ -5,8 +5,8 @@ import ru.emkn.kotlin.sms.utils.InvalidConfigData
 import ru.emkn.kotlin.sms.utils.messageAboutIncorrectDataCheckpointOfAthlete
 import java.time.Duration
 
-enum class DistanceType(val value: String) {
-    FIXED("fixed"), CHOICE("choice")
+enum class DistanceType {
+    FIXED, CHOICE
 }
 
 fun getCriteriaByType(typeName: String, count: String, checkpoints: List<String>): DistanceCriteria {
