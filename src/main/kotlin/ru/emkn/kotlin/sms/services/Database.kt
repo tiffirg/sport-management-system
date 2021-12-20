@@ -3,14 +3,17 @@ package ru.emkn.kotlin.sms.services
 import TAthlete
 import TAthletes
 import TCheckpoint
+import TCheckpointProtocol
 import TCheckpoints
 import TCheckpointsProtocols
 import TCheckpointsProtocolsToCompetitorsData
 import TCompetition
 import TCompetitions
+import TCompetitor
 import TCompetitorData
 import TCompetitors
 import TCompetitorsData
+import TDistance
 import TDistances
 import TDistancesToCheckpoints
 import TDurationAtCheckpointsToResultsGroupSplit
@@ -78,13 +81,17 @@ interface DatabaseInterface {
     fun insertTeamOf(title: String): Boolean
 
     // добавление одного спортсмена
-    fun insertAthleteOf(athlete: Athlete): Boolean
+    fun insertAthleteOf(athlete: Athlete): Int?
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
     fun checkResultsGroup(competitionId: Int): Boolean
 
     fun checkTeamResults(competitionId: Int): Boolean
+
+    fun getTeams(): List<TTeam>?
+
+    fun getAthletes(): List<Pair<Int, Athlete>>?
 
 }
 
@@ -163,6 +170,39 @@ class GeneralDatabase : DatabaseInterface {
 
         }
         return res.ifEmpty { null }
+    }
+
+    override fun getTeams(): List<TTeam>? {
+        var teams: List<TTeam>? = null
+        transaction {
+            val query = TTeam.find { TTeams.competitionId eq COMPETITION_ID }
+            if (!query.empty()) {
+                teams = query.toList()
+            }
+        }
+        return teams
+    }
+
+    override fun getAthletes(): List<Pair<Int, Athlete>>? {
+        var athletes: List<Pair<Int, Athlete>>? = null
+
+        transaction {
+            val query = TAthlete.find { TAthletes.competitionId eq COMPETITION_ID }
+            if (query.empty()) {
+                return@transaction
+            }
+            athletes = query.toList().map {
+                it.id.value to Athlete(
+                    it.name,
+                    it.surname,
+                    it.birthYear,
+                    Group(TGroup.find { TGroups.id eq it.groupId }.first().group),
+                    Rank(TRank.find { TRanks.id eq it.rankId }.first().rank),
+                    TTeam.find { TTeams.id eq it.teamId }.first().team
+                )
+            }
+        }
+        return athletes
     }
 
     // загрузка данных конфигурационного файла в базу данных
@@ -409,12 +449,11 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // добавление одного спортсмена
-    override fun insertAthleteOf(athlete: Athlete): Boolean {
-        var result = false
+    override fun insertAthleteOf(athlete: Athlete): Int? {
+        var athleteId: Int? = null
         transaction {
             val athleteQuery =
-                TAthlete.find { (TAthletes.name eq athlete.name) and (TAthletes.surname eq athlete.surname) and (TTeams.competitionId eq COMPETITION_ID) }
-                    .limit(1)
+                TAthlete.find { (TAthletes.name eq athlete.name) and (TAthletes.surname eq athlete.surname) and (TAthletes.competitionId eq COMPETITION_ID) }
             if (!athleteQuery.empty()) {
                 return@transaction
             }
@@ -430,7 +469,7 @@ class GeneralDatabase : DatabaseInterface {
 
             val rankName = athlete.rank.rankName ?: ""
             val rankQuery =
-                TRank.find { (TRanks.rank eq rankName) and (TGroups.competitionId eq COMPETITION_ID) }
+                TRank.find { (TRanks.rank eq rankName) and (TRanks.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (rankQuery.empty()) {
                 return@transaction
@@ -445,18 +484,18 @@ class GeneralDatabase : DatabaseInterface {
             }
             val newTeam = teamQuery.first()
 
-            TAthlete.new {
+            athleteId = TAthlete.new {
                 competitionId = competition.id
                 name = athlete.name
                 surname = athlete.surname
+                birthYear = athlete.birthYear
                 groupId = newGroup.id
                 rankId = newRank.id
                 teamId = newTeam.id
-            }
-            result = true
+            }.id.value
         }
-        LOGGER.debug { "Database: insertAthleteOf | $result" }
-        return result
+        LOGGER.debug { "Database: insertAthleteOf | $athleteId" }
+        return athleteId
     }
 
     // добавление участников соревнований
