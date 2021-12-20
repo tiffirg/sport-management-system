@@ -46,8 +46,8 @@ interface DatabaseInterface {
 
     // добавление одного спортсмена
     fun insertAthleteOf(
-        name: String, surname: String, birthYear: Int,
-        rankName: String, groupName: String
+        newName: String, newSurname: String, newBirthYear: Int,
+        rankName: String, groupName: String, teamName: String
     ): Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
@@ -281,6 +281,9 @@ class GeneralDatabase : DatabaseInterface {
                         TGroup.find { TGroups.group eq athlete.group.groupName }.limit(1).first()
                     val rankReference: TRank =
                         TRank.find { TRanks.rank eq (athlete.rank.rankName ?: "") }.limit(1).first()
+                    val teamReference: TTeam =
+                        TTeam.find {TTeams.team eq (athlete.teamName)}.limit(1).first()
+
                     TAthlete.new {
                         competitionId = competition.id
                         name = athlete.name
@@ -288,6 +291,7 @@ class GeneralDatabase : DatabaseInterface {
                         birthYear = athlete.birthYear
                         groupId = groupReference.id
                         rankId = rankReference.id
+                        teamId = teamReference.id
                     }
                 }
             }
@@ -318,13 +322,59 @@ class GeneralDatabase : DatabaseInterface {
 
     // добавление одного спортсмена
     override fun insertAthleteOf(
-        name: String,
-        surname: String,
-        birthYear: Int,
+        newName: String,
+        newSurname: String,
+        newBirthYear: Int,
         rankName: String,
-        groupName: String
+        groupName: String,
+        teamName: String
     ): Boolean {
-        TODO("Not yet implemented")
+        var result = false
+        transaction {
+            val athleteQuery =
+                TAthlete.find { (TAthletes.name eq newName) and (TAthletes.surname eq newSurname) and (TTeams.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (!athleteQuery.empty()) {
+                return@transaction
+            }
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+
+            val groupQuery =
+                TGroup.find { (TGroups.group eq groupName) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (groupQuery.empty()) {
+                return@transaction
+            }
+            val newGroup = groupQuery.first()
+
+            val rankQuery =
+                TRank.find { (TRanks.rank eq rankName) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (rankQuery.empty()) {
+                return@transaction
+            }
+            val newRank = rankQuery.first()
+
+            val teamQuery =
+                TTeam.find {(TTeams.team eq teamName) and (TTeams.competitionId eq COMPETITION_ID)}
+                    .limit(1)
+            if (teamQuery.empty()) {
+                return@transaction
+            }
+            val newTeam = teamQuery.first()
+
+            TAthlete.new {
+                competitionId = competition.id
+                name = newName
+                surname = newSurname
+                groupId = newGroup.id
+                rankId = newRank.id
+                teamId = newTeam.id
+            }
+            result = true
+        }
+        LOGGER.debug { "Database: insertAthleteOf | $result" }
+        return result
     }
 
     // добавление участников соревнований
@@ -400,13 +450,13 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
-
     var competitionId by TAthletes.competitionId
     var name by TAthletes.name
     var surname by TAthletes.surname
     var birthYear by TAthletes.birthYear
     var groupId by TAthletes.groupId
     var rankId by TAthletes.rankId
+    var teamId by TAthletes.teamId
 }
 
 object TTeams : IntIdTableWithCompetitionId("team") {
@@ -416,7 +466,6 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
-
     var competitionId by TTeams.competitionId
     var team by TTeams.team
 }
@@ -430,7 +479,6 @@ object TGroups : IntIdTableWithCompetitionId("group") {
 
 class TGroup(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TGroup>(TGroups)
-
     var competitionId by TGroups.competitionId
     var group by TGroups.group
     var distanceId by TGroups.distanceId
@@ -443,7 +491,6 @@ object TRanks : IntIdTableWithCompetitionId("rank") {
 
 class TRank(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TRank>(TRanks)
-
     var competitionId by TRanks.competitionId
     var rank by TRanks.rank
 }
@@ -455,7 +502,6 @@ object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
 
 class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
-
     var competitionId by TCheckpoints.competitionId
     var checkpoint by TCheckpoints.checkpoint
 }
