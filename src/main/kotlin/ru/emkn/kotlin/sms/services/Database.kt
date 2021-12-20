@@ -36,13 +36,26 @@ interface DatabaseInterface {
     fun deleteGroupOf(title: String): Boolean
 
     // изменение одной группы участников
-    fun updateGroupOf(title: String, newDistance: String) : Boolean
+    fun updateGroupOf(title: String, newDistance: String): Boolean
+
+    // добавление атлетов и команд в базу данных
+    fun insertApplications(competition: TCompetition, applications: List<Team>)
+
+    // добавление одной команды
+    fun insertTeamOf(title: String): Boolean
+
+    // добавление одного спортсмена
+    fun insertAthleteOf(
+        name: String, surname: String, birthYear: Int,
+        rankName: String, groupName: String
+    ): Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
     fun checkResultsGroup(competitionId: Int): Boolean
 
     fun checkTeamResults(competitionId: Int): Boolean
+
 }
 
 class GeneralDatabase : DatabaseInterface {
@@ -99,7 +112,7 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // загрузка данных конфигурационного файла в базу данных
-    override fun insertConfigData(): TCompetition  {
+    override fun insertConfigData(): TCompetition {
         lateinit var competition: TCompetition
         transaction {
             competition = TCompetition.new {
@@ -224,7 +237,7 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // изменение одной группы участников
-    override fun updateGroupOf(title: String, newDistance: String) : Boolean {
+    override fun updateGroupOf(title: String, newDistance: String): Boolean {
         var result = false
         transaction {
             val distanceQuery =
@@ -255,7 +268,7 @@ class GeneralDatabase : DatabaseInterface {
     override fun checkTeamResults(competitionId: Int): Boolean = false
 
     // добавление атлетов и команд в базу данных
-    fun addApplications(competition: TCompetition, applications: List<Team>) {
+    override fun insertApplications(competition: TCompetition, applications: List<Team>) {
         transaction {
             applications.forEach { application ->
                 TTeam.new {
@@ -279,6 +292,39 @@ class GeneralDatabase : DatabaseInterface {
                 }
             }
         }
+    }
+
+
+    // добавление одной команды
+    override fun insertTeamOf(title: String): Boolean {
+        var result = false
+        transaction {
+            val query =
+                TTeam.find { (TTeams.team eq title) and (TTeams.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (!query.empty()) {
+                return@transaction
+            }
+            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
+            TTeam.new {
+                competitionId = competition.id
+                team = title
+            }
+            result = true
+        }
+        LOGGER.debug { "Database: insertTeamOf | $result" }
+        return result
+    }
+
+    // добавление одного спортсмена
+    override fun insertAthleteOf(
+        name: String,
+        surname: String,
+        birthYear: Int,
+        rankName: String,
+        groupName: String
+    ): Boolean {
+        TODO("Not yet implemented")
     }
 
     // добавление участников соревнований
