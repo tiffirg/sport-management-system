@@ -294,6 +294,8 @@ fun ContentGroupResults(state: ApplicationWindowState) {
         state.stage = Stage.RESULTS
 //        val results = CommandsHandler.generateResults(teamsList)
 //        DB.insertCompetitions(startProtocols)
+        val buttonText = remember { mutableStateOf("Results") }
+        val buttonSplitState = remember { mutableStateOf(false) }
         val surfaceGradient =
             Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
         Column(Modifier.background(surfaceGradient)) {
