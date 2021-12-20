@@ -2,15 +2,17 @@ package ru.emkn.kotlin.sms.utils
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.vector.ImageVector
+import ru.emkn.kotlin.sms.gui.ApplicationWindowState
 
 fun getAppResources(): AppResources {
     return AppResources("Application \"Competition\" for Desktop")
 }
 
 val LocalAppResources = staticCompositionLocalOf<AppResources> {
-    error("LocalNotepadResources isn't provided")
+    error("LocalAppResources isn't provided")
 }
 
 data class AppResources(val titleApp: String)
@@ -30,38 +32,38 @@ abstract class ItemInformationList {
     abstract val title: String
 }
 
-class ItemTabStartProtocols: ItemTab() {
+class ItemTabStartProtocols : ItemTab() {
     override val title = "Start protocols"
     override val icon = Icons.Default.Add
 }
 
-class ItemTabGroupResults: ItemTab() {
+class ItemTabGroupResults : ItemTab() {
     override val title = "Group results"
     override val icon = Icons.Default.Add
 }
 
-class ItemTabTeamResults: ItemTab() {
+class ItemTabTeamResults : ItemTab() {
     override val title = "Team results"
     override val icon = Icons.Default.Add
 }
 
-class ItemGroups: ItemInformationList() {
+class ItemGroups : ItemInformationList() {
     override val title = "Группы"
 }
 
-class ItemDistances: ItemInformationList() {
+class ItemDistances : ItemInformationList() {
     override val title = "Дистанции"
 }
 
-class ItemTeams: ItemInformationList() {
+class ItemTeams : ItemInformationList() {
     override val title = "Команды"
 }
 
-class ItemCompetitors: ItemInformationList() {
+class ItemCompetitors : ItemInformationList() {
     override val title = "Участники"
 }
 
-class ItemCheckpoints: ItemInformationList() {
+class ItemCheckpoints : ItemInformationList() {
     override val title = "Контрольные пункты"
 }
 

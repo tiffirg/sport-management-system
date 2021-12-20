@@ -27,6 +27,8 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import kotlinx.coroutines.launch
+import ru.emkn.kotlin.sms.DB
+import ru.emkn.kotlin.sms.services.CommandsHandler
 import ru.emkn.kotlin.sms.utils.*
 import ru.emkn.kotlin.sms.utils.TypeItemTab.*
 
@@ -59,6 +61,7 @@ fun ApplicationWindow(state: ApplicationWindowState) {
                 )
             }
         }
+
     }
 }
 
@@ -91,7 +94,7 @@ private fun WindowLayout(state: ApplicationWindowState, darkTheme: MutableState<
     val itemInformationListState: MutableState<TypeItemInformationList?> = remember { mutableStateOf(null) }
     Box {
         Row {
-            SideBar(state, darkTheme, itemTabState, itemInformationListState)
+            SideBar(darkTheme, itemTabState, itemInformationListState)
             BodyContent(state, darkTheme, itemTabState, itemInformationListState)
         }
     }
@@ -99,7 +102,6 @@ private fun WindowLayout(state: ApplicationWindowState, darkTheme: MutableState<
 
 @Composable
 fun SideBar(
-    state: ApplicationWindowState,
     darkTheme: MutableState<Boolean>,
     itemTabState: MutableState<TypeItemTab?>,
     itemInformationListState: MutableState<TypeItemInformationList?>
@@ -241,7 +243,42 @@ fun CurrentTabStatus(message: String) {
 
 @Composable
 fun ContentStartsProtocols(state: ApplicationWindowState) {
+    val teamsList = DB.getTeamsWithAthletes()
+    if (teamsList == null) {
+        state.stage = Stage.CONFIG
+        CurrentTabStatus("Not Data")
+    } else {
+        val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
+        val surfaceGradient =
+            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+        Column(Modifier.background(surfaceGradient)) {
+            Scaffold(
+                Modifier.background(surfaceGradient),
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = "Start Protocols") },
+                        actions = {
+                            Row(horizontalArrangement = Arrangement.End) {
+                                Button(modifier = Modifier.padding(10.dp), onClick = {
+
+                                }) {
+                                    Text("TOSS")
+                                }
+                            }
+                        }
+                    )
+                },
+                content = {
+                    TableForStartProtocols(
+                        surfaceGradient = surfaceGradient
+                    )
+                }
+            )
+        }
+    }
+
 }
+
 
 @Composable
 fun ContentGroupResults(state: ApplicationWindowState) {
@@ -281,11 +318,11 @@ fun ContentItemInformation(state: ApplicationWindowState, typeItem: TypeItemInfo
                 )
             },
             content = {
-                    TableForItemInformationList(
-                        addButtonState = addButtonState,
-                        typeItem = typeItem,
-                        surfaceGradient = surfaceGradient
-                    )
+                TableForItemInformationList(
+                    addButtonState = addButtonState,
+                    typeItem = typeItem,
+                    surfaceGradient = surfaceGradient
+                )
             }
         )
     }
