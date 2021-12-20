@@ -28,6 +28,9 @@ fun TableForItemInformationList(
     typeItem: TypeItemInformationList,
     surfaceGradient: Brush
 ) {
+    if (state.stage == Stage.CONFIG && DB.checkStartsProtocols(COMPETITION_ID)) {
+        state.stage = Stage.START_PROTOCOLS
+    }
     Column {
         when (typeItem) {
             TypeItemInformationList.ITEM_GROUPS -> showGroups(addButtonState, surfaceGradient)
@@ -44,6 +47,7 @@ fun TableForItemInformationList(
 
 @Composable
 fun showGroups(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
+    val columnWeight = .5f
     val group = remember { mutableStateOf("") }
     val distance = remember { mutableStateOf("") }
     Row(Modifier.fillMaxWidth()) {
@@ -52,7 +56,6 @@ fun showGroups(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
     }
     Box(Modifier.background(surfaceGradient)) {
         LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-            val columnWeight = .5f
             item {
                 Row(Modifier.background(Color.Gray)) {
                     TableHeaderCell(text = "Group", weight = columnWeight)
@@ -175,8 +178,8 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
     val rank = remember { mutableStateOf("") }
     val team = remember { mutableStateOf("") }
     Row(Modifier.fillMaxWidth()) {
-        TableAddCell(name, weight = columnWeight)
         TableAddCell(surname, weight = columnWeight)
+        TableAddCell(name, weight = columnWeight)
         TableAddCell(birthYear, weight = columnWeight)
         TableAddCell(group, weight = columnWeight)
         TableAddCell(rank, weight = columnWeight)
@@ -187,9 +190,9 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
 
             item {
                 Row(Modifier.background(Color.Gray)) {
-                    TableHeaderCell(text = "Name", weight = columnWeight)
                     TableHeaderCell(text = "Surname", weight = columnWeight)
-                    TableHeaderCell(text = "Birth Year", weight = columnWeight)
+                    TableHeaderCell(text = "Name", weight = columnWeight)
+                    TableHeaderCell(text = "Birth year", weight = columnWeight)
                     TableHeaderCell(text = "Group", weight = columnWeight)
                     TableHeaderCell(text = "Rank", weight = columnWeight)
                     TableHeaderCell(text = "Team", weight = columnWeight)
@@ -197,8 +200,8 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
             }
             items(competitors) { (id, competitor) ->
                 Row(Modifier.fillMaxWidth()) {
-                    TableCell(text = competitor.name, weight = columnWeight)
                     TableCell(text = competitor.surname, weight = columnWeight)
+                    TableCell(text = competitor.name, weight = columnWeight)
                     TableCell(text = competitor.birthYear.toString(), weight = columnWeight)
                     TableCell(text = competitor.group.groupName, weight = columnWeight)
                     TableCell(text = competitor.rank.rankName ?: "null", weight = columnWeight)
@@ -209,8 +212,8 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
     }
     if (addButtonState.value) {
         val athlete = Athlete(
-            name.value,
             surname.value,
+            name.value,
             birthYear.value.toInt(),
             Group(group.value),
             Rank(rank.value),

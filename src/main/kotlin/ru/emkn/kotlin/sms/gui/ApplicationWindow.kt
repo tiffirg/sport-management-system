@@ -210,19 +210,20 @@ fun BodyContent(
 ) {
     if (state.stage == Stage.NO_CONFIG) {
         CurrentTabStatus("Select config")
-    }
-    val itemInformationList = itemInformationListState.value
-    if (itemInformationList != null) {
-        Crossfade(targetState = itemInformationListState) {
-            ContentItemInformation(state, itemInformationList)
-        }
     } else {
-        Crossfade(targetState = itemTabState) {
-            when {
-                state.stage == Stage.CONFIG -> CurrentTabStatus("Load Data")
-                itemTabState.value == START_PROTOCOLS -> ContentStartsProtocols(state)
-                itemTabState.value == GROUP_RESULTS -> ContentGroupResults(state)
-                itemTabState.value == TEAM_RESULTS -> ContentTeamResults(state)
+        val itemInformationList = itemInformationListState.value
+        if (itemInformationList != null) {
+            Crossfade(targetState = itemInformationListState) {
+                ContentItemInformation(state, itemInformationList)
+            }
+        } else {
+            Crossfade(targetState = itemTabState) {
+                when {
+                    state.stage == Stage.CONFIG -> CurrentTabStatus("Load Data")
+                    itemTabState.value == START_PROTOCOLS -> ContentStartsProtocols(state)
+                    itemTabState.value == GROUP_RESULTS -> ContentGroupResults(state)
+                    itemTabState.value == TEAM_RESULTS -> ContentTeamResults(state)
+                }
             }
         }
     }
@@ -248,6 +249,7 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
         CurrentTabStatus("Not Data")
     } else {
         val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
+        DB.insertCompetitions(startProtocols)
         val surfaceGradient =
             Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
         Column(Modifier.background(surfaceGradient)) {

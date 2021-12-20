@@ -5,16 +5,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import ru.emkn.kotlin.sms.DB
+import ru.emkn.kotlin.sms.TimeFormatter
 
 @Composable
 fun TableForStartProtocols(surfaceGradient: Brush) {
+    val columnWeight = .12f
+    val competitors = remember { DB.getCompetitors().toMutableStateList() }
     Box(Modifier.background(surfaceGradient)) {
         LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-            val columnWeight = .5f
             item {
                 Row(Modifier.background(Color.Gray)) {
                     TableHeaderCell(text = "Competition Number", weight = columnWeight)
@@ -27,13 +33,19 @@ fun TableForStartProtocols(surfaceGradient: Brush) {
                     TableHeaderCell(text = "Team", weight = columnWeight)
                 }
             }
-//            items(GROUP_DISTANCES.toList()) {
-//                val (group, distance) = it
-//                Row(Modifier.fillMaxWidth()) {
-//                    TableCell(text = group, weight = columnWeight)
-//                    TableCell(text = distance, weight = columnWeight)
-//                }
-//            }
+            items(competitors) {
+                val (_, competitor) = it
+                Row(Modifier.fillMaxWidth()) {
+                    TableHeaderCell(text = competitor.athleteNumber.toString(), weight = columnWeight)
+                    TableHeaderCell(text = competitor.startTime.format(TimeFormatter), weight = columnWeight)
+                    TableHeaderCell(text = competitor.name, weight = columnWeight)
+                    TableHeaderCell(text = competitor.surname, weight = columnWeight)
+                    TableHeaderCell(text = competitor.birthYear.toString(), weight = columnWeight)
+                    TableHeaderCell(text = competitor.rank.rankName ?: "", weight = columnWeight)
+                    TableHeaderCell(text = competitor.group.groupName, weight = columnWeight)
+                    TableHeaderCell(text = competitor.teamName, weight = columnWeight)
+                }
+            }
         }
     }
 }

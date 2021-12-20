@@ -34,14 +34,6 @@ import ru.emkn.kotlin.sms.classes.*
 import java.io.File
 import java.time.LocalTime
 
-
-fun main() {
-    val db = GeneralDatabase()
-    initConfig("src/test/resources/config.yaml")
-    db.insertConfigData()
-    db.installConfigData(1)
-}
-
 data class CheckpointRecord(val competitorNumber: Int, val checkpoint: String, val timeMeasurement: LocalTime)
 
 interface DatabaseInterface {
@@ -91,7 +83,7 @@ interface DatabaseInterface {
     fun insertAthleteOf(athlete: Athlete): Int?
 
     // добавление участников соревнований
-    fun insertProtocolsStart(data: List<CompetitorsGroup>) : Boolean
+    fun insertCompetitions(data: List<CompetitorsGroup>) : Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
@@ -102,41 +94,22 @@ interface DatabaseInterface {
     fun getTeams(): List<TTeam>?
 
     fun getAthletes(): List<Pair<Int, Athlete>>?
+
+    fun getCompetitor(tCompetitor: TCompetitor) : Competitor?
 }
 
 class GeneralDatabase : DatabaseInterface {
     private val dbPath = "database/competitions"
     private val db: Database
 
-
-    fun getAthlete(tAthlete: TAthlete) : Athlete? {
-        lateinit var group: TGroup
-        lateinit var team: TTeam
-        lateinit var rank: TRank
-        var success = false
-        transaction {
-            group = TGroup.findById(tAthlete.groupId) ?: return@transaction
-            team = TTeam.findById(tAthlete.teamId) ?: return@transaction
-            rank = TRank.findById(tAthlete.rankId) ?: return@transaction
-            success = true
-        }
-
-        return try {
-            assert(success)
-            Athlete(tAthlete.surname, tAthlete.name, tAthlete.birthYear, Group(group.group), Rank(rank.rank), team.team)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun getCompetitor(tCompetitor: TCompetitor) : Competitor? {
+    override fun getCompetitor(tCompetitor: TCompetitor) : Competitor? {
         lateinit var tAthlete: TAthlete
         var success = false
         transaction {
             tAthlete = TAthlete.findById(tCompetitor.athleteId) ?: return@transaction
             success = true
         }
-        val athlete : Athlete = getAthlete(tAthlete) ?: return null
+        val athlete : Athlete = athleteFromTAthlete(tAthlete)
         return try {
             assert(success)
             Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete)
@@ -310,7 +283,7 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     private fun athleteFromTAthlete(tAthlete: TAthlete) = Athlete(
-        tAthlete.name, tAthlete.surname, tAthlete.birthYear,
+        tAthlete.surname, tAthlete.name, tAthlete.birthYear,
         Group(TGroup.find { TGroups.id eq tAthlete.groupId }.first().group),
         Rank(TRank.find { TRanks.id eq tAthlete.rankId }.first().rank),
         TTeam.find { TTeams.id eq tAthlete.teamId }.first().team
@@ -620,15 +593,14 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // добавление участников соревнований
-    override fun insertProtocolsStart(data: List<CompetitorsGroup>) : Boolean {
+    override fun insertCompetitions(data: List<CompetitorsGroup>) : Boolean {
         var result = false
         transaction {
-            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
             data.forEach { competitorsGroup ->
                 competitorsGroup.competitors.forEach { competitor ->
                     val athleteQuery = TAthlete.find {
-                        (TAthletes.competitionId eq competition.id)  and (TAthletes.surname eq competitor.surname)
-                    }.limit(1)
+                        (TAthletes.competitionId eq COMPETITION_ID) and (TAthletes.surname eq competitor.surname)
+                    }
                     if (athleteQuery.empty()) {
                         throw IllegalStateException("Athlete ${competitor.surname} is not stored in database")
                     }
