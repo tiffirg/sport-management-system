@@ -699,4 +699,3 @@ object TResultsTeam : IntIdTable("resultsGroup") {
     val place = integer("place")
     val score = integer("score")
 }
-
