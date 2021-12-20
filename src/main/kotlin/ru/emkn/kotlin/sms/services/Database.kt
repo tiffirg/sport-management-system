@@ -32,10 +32,12 @@ interface DatabaseInterface {
     // добавление одной группы участников в базу данных
     fun insertGroupOf(title: String, distance: String): Boolean
 
-    fun insertDistanceOf(title: String,
-                         distanceType: DistanceType,
-                         amountCheckpoints: Int,
-                         checkpoints: List<String>): Boolean
+    fun insertDistanceOf(
+        title: String,
+        distanceType: DistanceType,
+        amountCheckpoints: Int,
+        checkpoints: List<String>
+    ): Boolean
 
     // удаление одной группы участников из базы данных
     fun deleteGroupOf(title: String): Boolean
@@ -54,6 +56,10 @@ interface DatabaseInterface {
         newName: String, newSurname: String, newBirthYear: Int,
         rankName: String, groupName: String, teamName: String
     ): Boolean
+
+    fun getTeams(): List<TTeam>?
+
+    fun getAthletes(): List<Pair<Int, Athlete>>?
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
@@ -184,7 +190,8 @@ class GeneralDatabase : DatabaseInterface {
             val dataDistanceGroup = TDistance.find { TDistances.competitionId eq competitionId }
             RANK_NAMES = TRank.find { TRanks.competitionId eq competitionId }.mapTo(mutableListOf()) { it.rank }
             GROUP_NAMES = dataGroupTable.mapTo(mutableListOf()) { it.group }
-            CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }.mapTo(mutableListOf()) { it.checkpoint }
+            CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }
+                .mapTo(mutableListOf()) { it.checkpoint }
             GROUP_DISTANCES = dataGroupTable.associateTo(mutableMapOf()) {
                 it.group to TDistance.find { (TDistances.id eq it.distanceId) and (TDistances.competitionId eq competitionId) }
                     .limit(1).first().distance
@@ -198,6 +205,39 @@ class GeneralDatabase : DatabaseInterface {
             }
         }
 
+    }
+
+    override fun getTeams(): List<TTeam>? {
+        var teams: List<TTeam>? = null
+        transaction {
+            val query = TTeam.find { TTeams.competitionId eq COMPETITION_ID }
+            if (!query.empty()) {
+                teams = query.toList()
+            }
+        }
+        return teams
+    }
+
+    override fun getAthletes(): List<Pair<Int, Athlete>>? {
+        var athletes: List<Pair<Int, Athlete>>? = null
+
+        transaction {
+            val query = TAthlete.find { TAthletes.competitionId eq COMPETITION_ID }
+            if (query.empty()) {
+                return@transaction
+            }
+            athletes = query.toList().map {
+                it.id.value to Athlete(
+                    it.name,
+                    it.surname,
+                    it.birthYear,
+                    Group(TGroup.find { TGroups.id eq it.groupId }.first().group),
+                    Rank(TRank.find { TGroups.id eq it.groupId }.first().rank),
+                    TGroup.find { TGroups.id eq it.groupId }.first().group
+                )
+            }
+        }
+        return athletes
     }
 
     // добавление одной группы участников в базу данных
@@ -287,7 +327,7 @@ class GeneralDatabase : DatabaseInterface {
                     val rankReference: TRank =
                         TRank.find { TRanks.rank eq (athlete.rank.rankName ?: "") }.limit(1).first()
                     val teamReference: TTeam =
-                        TTeam.find {TTeams.team eq (athlete.teamName)}.limit(1).first()
+                        TTeam.find { TTeams.team eq (athlete.teamName) }.limit(1).first()
 
                     TAthlete.new {
                         competitionId = competition.id
@@ -302,7 +342,6 @@ class GeneralDatabase : DatabaseInterface {
             }
         }
     }
-
 
     // добавление одной команды
     override fun insertTeamOf(title: String): Boolean {
@@ -361,7 +400,7 @@ class GeneralDatabase : DatabaseInterface {
             val newRank = rankQuery.first()
 
             val teamQuery =
-                TTeam.find {(TTeams.team eq teamName) and (TTeams.competitionId eq COMPETITION_ID)}
+                TTeam.find { (TTeams.team eq teamName) and (TTeams.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (teamQuery.empty()) {
                 return@transaction
@@ -406,8 +445,7 @@ class GeneralDatabase : DatabaseInterface {
 
                 }
                 tDistance.checkpoints = SizedCollection(tCheckpointsList)
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 LOGGER.debug { e }
                 result = false
             }
@@ -489,6 +527,7 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
+
     var competitionId by TAthletes.competitionId
     var name by TAthletes.name
     var surname by TAthletes.surname
@@ -505,6 +544,7 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
+
     var competitionId by TTeams.competitionId
     var team by TTeams.team
 }
@@ -518,6 +558,7 @@ object TGroups : IntIdTableWithCompetitionId("group") {
 
 class TGroup(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TGroup>(TGroups)
+
     var competitionId by TGroups.competitionId
     var group by TGroups.group
     var distanceId by TGroups.distanceId
@@ -530,6 +571,7 @@ object TRanks : IntIdTableWithCompetitionId("rank") {
 
 class TRank(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TRank>(TRanks)
+
     var competitionId by TRanks.competitionId
     var rank by TRanks.rank
 }
@@ -541,6 +583,7 @@ object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
 
 class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
+
     var competitionId by TCheckpoints.competitionId
     var checkpoint by TCheckpoints.checkpoint
 }

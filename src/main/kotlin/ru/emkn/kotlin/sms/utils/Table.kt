@@ -130,7 +130,7 @@ fun showDistances(addButtonState: MutableState<Boolean>, surfaceGradient: Brush)
 @Composable
 fun showTeams(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
     val columnWeight = .5f
-    val teams = remember { mutableStateListOf<String>() }
+    val teams = remember { DB.getTeams()?.map { it.team }?.toMutableStateList() ?: mutableStateListOf() }
     val team = remember { mutableStateOf("") }
     val info = remember { mutableStateOf("") }
     Row(Modifier.fillMaxWidth()) {
@@ -155,7 +155,7 @@ fun showTeams(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
     }
     if (addButtonState.value) {
         if (DB.insertTeamOf(team.value)) {
-            TODO()
+            teams.add(team.value)
         }
         addButtonState.value = false
     }
@@ -165,7 +165,7 @@ fun showTeams(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
 @Composable
 fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
     val columnWeight = .15f
-    val competitors = remember { mutableStateListOf<Athlete>() }
+    val competitors = remember { DB.getAthletes()?.toMutableStateList() ?: mutableStateListOf() }
     val name = remember { mutableStateOf("") }
     val surname = remember { mutableStateOf("") }
     val birthYear = remember { mutableStateOf("") }
@@ -193,7 +193,7 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
                     TableHeaderCell(text = "Team", weight = columnWeight)
                 }
             }
-            items(competitors) { competitor ->
+            items(competitors) { (id, competitor) ->
                 Row(Modifier.fillMaxWidth()) {
                     TableCell(text = competitor.name, weight = columnWeight)
                     TableCell(text = competitor.surname, weight = columnWeight)
