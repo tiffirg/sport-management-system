@@ -262,19 +262,19 @@ class GeneralDatabase : DatabaseInterface {
 
             val competitorQuery = TCompetitor.find { TCompetitors.competitorNumber eq competitorNumber }.limit(1)
             if (competitorQuery.empty()) {
-                return@transaction
+                throw IllegalStateException("insertCheckpointOf: empty competition query")
             }
             val competitor = competitorQuery.first()
 
             val competitorDataQuery = TCompetitorData.find { TCompetitorsData.competitorId eq competitor.id }.limit(1)
             if (competitorDataQuery.empty()) {
-                return@transaction
+                throw IllegalStateException("insertCheckpointOf: empty CompetitorData query")
             }
             tCompetitorData = competitorDataQuery.first()
 
             val checkpointQuery = TCheckpoint.find { TCheckpoints.checkpoint eq checkpointString }.limit(1)
             if (checkpointQuery.empty()) {
-                return@transaction
+                throw IllegalStateException("insertCheckpointOf: empty checkpoint query")
             }
             val checkpoint = checkpointQuery.first()
             tCheckpointProtocol = TCheckpointProtocol.new {
@@ -282,6 +282,7 @@ class GeneralDatabase : DatabaseInterface {
                 checkpointId = checkpoint.id
                 timeMeasurement = timeMeasurementString
             }
+            println("added new checkpointProtocol")
         }
         transaction {
             if (tCheckpointProtocol != null && tCompetitorData != null) {
@@ -289,8 +290,8 @@ class GeneralDatabase : DatabaseInterface {
                     checkpointProtocolId = tCheckpointProtocol!!.id
                     competitorDataId = tCompetitorData!!.id
                 }
+                result = true
             }
-            result = true
         }
         return result
     }
