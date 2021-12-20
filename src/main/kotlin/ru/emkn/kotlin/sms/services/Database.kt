@@ -32,6 +32,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import ru.emkn.kotlin.sms.*
 import ru.emkn.kotlin.sms.classes.*
 import java.io.File
+import java.time.LocalTime
 
 
 fun main() {
@@ -41,7 +42,7 @@ fun main() {
     db.installConfigData(1)
 }
 
-data class CheckpointRecord(val competitorNumber: Int, val checkpoint: String, val timeMeasurement: String)
+data class CheckpointRecord(val competitorNumber: Int, val checkpoint: String, val timeMeasurement: LocalTime)
 
 interface DatabaseInterface {
 
@@ -170,7 +171,7 @@ class GeneralDatabase : DatabaseInterface {
                             ?: throw IllegalStateException("getCheckpoints: no such competitorData in the database")
                     val competitor = TCompetitor.findById(competitorData.competitorId)
                         ?: throw IllegalStateException("getCheckpoints: no such competitor in the database")
-                    val record = CheckpointRecord(competitor.competitorNumber, checkpointString, timeMeasurement)
+                    val record = CheckpointRecord(competitor.competitorNumber, checkpointString, LocalTime.parse(timeMeasurement, TimeFormatter))
                     res.add(record)
                 }
             }
@@ -184,7 +185,7 @@ class GeneralDatabase : DatabaseInterface {
         var result = false
         val competitorNumber = record.competitorNumber
         val checkpointString = record.checkpoint
-        val timeMeasurementString = record.timeMeasurement
+        val timeMeasurementString = record.timeMeasurement.format(TimeFormatter)
         lateinit var tCompetitorData: TCompetitorData
         lateinit var tCheckpointProtocol: TCheckpointProtocol
         transaction {

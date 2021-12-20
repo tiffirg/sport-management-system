@@ -318,6 +318,7 @@ fun ContentItemInformation(state: ApplicationWindowState, typeItem: TypeItemInfo
             },
             content = {
                 TableForItemInformationList(
+                    state,
                     addButtonState = addButtonState,
                     typeItem = typeItem,
                     surfaceGradient = surfaceGradient
