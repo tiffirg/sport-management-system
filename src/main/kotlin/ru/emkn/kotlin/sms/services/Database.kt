@@ -55,6 +55,9 @@ interface DatabaseInterface {
     // добавить запись об одном чекпоинте
     fun insertCheckpointOf(record: CheckpointRecord) : Boolean
 
+    // получить данные о всех участниках
+    fun getCompetitors(): List<Pair<Int, Competitor>>
+
     // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
 
@@ -104,6 +107,44 @@ interface DatabaseInterface {
 class GeneralDatabase : DatabaseInterface {
     private val dbPath = "database/competitions"
     private val db: Database
+
+
+    fun getAthlete(tAthlete: TAthlete) : Athlete? {
+        lateinit var group: TGroup
+        lateinit var team: TTeam
+        lateinit var rank: TRank
+        var success = false
+        transaction {
+            group = TGroup.findById(tAthlete.groupId) ?: return@transaction
+            team = TTeam.findById(tAthlete.teamId) ?: return@transaction
+            rank = TRank.findById(tAthlete.rankId) ?: return@transaction
+            success = true
+        }
+
+        return try {
+            assert(success)
+            Athlete(tAthlete.surname, tAthlete.name, tAthlete.birthYear, Group(group.group), Rank(rank.rank), team.team)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getCompetitor(tCompetitor: TCompetitor) : Competitor? {
+        lateinit var tAthlete: TAthlete
+        var success = false
+        transaction {
+            tAthlete = TAthlete.findById(tCompetitor.athleteId) ?: return@transaction
+            success = true
+        }
+        val athlete : Athlete = getAthlete(tAthlete) ?: return null
+        return try {
+            assert(success)
+            Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 
     // создание базы данных: подключение файла с базой данных и создание логгера
     init {
@@ -218,6 +259,26 @@ class GeneralDatabase : DatabaseInterface {
                 competitorDataId = tCompetitorData.id
             }
             result = true
+        }
+        return result
+    }
+
+    // получить данные о всех участниках
+    override fun getCompetitors(): List<Pair<Int, Competitor>> {
+        val result = mutableListOf<Pair<Int, Competitor>>()
+        transaction {
+            val competition = TCompetition.findById(COMPETITION_ID)
+                ?: throw IllegalStateException("getCompetitors: no such competitor")
+            TCompetitor.all().forEach { tCompetitor ->
+                val tAthlete = TAthlete.findById(tCompetitor.athleteId)
+                    ?: throw IllegalStateException("getCompetitors: competitor ${tCompetitor.competitorNumber} stores reference on nonexistent athlete")
+               if (tAthlete.competitionId == competition.id)  {
+                   val competitor = getCompetitor(tCompetitor)
+                   if (competitor != null) {
+                       result.add(Pair(tCompetitor.id.value, competitor))
+                   }
+               }
+            }
         }
         return result
     }
