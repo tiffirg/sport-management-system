@@ -285,7 +285,7 @@ class GeneralDatabase : DatabaseInterface {
                 checkpointId = checkpoint.id
                 timeMeasurement = timeMeasurementString
             }
-            println("added new checkpointProtocol")
+            LOGGER.debug { "Added new checkpoint" }
         }
         transaction {
             if (tCheckpointProtocol != null && tCompetitorData != null) {

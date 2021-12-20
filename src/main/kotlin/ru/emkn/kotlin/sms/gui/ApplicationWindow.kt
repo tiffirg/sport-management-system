@@ -27,6 +27,7 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import kotlinx.coroutines.launch
+import ru.emkn.kotlin.sms.COMPETITION_ID
 import ru.emkn.kotlin.sms.DB
 import ru.emkn.kotlin.sms.services.CommandsHandler
 import ru.emkn.kotlin.sms.utils.*
@@ -248,8 +249,11 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
         state.stage = Stage.CONFIG
         CurrentTabStatus("Not Data")
     } else {
-        val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
-        DB.insertCompetitors(startProtocols)
+        val competitors = DB.getCompetitors()
+        if (competitors.isEmpty()) {
+            val startProtocols = CommandsHandler.startProtocolsGeneration(teamsList)
+            DB.insertCompetitors(startProtocols)
+        }
         val surfaceGradient =
             Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
         Column(Modifier.background(surfaceGradient)) {
@@ -271,6 +275,7 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
                 },
                 content = {
                     TableForStartProtocols(
+                        competitors,
                         surfaceGradient = surfaceGradient
                     )
                 }
@@ -283,12 +288,59 @@ fun ContentStartsProtocols(state: ApplicationWindowState) {
 
 @Composable
 fun ContentGroupResults(state: ApplicationWindowState) {
-
+    if (!DB.checkResultsGroup(COMPETITION_ID)) {
+        CurrentTabStatus("Not Data")
+    } else {
+        state.stage = Stage.RESULTS
+//        val results = CommandsHandler.generateResults(teamsList)
+//        DB.insertCompetitions(startProtocols)
+        val buttonText = remember { mutableStateOf("Results") }
+        val buttonSplitState = remember { mutableStateOf(false) }
+        val surfaceGradient =
+            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+        Column(Modifier.background(surfaceGradient)) {
+            Scaffold(
+                Modifier.background(surfaceGradient),
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = "Group Results") },
+                        actions = {
+                            Row(horizontalArrangement = Arrangement.End) {
+                                Button(modifier = Modifier.padding(10.dp), onClick = {
+                                }) {
+                                    Text("SPLITS")
+                                }
+                            }
+                        }
+                    )
+                },
+                content = {
+                    TableForGroupResults(surfaceGradient)
+                }
+            )
+        }
+    }
 }
 
 @Composable
 fun ContentTeamResults(state: ApplicationWindowState) {
-
+    if (state.stage == Stage.RESULTS) {
+        val surfaceGradient =
+            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+        Column(Modifier.background(surfaceGradient)) {
+            Scaffold(
+                Modifier.background(surfaceGradient),
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = "Team Results") }
+                    )
+                },
+                content = {
+                    TableForTeamResults(surfaceGradient)
+                }
+            )
+        }
+    }
 }
 
 @Composable

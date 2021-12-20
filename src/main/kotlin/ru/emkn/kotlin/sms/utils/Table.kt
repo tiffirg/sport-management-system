@@ -28,7 +28,7 @@ fun TableForItemInformationList(
     typeItem: TypeItemInformationList,
     surfaceGradient: Brush
 ) {
-    if (state.stage == Stage.CONFIG && DB.checkStartsProtocols(COMPETITION_ID)) {
+    if (state.stage == Stage.CONFIG && DB.checkStartsProtocols(COMPETITION_ID) && state.stage != Stage.RESULTS) {
         state.stage = Stage.START_PROTOCOLS
     }
     Column {
@@ -38,7 +38,7 @@ fun TableForItemInformationList(
             TypeItemInformationList.ITEM_TEAMS -> showTeams(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_COMPETITORS -> showCompetitors(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_CHECKPOINTS -> when(state.stage) {
-                Stage.START_PROTOCOLS -> showCheckpoints(addButtonState, surfaceGradient)
+                Stage.START_PROTOCOLS, Stage.RESULTS -> showCheckpoints(addButtonState, surfaceGradient)
                 else -> CurrentTabStatus("It is required to fill in data by columns: Team, Competitors")
             }
         }
@@ -211,6 +211,7 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
         }
     }
     if (addButtonState.value) {
+        DB.deleteCompetitors()
         val athlete = Athlete(
             surname.value,
             name.value,
@@ -230,6 +231,7 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
 @Composable
 fun showCheckpoints(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
     val columnWeight = .33f
+    LOGGER.debug { "Use getCheckpoints | ${DB.getCheckpoints()}" }
     val checkpoints = remember { DB.getCheckpoints()?.toMutableStateList() ?: mutableStateListOf() }
     val competitionNumber = remember { mutableStateOf("") }
     val checkpoint = remember { mutableStateOf("") }
@@ -265,6 +267,7 @@ fun showCheckpoints(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
             LocalTime.parse(timeMeasurement.value, TimeFormatter)
         )
         val result = DB.insertCheckpointOf(checkpointRecord)
+        LOGGER.debug { "Use insertCheckpointOf | $result" }
         if (result) {
             checkpoints.add(checkpointRecord)
         }

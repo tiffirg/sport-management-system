@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
@@ -14,11 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import ru.emkn.kotlin.sms.DB
 import ru.emkn.kotlin.sms.TimeFormatter
+import ru.emkn.kotlin.sms.classes.Competitor
 
 @Composable
-fun TableForStartProtocols(surfaceGradient: Brush) {
+fun TableForStartProtocols(competitorsList: List<Pair<Int, Competitor>>, surfaceGradient: Brush) {
     val columnWeight = .12f
-    val competitors = remember { DB.getCompetitors().toMutableStateList() }
+    val competitors = remember { competitorsList.toMutableStateList() }
     Box(Modifier.background(surfaceGradient)) {
         LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
             item {
@@ -48,4 +48,12 @@ fun TableForStartProtocols(surfaceGradient: Brush) {
             }
         }
     }
+}
+
+@Composable
+fun TableForGroupResults(surfaceGradient: Brush) {
+}
+
+@Composable
+fun TableForTeamResults(surfaceGradient: Brush) {
 }
