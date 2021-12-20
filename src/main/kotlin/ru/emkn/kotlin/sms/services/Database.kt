@@ -268,7 +268,10 @@ class GeneralDatabase : DatabaseInterface {
 
             val competitorDataQuery = TCompetitorData.find { TCompetitorsData.competitorId eq competitor.id }.limit(1)
             if (competitorDataQuery.empty()) {
-                throw IllegalStateException("insertCheckpointOf: empty CompetitorData query")
+                tCompetitorData = TCompetitorData.new {
+                    competitorId = competitor.id
+                    isRemoved = false
+                }
             }
             tCompetitorData = competitorDataQuery.first()
 
