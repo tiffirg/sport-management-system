@@ -12,14 +12,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import ru.emkn.kotlin.sms.DB
-import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
-import ru.emkn.kotlin.sms.GROUP_DISTANCES
-import ru.emkn.kotlin.sms.GROUP_NAMES
+import ru.emkn.kotlin.sms.*
 import ru.emkn.kotlin.sms.classes.*
+import ru.emkn.kotlin.sms.gui.ApplicationState
+import ru.emkn.kotlin.sms.gui.ApplicationWindowState
+import ru.emkn.kotlin.sms.gui.CurrentTabStatus
+import ru.emkn.kotlin.sms.gui.Stage
+import ru.emkn.kotlin.sms.services.CheckpointRecord
+import java.time.LocalTime
 
 @Composable
 fun TableForItemInformationList(
+    state: ApplicationWindowState,
     addButtonState: MutableState<Boolean>,
     typeItem: TypeItemInformationList,
     surfaceGradient: Brush
@@ -30,7 +34,10 @@ fun TableForItemInformationList(
             TypeItemInformationList.ITEM_DISTANCES -> showDistances(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_TEAMS -> showTeams(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_COMPETITORS -> showCompetitors(addButtonState, surfaceGradient)
-            TypeItemInformationList.ITEM_CHECKPOINTS -> showCheckpoints(addButtonState, surfaceGradient)
+            TypeItemInformationList.ITEM_CHECKPOINTS -> when(state.stage) {
+                Stage.START_PROTOCOLS -> showCheckpoints(addButtonState, surfaceGradient)
+                else -> CurrentTabStatus("It is required to fill in data by columns: Team, Competitors")
+            }
         }
     }
 }
@@ -219,41 +226,44 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
 
 @Composable
 fun showCheckpoints(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
-    val columnWeight = .15f
-    val competitors = remember { mutableStateListOf<Athlete>() }
-    val team = remember { mutableStateOf("") }
-    val info = remember { mutableStateOf("") }
+    val columnWeight = .33f
+    val checkpoints = remember { DB.getCheckpoints()?.toMutableStateList() ?: mutableStateListOf() }
+    val competitionNumber = remember { mutableStateOf("") }
+    val checkpoint = remember { mutableStateOf("") }
+    val timeMeasurement = remember { mutableStateOf("") }
     Row(Modifier.fillMaxWidth()) {
-        TableAddCell(team, weight = columnWeight)
-        TableAddCell(info, weight = columnWeight)
+        TableAddCell(competitionNumber, weight = columnWeight)
+        TableAddCell(checkpoint, weight = columnWeight)
+        TableAddCell(timeMeasurement, weight = columnWeight)
     }
     Box(Modifier.background(surfaceGradient)) {
         LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+
             item {
                 Row(Modifier.background(Color.Gray)) {
-                    TableHeaderCell(text = "Name", weight = columnWeight)
-                    TableHeaderCell(text = "Surname", weight = columnWeight)
-                    TableHeaderCell(text = "Birth Year", weight = columnWeight)
-                    TableHeaderCell(text = "Group", weight = columnWeight)
-                    TableHeaderCell(text = "Rank", weight = columnWeight)
-                    TableHeaderCell(text = "Team", weight = columnWeight)
+                    TableHeaderCell(text = "Competition Number", weight = columnWeight)
+                    TableHeaderCell(text = "Checkpoint", weight = columnWeight)
+                    TableHeaderCell(text = "Time Measurement", weight = columnWeight)
                 }
             }
-            items(competitors) { competitor ->
+            items(checkpoints) {
                 Row(Modifier.fillMaxWidth()) {
-                    TableCell(text = competitor.name, weight = columnWeight)
-                    TableCell(text = competitor.surname, weight = columnWeight)
-                    TableCell(text = competitor.birthYear.toString(), weight = columnWeight)
-                    TableCell(text = competitor.group.groupName, weight = columnWeight)
-                    TableCell(text = competitor.rank.rankName ?: "null", weight = columnWeight)
-                    TableCell(text = competitor.teamName, weight = columnWeight)
+                    TableCell(text = it.competitorNumber.toString(), weight = columnWeight)
+                    TableCell(text = it.checkpoint, weight = columnWeight)
+                    TableCell(text = it.timeMeasurement.format(TimeFormatter), weight = columnWeight)
                 }
             }
         }
     }
     if (addButtonState.value) {
-        if (DB.insertTeamOf(team.value)) {
-            TODO()
+        val checkpointRecord = CheckpointRecord(
+            competitionNumber.value.toInt(),
+            checkpoint.value,
+            LocalTime.parse(timeMeasurement.value, TimeFormatter)
+        )
+        val result = DB.insertCheckpointOf(checkpointRecord)
+        if (result) {
+            checkpoints.add(checkpointRecord)
         }
         addButtonState.value = false
     }

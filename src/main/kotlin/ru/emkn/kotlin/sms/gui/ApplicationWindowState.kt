@@ -39,6 +39,7 @@ class ApplicationWindowState(
             if (competitionDb != null) {
                 COMPETITION_ID = competitionDb.id.value
                 DB.installConfigData(competitionDb.id.value)
+                LOGGER.debug { "checkStartsProtocols | ${DB.checkStartsProtocols(competitionDb.id.value)}" }
                 stage = when {
                     DB.checkStartsProtocols(competitionDb.id.value) -> Stage.START_PROTOCOLS
                     DB.checkResultsGroup(competitionDb.id.value) -> Stage.GROUP_RESULTS

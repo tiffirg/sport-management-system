@@ -17,7 +17,7 @@ fun TableForStartProtocols(surfaceGradient: Brush) {
             val columnWeight = .5f
             item {
                 Row(Modifier.background(Color.Gray)) {
-                    TableHeaderCell(text = "Athlete Number", weight = columnWeight)
+                    TableHeaderCell(text = "Competition Number", weight = columnWeight)
                     TableHeaderCell(text = "Start Time", weight = columnWeight)
                     TableHeaderCell(text = "Surname", weight = columnWeight)
                     TableHeaderCell(text = "Name", weight = columnWeight)
