@@ -39,7 +39,7 @@ class ApplicationWindowState(
             val competitionDb = DB.getCompetition(EVENT_NAME)
             if (competitionDb != null) {
                 COMPETITION_ID = competitionDb.id.value
-                DB.installConfig(competitionDb.id.value)
+                DB.installConfigData(competitionDb.id.value)
                 stage = when {
                     DB.checkStartsProtocols(competitionDb.id.value) -> Stage.START_PROTOCOLS
                     DB.checkResultsGroup(competitionDb.id.value) -> Stage.GROUP_RESULTS

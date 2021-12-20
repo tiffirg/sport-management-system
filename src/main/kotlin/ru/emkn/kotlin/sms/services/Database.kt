@@ -15,29 +15,38 @@ fun main() {
     val db = GeneralDatabase()
     initConfig("src/test/resources/config.yaml")
     db.insertConfigData()
-    db.installConfig(1)
+    db.installConfigData(1)
 }
 
 interface DatabaseInterface {
+
+    // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
 
+    // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
 
-    fun installConfig(competitionId: Int)
+    // загрузка данных конфигурационного файла из базы данных
+    fun installConfigData(competitionId: Int)
+
+    // добавление одной группы участников в базу данных
+    fun insertGroupOf(title: String, distance: String): Boolean
+
+    // удаление одной группы участников из базы данных
+    fun deleteGroupOf(title: String): Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
     fun checkResultsGroup(competitionId: Int): Boolean
 
     fun checkTeamResults(competitionId: Int): Boolean
-
-    fun insertGroupOf(title: String, distance: String): Boolean
 }
 
 class GeneralDatabase : DatabaseInterface {
     private val dbPath = "database/competitions"
     private val db: Database
 
+    // создание базы данных: подключение файла с базой данных и создание логгера
     init {
         db = connect()
         transaction {
@@ -45,17 +54,7 @@ class GeneralDatabase : DatabaseInterface {
         }
     }
 
-    override fun getCompetition(title: String): TCompetition? {
-        var competition: TCompetition? = null
-        transaction {
-            val query = TCompetition.find { TCompetitions.eventName eq title }.limit(1)
-            if (!query.empty()) {
-                competition = query.first()
-            }
-        }
-        return competition
-    }
-
+    // подключить базу данных и загрузить еще не созданные таблицы
     private fun connect(): Database {
         val isExist = File(dbPath).exists()
         val database = Database.connect(url = "jdbc:h2:./${dbPath}", driver = "org.h2.Driver")
@@ -84,7 +83,20 @@ class GeneralDatabase : DatabaseInterface {
         return database
     }
 
-    override fun insertConfigData(): TCompetition {
+    // получить сущность соревнования по названию
+    override fun getCompetition(title: String): TCompetition? {
+        var competition: TCompetition? = null
+        transaction {
+            val query = TCompetition.find { TCompetitions.eventName eq title }.limit(1)
+            if (!query.empty()) {
+                competition = query.first()
+            }
+        }
+        return competition
+    }
+
+    // загрузка данных конфигурационного файла в базу данных
+    override fun insertConfigData(): TCompetition  {
         lateinit var competition: TCompetition
         transaction {
             competition = TCompetition.new {
@@ -93,7 +105,7 @@ class GeneralDatabase : DatabaseInterface {
                 date = EVENT_DATE_STRING
                 time = EVENT_TIME_STRING
             }
-            RANKS.forEach {
+            RANK_NAMES.forEach {
                 TRank.new {
                     competitionId = competition.id
                     rank = it
@@ -144,11 +156,12 @@ class GeneralDatabase : DatabaseInterface {
         return competition
     }
 
-    override fun installConfig(competitionId: Int) {
+    // загрузка данных конфигурационного файла из базы данных
+    override fun installConfigData(competitionId: Int) {
         transaction {
             val dataGroupTable = TGroup.find { TGroups.competitionId eq competitionId }
             val dataDistanceGroup = TDistance.find { TDistances.competitionId eq competitionId }
-            RANKS = TRank.find { TRanks.competitionId eq competitionId }.map { it.rank }
+            RANK_NAMES = TRank.find { TRanks.competitionId eq competitionId }.map { it.rank }
             GROUP_NAMES = dataGroupTable.map { it.group }
             CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }.map { it.checkpoint }
             GROUP_DISTANCES = dataGroupTable.associate {
@@ -166,12 +179,7 @@ class GeneralDatabase : DatabaseInterface {
 
     }
 
-    override fun checkStartsProtocols(competitionId: Int): Boolean = false
-
-    override fun checkResultsGroup(competitionId: Int): Boolean = false
-
-    override fun checkTeamResults(competitionId: Int): Boolean = false
-
+    // добавление одной группы участников в базу данных
     override fun insertGroupOf(title: String, distance: String): Boolean {
         var result = false
         transaction {
@@ -193,6 +201,30 @@ class GeneralDatabase : DatabaseInterface {
         LOGGER.debug { "Database: insertGroupOf | $result" }
         return result
     }
+
+    // удаление одной группы участников из базы данных
+    override fun deleteGroupOf(title: String): Boolean {
+        var result = false
+        transaction {
+            val query =
+                TGroup.find { (TGroups.group eq title) and (TGroups.competitionId eq COMPETITION_ID) }
+                    .limit(1)
+            if (query.empty()) {
+                return@transaction
+            }
+            val group = query.first()
+            group.delete()
+            result = true
+        }
+        LOGGER.debug { "Database: deleteGroupOf | $result" }
+        return result
+    }
+
+    override fun checkStartsProtocols(competitionId: Int): Boolean = false
+
+    override fun checkResultsGroup(competitionId: Int): Boolean = false
+
+    override fun checkTeamResults(competitionId: Int): Boolean = false
 
     // добавление атлетов и команд в базу данных
     fun addApplications(competition: TCompetition, applications: List<Team>) {

@@ -56,7 +56,7 @@ var EVENT_DATE_STRING = ""
 var EVENT_TIME_STRING = ""
 var EVENT_TIME: LocalTime = LocalTime.MIN
 var EVENT_SPORT = ""
-var RANKS: List<String> = listOf()
+var RANK_NAMES: List<String> = listOf()
 var GROUP_NAMES: List<String> = listOf()
 var GROUP_DISTANCES: Map<String, String> = mapOf()
 var DISTANCE_CRITERIA: Map<String, DistanceCriteria> = mapOf()
@@ -97,7 +97,7 @@ fun initConfig(pathConfig: String) {
         EVENT_TIME_STRING = config.eventTime
         EVENT_TIME = checkConfigLocalTime(config.eventTime)
         EVENT_SPORT = config.eventSport
-        RANKS = config.ranks
+        RANK_NAMES = config.ranks
         GROUP_NAMES = config.groups.map { it.group }
         GROUP_DISTANCES = config.groups.associate { groupData -> Pair(groupData.group, groupData.distance) }
         DISTANCE_CRITERIA = config.criteria.associate {
