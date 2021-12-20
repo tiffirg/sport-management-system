@@ -4,7 +4,6 @@ import TAthlete
 import TAthletes
 import TCheckpoint
 import TCheckpointProtocol
-import TCheckpointProtocolToCompetitorData
 import TCheckpoints
 import TCheckpointsProtocols
 import TCheckpointsProtocolsToCompetitorsData
@@ -14,6 +13,7 @@ import TCompetitor
 import TCompetitorData
 import TCompetitors
 import TCompetitorsData
+import TDistance
 import TDistances
 import TDistancesToCheckpoints
 import TDurationAtCheckpointsToResultsGroupSplit
@@ -47,11 +47,8 @@ interface DatabaseInterface {
     // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
 
-    // получить записи о всех чекпоинтах
+    // получить сущности всех чекпоинтов
     fun getCheckpoints(): List<CheckpointRecord>?
-
-    // добавить запись об одном чекпоинте
-    fun insertCheckpointOf(record: CheckpointRecord) : Boolean
 
     // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
@@ -70,6 +67,7 @@ interface DatabaseInterface {
     // добавление одной группы участников в базу данных
     fun insertGroupOf(title: String, distance: String): Boolean
 
+
     // удаление одной группы участников из базы данных
     fun deleteGroupOf(title: String): Boolean
 
@@ -83,13 +81,17 @@ interface DatabaseInterface {
     fun insertTeamOf(title: String): Boolean
 
     // добавление одного спортсмена
-    fun insertAthleteOf(athlete: Athlete): Boolean
+    fun insertAthleteOf(athlete: Athlete): Int?
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
     fun checkResultsGroup(competitionId: Int): Boolean
 
     fun checkTeamResults(competitionId: Int): Boolean
+
+    fun getTeams(): List<TTeam>?
+
+    fun getAthletes(): List<Pair<Int, Athlete>>?
 
 }
 
@@ -170,49 +172,37 @@ class GeneralDatabase : DatabaseInterface {
         return res.ifEmpty { null }
     }
 
-    // добавить один чекпоинт в базу данных
-    override fun insertCheckpointOf(record: CheckpointRecord) : Boolean {
-        var result = false
-        val competitorNumber = record.competitorNumber
-        val checkpointString = record.checkpoint
-        val timeMeasurementString = record.timeMeasurement
-        lateinit var tCompetitorData: TCompetitorData
-        lateinit var tCheckpointProtocol: TCheckpointProtocol
+    override fun getTeams(): List<TTeam>? {
+        var teams: List<TTeam>? = null
         transaction {
-
-            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
-
-            val competitorQuery = TCompetitor.find { TCompetitors.competitorNumber eq competitorNumber }.limit(1)
-            if (competitorQuery.empty()) {
-                return@transaction
-            }
-            val competitor = competitorQuery.first()
-
-            val competitorDataQuery = TCompetitorData.find {TCompetitorsData.competitorId eq competitor.id }.limit(1)
-            if (competitorDataQuery.empty()) {
-                return@transaction
-            }
-            tCompetitorData = competitorDataQuery.first()
-
-            val checkpointQuery = TCheckpoint.find {TCheckpoints.checkpoint eq checkpointString}.limit(1)
-            if (checkpointQuery.empty()){
-                return@transaction
-            }
-            val checkpoint = checkpointQuery.first()
-            tCheckpointProtocol = TCheckpointProtocol.new {
-                competitionId = competition.id
-                checkpointId = checkpoint.id
-                timeMeasurement = timeMeasurementString
+            val query = TTeam.find { TTeams.competitionId eq COMPETITION_ID }
+            if (!query.empty()) {
+                teams = query.toList()
             }
         }
+        return teams
+    }
+
+    override fun getAthletes(): List<Pair<Int, Athlete>>? {
+        var athletes: List<Pair<Int, Athlete>>? = null
+
         transaction {
-            TCheckpointProtocolToCompetitorData.new {
-                checkpointProtocolId = tCheckpointProtocol.id
-                competitorDataId = tCompetitorData.id
+            val query = TAthlete.find { TAthletes.competitionId eq COMPETITION_ID }
+            if (query.empty()) {
+                return@transaction
             }
-            result = true
+            athletes = query.toList().map {
+                it.id.value to Athlete(
+                    it.name,
+                    it.surname,
+                    it.birthYear,
+                    Group(TGroup.find { TGroups.id eq it.groupId }.first().group),
+                    Rank(TRank.find { TRanks.id eq it.rankId }.first().rank),
+                    TTeam.find { TTeams.id eq it.teamId }.first().team
+                )
+            }
         }
-        return result
+        return athletes
     }
 
     // загрузка данных конфигурационного файла в базу данных
@@ -459,12 +449,11 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // добавление одного спортсмена
-    override fun insertAthleteOf(athlete: Athlete): Boolean {
-        var result = false
+    override fun insertAthleteOf(athlete: Athlete): Int? {
+        var athleteId: Int? = null
         transaction {
             val athleteQuery =
-                TAthlete.find { (TAthletes.name eq athlete.name) and (TAthletes.surname eq athlete.surname) and (TTeams.competitionId eq COMPETITION_ID) }
-                    .limit(1)
+                TAthlete.find { (TAthletes.name eq athlete.name) and (TAthletes.surname eq athlete.surname) and (TAthletes.competitionId eq COMPETITION_ID) }
             if (!athleteQuery.empty()) {
                 return@transaction
             }
@@ -480,7 +469,7 @@ class GeneralDatabase : DatabaseInterface {
 
             val rankName = athlete.rank.rankName ?: ""
             val rankQuery =
-                TRank.find { (TRanks.rank eq rankName) and (TGroups.competitionId eq COMPETITION_ID) }
+                TRank.find { (TRanks.rank eq rankName) and (TRanks.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (rankQuery.empty()) {
                 return@transaction
@@ -495,18 +484,18 @@ class GeneralDatabase : DatabaseInterface {
             }
             val newTeam = teamQuery.first()
 
-            TAthlete.new {
+            athleteId = TAthlete.new {
                 competitionId = competition.id
                 name = athlete.name
                 surname = athlete.surname
+                birthYear = athlete.birthYear
                 groupId = newGroup.id
                 rankId = newRank.id
                 teamId = newTeam.id
-            }
-            result = true
+            }.id.value
         }
-        LOGGER.debug { "Database: insertAthleteOf | $result" }
-        return result
+        LOGGER.debug { "Database: insertAthleteOf | $athleteId" }
+        return athleteId
     }
 
     // добавление участников соревнований
