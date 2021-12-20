@@ -32,10 +32,12 @@ interface DatabaseInterface {
     // добавление одной группы участников в базу данных
     fun insertGroupOf(title: String, distance: String): Boolean
 
-    fun insertDistanceOf(title: String,
-                         distanceType: DistanceType,
-                         amountCheckpoints: Int,
-                         checkpoints: List<String>): Boolean
+    fun insertDistanceOf(
+        title: String,
+        distanceType: DistanceType,
+        amountCheckpoints: Int,
+        checkpoints: List<String>
+    ): Boolean
 
     // удаление одной группы участников из базы данных
     fun deleteGroupOf(title: String): Boolean
@@ -50,10 +52,7 @@ interface DatabaseInterface {
     fun insertTeamOf(title: String): Boolean
 
     // добавление одного спортсмена
-    fun insertAthleteOf(
-        newName: String, newSurname: String, newBirthYear: Int,
-        rankName: String, groupName: String, teamName: String
-    ): Boolean
+    fun insertAthleteOf(athlete: Athlete): Boolean
 
     fun checkStartsProtocols(competitionId: Int): Boolean
 
@@ -184,7 +183,8 @@ class GeneralDatabase : DatabaseInterface {
             val dataDistanceGroup = TDistance.find { TDistances.competitionId eq competitionId }
             RANK_NAMES = TRank.find { TRanks.competitionId eq competitionId }.mapTo(mutableListOf()) { it.rank }
             GROUP_NAMES = dataGroupTable.mapTo(mutableListOf()) { it.group }
-            CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }.mapTo(mutableListOf()) { it.checkpoint }
+            CHECKPOINTS_LIST = TCheckpoint.find { TCheckpoints.competitionId eq competitionId }
+                .mapTo(mutableListOf()) { it.checkpoint }
             GROUP_DISTANCES = dataGroupTable.associateTo(mutableMapOf()) {
                 it.group to TDistance.find { (TDistances.id eq it.distanceId) and (TDistances.competitionId eq competitionId) }
                     .limit(1).first().distance
@@ -287,7 +287,7 @@ class GeneralDatabase : DatabaseInterface {
                     val rankReference: TRank =
                         TRank.find { TRanks.rank eq (athlete.rank.rankName ?: "") }.limit(1).first()
                     val teamReference: TTeam =
-                        TTeam.find {TTeams.team eq (athlete.teamName)}.limit(1).first()
+                        TTeam.find { TTeams.team eq (athlete.teamName) }.limit(1).first()
 
                     TAthlete.new {
                         competitionId = competition.id
@@ -326,18 +326,11 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     // добавление одного спортсмена
-    override fun insertAthleteOf(
-        newName: String,
-        newSurname: String,
-        newBirthYear: Int,
-        rankName: String,
-        groupName: String,
-        teamName: String
-    ): Boolean {
+    override fun insertAthleteOf(athlete: Athlete): Boolean {
         var result = false
         transaction {
             val athleteQuery =
-                TAthlete.find { (TAthletes.name eq newName) and (TAthletes.surname eq newSurname) and (TTeams.competitionId eq COMPETITION_ID) }
+                TAthlete.find { (TAthletes.name eq athlete.name) and (TAthletes.surname eq athlete.surname) and (TTeams.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (!athleteQuery.empty()) {
                 return@transaction
@@ -345,13 +338,14 @@ class GeneralDatabase : DatabaseInterface {
             val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
 
             val groupQuery =
-                TGroup.find { (TGroups.group eq groupName) and (TGroups.competitionId eq COMPETITION_ID) }
+                TGroup.find { (TGroups.group eq athlete.group.groupName) and (TGroups.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (groupQuery.empty()) {
                 return@transaction
             }
             val newGroup = groupQuery.first()
 
+            val rankName = athlete.rank.rankName ?: ""
             val rankQuery =
                 TRank.find { (TRanks.rank eq rankName) and (TGroups.competitionId eq COMPETITION_ID) }
                     .limit(1)
@@ -361,7 +355,7 @@ class GeneralDatabase : DatabaseInterface {
             val newRank = rankQuery.first()
 
             val teamQuery =
-                TTeam.find {(TTeams.team eq teamName) and (TTeams.competitionId eq COMPETITION_ID)}
+                TTeam.find { (TTeams.team eq athlete.teamName) and (TTeams.competitionId eq COMPETITION_ID) }
                     .limit(1)
             if (teamQuery.empty()) {
                 return@transaction
@@ -370,8 +364,8 @@ class GeneralDatabase : DatabaseInterface {
 
             TAthlete.new {
                 competitionId = competition.id
-                name = newName
-                surname = newSurname
+                name = athlete.name
+                surname = athlete.surname
                 groupId = newGroup.id
                 rankId = newRank.id
                 teamId = newTeam.id
@@ -406,8 +400,7 @@ class GeneralDatabase : DatabaseInterface {
 
                 }
                 tDistance.checkpoints = SizedCollection(tCheckpointsList)
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 LOGGER.debug { e }
                 result = false
             }
@@ -489,6 +482,7 @@ object TAthletes : IntIdTableWithCompetitionId("athletes") {
 
 class TAthlete(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TAthlete>(TAthletes)
+
     var competitionId by TAthletes.competitionId
     var name by TAthletes.name
     var surname by TAthletes.surname
@@ -505,6 +499,7 @@ object TTeams : IntIdTableWithCompetitionId("team") {
 
 class TTeam(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TTeam>(TTeams)
+
     var competitionId by TTeams.competitionId
     var team by TTeams.team
 }
@@ -518,6 +513,7 @@ object TGroups : IntIdTableWithCompetitionId("group") {
 
 class TGroup(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TGroup>(TGroups)
+
     var competitionId by TGroups.competitionId
     var group by TGroups.group
     var distanceId by TGroups.distanceId
@@ -530,6 +526,7 @@ object TRanks : IntIdTableWithCompetitionId("rank") {
 
 class TRank(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TRank>(TRanks)
+
     var competitionId by TRanks.competitionId
     var rank by TRanks.rank
 }
@@ -541,6 +538,7 @@ object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
 
 class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
+
     var competitionId by TCheckpoints.competitionId
     var checkpoint by TCheckpoints.checkpoint
 }
