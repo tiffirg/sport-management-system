@@ -21,13 +21,9 @@ fun getCriteriaByType(typeName: String, count: String, checkpoints: List<String>
         }
         "choice" -> {
             if (checkpoints.isEmpty()) {
-                throw InvalidConfigData("no parameters got for Choice Route")
+                ChoiceRoute(checkpointsCount, listOf())
             } else {
-                if (checkpoints.isEmpty()) {
-                    ChoiceRoute(checkpointsCount, listOf())
-                } else {
-                    ChoiceRoute(checkpointsCount, checkpoints)
-                }
+                ChoiceRoute(checkpointsCount, checkpoints)
             }
         }
         else -> {
