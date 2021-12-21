@@ -3,6 +3,8 @@ package ru.emkn.kotlin.sms.gui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import kotlinx.coroutines.CompletableDeferred
 import ru.emkn.kotlin.sms.*
@@ -22,6 +24,10 @@ class ApplicationWindowState(
     private var configPath: Path? = null
 
     val window = WindowState()
+
+    init {
+        window.placement = WindowPlacement.Maximized
+    }
 
     val stateOpenFileDialog = DialogState<Path?>()
     val stateOpenWarningDialog = DialogState<Boolean>()

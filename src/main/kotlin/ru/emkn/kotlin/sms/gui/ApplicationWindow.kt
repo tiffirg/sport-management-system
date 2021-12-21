@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import kotlinx.coroutines.launch
 import ru.emkn.kotlin.sms.COMPETITION_ID
 import ru.emkn.kotlin.sms.DB
