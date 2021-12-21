@@ -38,8 +38,21 @@ data class CheckpointRecord(val competitorNumber: Int, val checkpoint: String, v
 
 interface DatabaseInterface {
 
+    // =================================================================================================================
+
     // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
+
+    // получить CheckpointTime из соответствующей сущности в бд
+    fun tCheckpointProtocolToCheckpointTime(tCheckpointProtocol: TCheckpointProtocol): CheckpointTime
+
+    // получить CompetitorData из соответствующей сущности в бд
+    fun tCompetitorDataToCompetitorData(tCompetitorData: TCompetitorData): CompetitorData?
+
+    // получить данные о всех участниках
+    fun getCompetitors(): List<Pair<Int, Competitor>>
+
+    // =================================================================================================================
 
     // получить записи о всех чекпоинтах
     fun getCheckpoints(): List<CheckpointRecord>?
@@ -47,8 +60,7 @@ interface DatabaseInterface {
     // добавить запись об одном чекпоинте
     fun insertCheckpointOf(record: CheckpointRecord): Boolean
 
-    // получить данные о всех участниках
-    fun getCompetitors(): List<Pair<Int, Competitor>>
+    // =================================================================================================================
 
     // загрузка данных конфигурационного файла в базу данных
     fun insertConfigData(): TCompetition
@@ -73,6 +85,8 @@ interface DatabaseInterface {
     // изменение одной группы участников
     fun updateGroupOf(title: String, newDistance: String): Boolean
 
+    // =================================================================================================================
+
     // добавление атлетов и команд в базу данных
     fun insertApplications(competition: TCompetition, applications: List<Team>)
 
@@ -81,6 +95,8 @@ interface DatabaseInterface {
 
     // добавление одного спортсмена
     fun insertAthleteOf(athlete: Athlete): Int?
+
+    // =================================================================================================================
 
     // добавление участников соревнования
     fun insertCompetitors(data: List<CompetitorsGroup>): Boolean
@@ -91,39 +107,41 @@ interface DatabaseInterface {
     // получение данных по всем участникам
     fun getCompetitorData(): List<CompetitorData>
 
+    // =================================================================================================================
+
+    // установить значения поля removed в бд
+    fun setRemovedValues(data: List<CompetitorResultInGroup>)
+
+    // =================================================================================================================
+
+    // проверка наличия стартовых протоколов
     fun checkStartsProtocols(competitionId: Int): Boolean
 
+    // проверка наличия результатов групп
     fun checkResultsGroup(competitionId: Int): Boolean
 
+    // =================================================================================================================
+
+    // получить список команд с участниками из бд
     fun getTeamsWithAthletes(): List<Team>?
 
+    // получить список команд из бд
     fun getTeams(): List<TTeam>?
 
+    // получить список спортсменов и их id в таблице
     fun getAthletes(): List<Pair<Int, Athlete>>?
 
-    fun getCompetitor(tCompetitor: TCompetitor): Competitor?
+    // получить спортсмена из сущности спортсмена в бд
+    fun athleteFromTAthlete(tAthlete: TAthlete): Athlete
+
+    // получить участника из сущности участника в бд
+    fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor
 }
 
 class GeneralDatabase : DatabaseInterface {
 
     private val dbPath = "database/competitions"
     private val db: Database
-
-    override fun getCompetitor(tCompetitor: TCompetitor): Competitor? {
-        lateinit var tAthlete: TAthlete
-        var success = false
-        transaction {
-            tAthlete = TAthlete.findById(tCompetitor.athleteId) ?: return@transaction
-            success = true
-        }
-        val athlete: Athlete = athleteFromTAthlete(tAthlete)
-        return try {
-            assert(success)
-            Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete)
-        } catch (e: Exception) {
-            null
-        }
-    }
 
 
     // создание базы данных: подключение файла с базой данных и создание логгера
@@ -164,14 +182,16 @@ class GeneralDatabase : DatabaseInterface {
         return database
     }
 
-    private fun athleteFromTAthlete(tAthlete: TAthlete) = Athlete(
+    // получить спортсмена из сущности спортсмена в бд
+    override fun athleteFromTAthlete(tAthlete: TAthlete) = Athlete(
         surname = tAthlete.surname, name = tAthlete.name, tAthlete.birthYear,
         Group(TGroup.find { TGroups.id eq tAthlete.groupId }.first().group),
         Rank(TRank.find { TRanks.id eq tAthlete.rankId }.first().rank),
         TTeam.find { TTeams.id eq tAthlete.teamId }.first().team
     )
 
-    private fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor {
+    // получить участника из сущности участника в бд
+    override fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor {
         val athlete = athleteFromTAthlete(tCompetitor.getTAthlete())
         return Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete)
     }
@@ -193,25 +213,26 @@ class GeneralDatabase : DatabaseInterface {
         val res = mutableListOf<CheckpointRecord>()
         transaction {
             TCheckpointProtocol.all().forEach { tCheckpointProtocol ->
-                    val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
-                        ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
-                    val timeMeasurement = tCheckpointProtocol.timeMeasurement
-                    val tCompetitorData =
-                        TCompetitorData.all().find { it.checkpointProtocol.contains(tCheckpointProtocol) }
-                            ?: throw IllegalStateException("getCheckpoints: no such competitorData in the database")
-                    val tCompetitor = tCompetitorData.getTCompetitor()
-                    val record = CheckpointRecord(
-                        tCompetitor.competitorNumber,
-                        checkpointString,
-                        LocalTime.parse(timeMeasurement, TimeFormatter)
-                    )
-                    res.add(record)
+                val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
+                    ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
+                val timeMeasurement = tCheckpointProtocol.timeMeasurement
+                val tCompetitorData =
+                    TCompetitorData.all().find { it.checkpointProtocol.contains(tCheckpointProtocol) }
+                        ?: throw IllegalStateException("getCheckpoints: no such competitorData in the database")
+                val tCompetitor = tCompetitorData.getTCompetitor()
+                val record = CheckpointRecord(
+                    tCompetitor.competitorNumber,
+                    checkpointString,
+                    LocalTime.parse(timeMeasurement, TimeFormatter)
+                )
+                res.add(record)
             }
         }
         return res.ifEmpty { null }
     }
 
-    fun TCheckpointProtocoltoCheckpointTime(tCheckpointProtocol: TCheckpointProtocol): CheckpointTime {
+    // получить CheckpointTime из соответствующей сущности в бд
+    override fun tCheckpointProtocolToCheckpointTime(tCheckpointProtocol: TCheckpointProtocol): CheckpointTime {
         var checkpointTime: CheckpointTime? = null
         transaction {
             val checkpointId = tCheckpointProtocol.checkpointId
@@ -220,13 +241,14 @@ class GeneralDatabase : DatabaseInterface {
             checkpointTime = CheckpointTime(checkpoint, timeMeasurement)
         }
         if (checkpointTime == null) {
-            throw IllegalStateException("TCheckpointProtocolToCeckpointTime: no checkpoint for checkpoint protocol found")
+            throw IllegalStateException("TCheckpointProtocolToCheckpointTime: no checkpoint for checkpoint protocol found")
         } else {
             return checkpointTime!!
         }
     }
 
-    fun TCompetitorDataToCompetitorData(tCompetitorData: TCompetitorData): CompetitorData? {
+    // получить CompetitorData из соответствующей сущности в бд
+    override fun tCompetitorDataToCompetitorData(tCompetitorData: TCompetitorData): CompetitorData? {
         var competitorData: CompetitorData? = null
         transaction {
             val competitorId = tCompetitorData.competitorId
@@ -234,7 +256,7 @@ class GeneralDatabase : DatabaseInterface {
             val checkpointProtocols = tCompetitorData.checkpointProtocol.toList()
             val competitor = TCompetitor.findById(competitorId)
                 ?: return@transaction
-            val checkpointsList = checkpointProtocols.map { TCheckpointProtocoltoCheckpointTime(it) }
+            val checkpointsList = checkpointProtocols.map { tCheckpointProtocolToCheckpointTime(it) }
             competitorData = CompetitorData(competitorFromTCompetitor(competitor), checkpointsList, isRemoved)
         }
         return competitorData
@@ -246,7 +268,7 @@ class GeneralDatabase : DatabaseInterface {
         transaction {
             TCompetitorData.all().forEach { tCompetitorData ->
                 if (tCompetitorData.getCompetitionId().value == COMPETITION_ID) {
-                    val competitorData = TCompetitorDataToCompetitorData(tCompetitorData)
+                    val competitorData = tCompetitorDataToCompetitorData(tCompetitorData)
                     if (competitorData != null) {
                         res.add(competitorData)
                     }
@@ -278,8 +300,7 @@ class GeneralDatabase : DatabaseInterface {
                     competitorId = competitor.id
                     isRemoved = false
                 }
-            }
-            else {
+            } else {
                 tCompetitorData = competitorDataQuery.first()
             }
 
@@ -315,16 +336,15 @@ class GeneralDatabase : DatabaseInterface {
             TCompetitor.all().forEach { tCompetitor ->
                 val tCompetitorCompetitionId = tCompetitor.getCompetitionId()
                 if (tCompetitorCompetitionId == competition.id) {
-                    val competitor = getCompetitor(tCompetitor)
-                    if (competitor != null) {
-                        result.add(Pair(tCompetitor.id.value, competitor))
-                    }
+                    val competitor = competitorFromTCompetitor(tCompetitor)
+                    result.add(Pair(tCompetitor.id.value, competitor))
                 }
             }
         }
         return result
     }
 
+    // получить список команд из бд
     override fun getTeams(): List<TTeam>? {
         var teams: List<TTeam>? = null
         transaction {
@@ -336,6 +356,7 @@ class GeneralDatabase : DatabaseInterface {
         return teams
     }
 
+    // получить список спортсменов и их id в таблице
     override fun getAthletes(): List<Pair<Int, Athlete>>? {
         var athletes: List<Pair<Int, Athlete>>? = null
 
@@ -535,10 +556,13 @@ class GeneralDatabase : DatabaseInterface {
         return result
     }
 
+    // проверка наличия стартовых протоколов
     override fun checkStartsProtocols(competitionId: Int): Boolean = getTeamsWithAthletes() != null
 
+    // проверка наличия результатов групп
     override fun checkResultsGroup(competitionId: Int): Boolean = getCheckpoints() != null
 
+    // получить список команд с участниками из бд
     override fun getTeamsWithAthletes(): List<Team>? {
         var teams: List<Team>? = null
         transaction {
@@ -693,6 +717,29 @@ class GeneralDatabase : DatabaseInterface {
             }
         }
         return result
+    }
+
+    // установить значения поля removed в бд
+    override fun setRemovedValues(data: List<CompetitorResultInGroup>) {
+        transaction {
+            data.forEach { competitorResultInGroup ->
+                if (competitorResultInGroup.result == null) {
+                    val competitor = competitorResultInGroup.competitor
+                    val tCompetitor = TCompetitor.all().find {
+                        (it.getTAthlete().competitionId.value == COMPETITION_ID) &&
+                                (it.getTAthlete().surname == competitor.surname) &&
+                                (it.getTAthlete().name == competitor.name)
+                    } ?: throw IllegalStateException("setRemovedValues: competitor not found in database")
+                    val queryCompetitorData =
+                        TCompetitorData.find { TCompetitorsData.competitorId eq tCompetitor.id }.limit(1)
+                    if (queryCompetitorData.empty()) {
+                        throw IllegalStateException("setRemovedValues: competitorData not found in database")
+                    }
+                    val tCompetitorData = queryCompetitorData.first()
+                    tCompetitorData.isRemoved = true
+                }
+            }
+        }
     }
 
 }
