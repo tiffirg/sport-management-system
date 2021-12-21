@@ -88,6 +88,9 @@ interface DatabaseInterface {
     // удаление участников соревнования
     fun deleteCompetitors(): Boolean
 
+    // получение данных по всем участникам
+    fun getCompetitorData(): List<CompetitorData>
+
     fun checkStartsProtocols(competitionId: Int): Boolean
 
     fun checkResultsGroup(competitionId: Int): Boolean
@@ -243,6 +246,24 @@ class GeneralDatabase : DatabaseInterface {
             competitorData = CompetitorData(competitorFromTCompetitor(competitor), checkpointsList, isRemoved)
         }
         return competitorData
+    }
+
+    // получение данных по всем участникам
+    override fun getCompetitorData(): List<CompetitorData> {
+        val res = mutableListOf<CompetitorData>()
+        transaction {
+            TCompetitorData.all().forEach { tCompetitorData ->
+                val competitor = TCompetitor.findById(tCompetitorData.competitorId)
+                    ?: throw IllegalStateException("getCompetitorData: no competitor reference for competitorData")
+                if (competitor.getCompetitionId().value == COMPETITION_ID) {
+                    val competitorData = TCompetitorDataToCompetitorData(tCompetitorData)
+                    if (competitorData != null) {
+                        res.add(competitorData)
+                    }
+                }
+            }
+        }
+        return res
     }
 
     // добавить один чекпоинт в базу данных
