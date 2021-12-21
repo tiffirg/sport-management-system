@@ -29,6 +29,8 @@ import androidx.compose.ui.window.Window
 import kotlinx.coroutines.launch
 import ru.emkn.kotlin.sms.COMPETITION_ID
 import ru.emkn.kotlin.sms.DB
+import ru.emkn.kotlin.sms.classes.CompetitorResultInGroup
+import ru.emkn.kotlin.sms.classes.CompetitorResultInTeam
 import ru.emkn.kotlin.sms.services.CommandsHandler
 import ru.emkn.kotlin.sms.utils.*
 import ru.emkn.kotlin.sms.utils.TypeItemTab.*
@@ -294,6 +296,7 @@ fun ContentGroupResults(state: ApplicationWindowState) {
         state.stage = Stage.RESULTS
 //        val results = CommandsHandler.generateResults(teamsList)
 //        DB.insertCompetitions(startProtocols)
+        val resultsCompetitors: List<CompetitorResultInGroup> = listOf()
         val buttonText = remember { mutableStateOf("SPLITS") }
         val buttonSplitState = remember { mutableStateOf(false) }
         val surfaceGradient =
@@ -322,7 +325,7 @@ fun ContentGroupResults(state: ApplicationWindowState) {
                     )
                 },
                 content = {
-                    TableForGroupResults(surfaceGradient)
+                    TableForGroupResults(resultsCompetitors, surfaceGradient)
                 }
             )
         }
@@ -332,6 +335,7 @@ fun ContentGroupResults(state: ApplicationWindowState) {
 @Composable
 fun ContentTeamResults(state: ApplicationWindowState) {
     if (state.stage == Stage.RESULTS) {
+        val resultsCompetitors: List<CompetitorResultInTeam> = listOf()
         val surfaceGradient =
             Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
         Column(Modifier.background(surfaceGradient)) {
@@ -343,7 +347,7 @@ fun ContentTeamResults(state: ApplicationWindowState) {
                     )
                 },
                 content = {
-                    TableForTeamResults(surfaceGradient)
+                    TableForTeamResults(resultsCompetitors, surfaceGradient)
                 }
             )
         }
