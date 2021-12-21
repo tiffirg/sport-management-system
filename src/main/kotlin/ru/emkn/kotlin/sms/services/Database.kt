@@ -196,7 +196,6 @@ class GeneralDatabase : DatabaseInterface {
     override fun getCheckpoints(): List<CheckpointRecord>? {
         val res = mutableListOf<CheckpointRecord>()
         transaction {
-            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
             TCheckpointProtocol.all().forEach { tCheckpointProtocol ->
                     val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
                         ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
@@ -256,8 +255,6 @@ class GeneralDatabase : DatabaseInterface {
         var tCheckpointProtocol: TCheckpointProtocol? = null
         transaction {
 
-            val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
-
             val competitorQuery = TCompetitor.find { TCompetitors.competitorNumber eq competitorNumber }.limit(1)
             if (competitorQuery.empty()) {
                 throw IllegalStateException("insertCheckpointOf: empty competition query")
@@ -305,9 +302,8 @@ class GeneralDatabase : DatabaseInterface {
             val competition = TCompetition.findById(COMPETITION_ID)
                 ?: throw IllegalStateException("getCompetitors: no such competitor")
             TCompetitor.all().forEach { tCompetitor ->
-                val tAthlete = TAthlete.findById(tCompetitor.athleteId)
-                    ?: throw IllegalStateException("getCompetitors: competitor ${tCompetitor.competitorNumber} stores reference on nonexistent athlete")
-                if (tAthlete.competitionId == competition.id) {
+                val tCompetitorCompetitionId = tCompetitor.getCompetitionId()
+                if (tCompetitorCompetitionId == competition.id) {
                     val competitor = getCompetitor(tCompetitor)
                     if (competitor != null) {
                         result.add(Pair(tCompetitor.id.value, competitor))
