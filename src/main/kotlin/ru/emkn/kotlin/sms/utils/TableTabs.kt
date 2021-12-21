@@ -90,8 +90,8 @@ fun TableForGroupResults(resultsCompetitors: List<CompetitorResultInGroup>, surf
 
 @Composable
 fun TableForGroupSplitResults(resultsCompetitors: List<CompetitorSplitResultInGroup>, surfaceGradient: Brush) {
-    val columnWeight = .05f
-    val checkpointsColumnWeight = .5f
+    val columnWeight = .08f
+    val checkpointsColumnWeight = .6f
     val competitors = remember { resultsCompetitors.toMutableStateList() }
     Box(Modifier.background(surfaceGradient)) {
         LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
@@ -99,14 +99,9 @@ fun TableForGroupSplitResults(resultsCompetitors: List<CompetitorSplitResultInGr
                 Row(Modifier.background(Color.Gray)) {
                     TableHeaderCell(text = "Place", weight = columnWeight)
                     TableHeaderCell(text = "Number", weight = columnWeight)
-                    TableHeaderCell(text = "Surname", weight = columnWeight)
-                    TableHeaderCell(text = "Name", weight = columnWeight)
-                    TableHeaderCell(text = "Birth year", weight = columnWeight)
                     TableHeaderCell(text = "Rank", weight = columnWeight)
                     TableHeaderCell(text = "Group", weight = columnWeight)
                     TableHeaderCell(text = "Team", weight = columnWeight)
-                    TableHeaderCell(text = "Result", weight = columnWeight)
-                    TableHeaderCell(text = "Backlog", weight = columnWeight)
                     TableHeaderCell(text = "Checkpoints", weight = checkpointsColumnWeight)
                 }
             }
@@ -114,15 +109,10 @@ fun TableForGroupSplitResults(resultsCompetitors: List<CompetitorSplitResultInGr
                 Row(Modifier.fillMaxWidth()) {
                     TableHeaderCell(text = res.competitorResultInGroup.place?.toString() ?: "-", weight = columnWeight)
                     TableHeaderCell(text = res.competitorResultInGroup.competitor.athleteNumber.toString(), weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.competitor.surname, weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.competitor.name, weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.competitor.birthYear.toString(), weight = columnWeight)
                     TableHeaderCell(text = res.competitorResultInGroup.competitor.rank.rankName ?: "-", weight = columnWeight)
                     TableHeaderCell(text = res.competitorResultInGroup.competitor.group.groupName, weight = columnWeight)
                     TableHeaderCell(text = res.competitorResultInGroup.competitor.teamName, weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.result?.toResultFormat() ?: "removed", weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.backlog.toBacklogFormat(), weight = columnWeight)
-                    TableHeaderCell(text = res.splits?.joinToString { "${it.checkpoint} ${it.duration.toResultFormat() }" } ?: " ", weight = checkpointsColumnWeight)
+                    TableHeaderCell(text = res.splits?.joinToString("; ") { "${it.checkpoint}|${it.duration.toResultFormat().split(":").drop(1).joinToString(":") }" } ?: " ", weight = checkpointsColumnWeight)
                 }
             }
         }
@@ -139,7 +129,7 @@ fun TableForTeamResults(resultsCompetitors: List<CompetitorResultInTeam>, surfac
                 Row(Modifier.background(Color.Gray)) {
                     TableHeaderCell(text = "Place", weight = columnWeight)
                     TableHeaderCell(text = "Score", weight = columnWeight)
-                    TableHeaderCell(text = "Competition number", weight = columnWeight)
+                    TableHeaderCell(text = "Number", weight = columnWeight)
                     TableHeaderCell(text = "Surname", weight = columnWeight)
                     TableHeaderCell(text = "Name", weight = columnWeight)
                     TableHeaderCell(text = "Birth year", weight = columnWeight)
