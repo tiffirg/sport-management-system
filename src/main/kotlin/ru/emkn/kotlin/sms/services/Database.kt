@@ -198,7 +198,6 @@ class GeneralDatabase : DatabaseInterface {
         transaction {
             val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
             TCheckpointProtocol.all().forEach { tCheckpointProtocol ->
-                if (tCheckpointProtocol.competitorId == competition.id) {
                     val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
                         ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
                     val timeMeasurement = tCheckpointProtocol.timeMeasurement
@@ -213,7 +212,6 @@ class GeneralDatabase : DatabaseInterface {
                         LocalTime.parse(timeMeasurement, TimeFormatter)
                     )
                     res.add(record)
-                }
             }
         }
         return res.ifEmpty { null }
