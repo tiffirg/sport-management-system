@@ -97,33 +97,23 @@ interface DatabaseInterface {
 
     fun getTeamsWithAthletes(): List<Team>?
 
+    // получить список команд из бд
     fun getTeams(): List<TTeam>?
 
+    // получить список спортсменов и их id в таблице
     fun getAthletes(): List<Pair<Int, Athlete>>?
 
-    fun getCompetitor(tCompetitor: TCompetitor): Competitor?
+    // получить спортсмена из сущности спортсмена в бд
+    fun athleteFromTAthlete(tAthlete: TAthlete) : Athlete
+
+    // получить участника из сущности участника в бд
+    fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor
 }
 
 class GeneralDatabase : DatabaseInterface {
 
     private val dbPath = "database/competitions"
     private val db: Database
-
-    override fun getCompetitor(tCompetitor: TCompetitor): Competitor? {
-        lateinit var tAthlete: TAthlete
-        var success = false
-        transaction {
-            tAthlete = TAthlete.findById(tCompetitor.athleteId) ?: return@transaction
-            success = true
-        }
-        val athlete: Athlete = athleteFromTAthlete(tAthlete)
-        return try {
-            assert(success)
-            Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete)
-        } catch (e: Exception) {
-            null
-        }
-    }
 
 
     // создание базы данных: подключение файла с базой данных и создание логгера
@@ -164,14 +154,16 @@ class GeneralDatabase : DatabaseInterface {
         return database
     }
 
-    private fun athleteFromTAthlete(tAthlete: TAthlete) = Athlete(
+    // получить спортсмена из сущности спортсмена в бд
+    override fun athleteFromTAthlete(tAthlete: TAthlete) = Athlete(
         surname = tAthlete.surname, name = tAthlete.name, tAthlete.birthYear,
         Group(TGroup.find { TGroups.id eq tAthlete.groupId }.first().group),
         Rank(TRank.find { TRanks.id eq tAthlete.rankId }.first().rank),
         TTeam.find { TTeams.id eq tAthlete.teamId }.first().team
     )
 
-    private fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor {
+    // получить участника из сущности участника в бд
+    override fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor {
         val athlete = athleteFromTAthlete(tCompetitor.getTAthlete())
         return Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete)
     }
@@ -315,16 +307,15 @@ class GeneralDatabase : DatabaseInterface {
             TCompetitor.all().forEach { tCompetitor ->
                 val tCompetitorCompetitionId = tCompetitor.getCompetitionId()
                 if (tCompetitorCompetitionId == competition.id) {
-                    val competitor = getCompetitor(tCompetitor)
-                    if (competitor != null) {
-                        result.add(Pair(tCompetitor.id.value, competitor))
-                    }
+                    val competitor = competitorFromTCompetitor(tCompetitor)
+                    result.add(Pair(tCompetitor.id.value, competitor))
                 }
             }
         }
         return result
     }
 
+    // получить список команд из бд
     override fun getTeams(): List<TTeam>? {
         var teams: List<TTeam>? = null
         transaction {
@@ -336,6 +327,7 @@ class GeneralDatabase : DatabaseInterface {
         return teams
     }
 
+    // получить список спортсменов и их id в таблице
     override fun getAthletes(): List<Pair<Int, Athlete>>? {
         var athletes: List<Pair<Int, Athlete>>? = null
 
