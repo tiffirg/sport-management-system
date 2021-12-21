@@ -198,7 +198,7 @@ class GeneralDatabase : DatabaseInterface {
         transaction {
             val competition = TCompetition.findById(COMPETITION_ID) ?: return@transaction
             TCheckpointProtocol.all().forEach { tCheckpointProtocol ->
-                if (tCheckpointProtocol.competitionId == competition.id) {
+                if (tCheckpointProtocol.competitorId == competition.id) {
                     val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
                         ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
                     val timeMeasurement = tCheckpointProtocol.timeMeasurement
@@ -273,7 +273,9 @@ class GeneralDatabase : DatabaseInterface {
                     isRemoved = false
                 }
             }
-            tCompetitorData = competitorDataQuery.first()
+            else {
+                tCompetitorData = competitorDataQuery.first()
+            }
 
             val checkpointQuery = TCheckpoint.find { TCheckpoints.checkpoint eq checkpointString }.limit(1)
             if (checkpointQuery.empty()) {
@@ -281,11 +283,10 @@ class GeneralDatabase : DatabaseInterface {
             }
             val checkpoint = checkpointQuery.first()
             tCheckpointProtocol = TCheckpointProtocol.new {
-                competitionId = competition.id
+                competitorId = competitor.id
                 checkpointId = checkpoint.id
                 timeMeasurement = timeMeasurementString
             }
-            LOGGER.debug { "Added new checkpoint" }
         }
         transaction {
             if (tCheckpointProtocol != null && tCompetitorData != null) {

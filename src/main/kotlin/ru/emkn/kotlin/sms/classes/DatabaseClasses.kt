@@ -3,7 +3,6 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.Table
 import ru.emkn.kotlin.sms.classes.DistanceType
 
 object TCompetitions : IntIdTable("competitions", "id") {
@@ -219,7 +218,7 @@ object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
 
 class TCheckpointProtocol(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpointProtocol>(TCheckpointsProtocols)
-    var competitionId by TCheckpointsProtocols.competitorId
+    var competitorId by TCheckpointsProtocols.competitorId
     var checkpointId by TCheckpointsProtocols.checkpointId
     var timeMeasurement by TCheckpointsProtocols.timeMeasurement
 }
