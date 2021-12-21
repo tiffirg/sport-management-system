@@ -377,14 +377,17 @@ fun ContentItemInformation(state: ApplicationWindowState, typeItem: TypeItemInfo
                     actions = {
                         Row(horizontalArrangement = Arrangement.End) {
                             Button(modifier = Modifier.padding(10.dp), onClick = {
-
+                                addButtonState.value = true
+                            }) {
+                                Text("ADD")
+                            }
+                            Button(modifier = Modifier.padding(10.dp), onClick = {
                             }) {
                                 Text("SAVE")
                             }
                             Button(modifier = Modifier.padding(10.dp), onClick = {
-                                addButtonState.value = true
                             }) {
-                                Text("ADD")
+                                Text("IMPORT CSV")
                             }
                         }
                     }
