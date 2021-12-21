@@ -253,9 +253,7 @@ class GeneralDatabase : DatabaseInterface {
         val res = mutableListOf<CompetitorData>()
         transaction {
             TCompetitorData.all().forEach { tCompetitorData ->
-                val competitor = TCompetitor.findById(tCompetitorData.competitorId)
-                    ?: throw IllegalStateException("getCompetitorData: no competitor reference for competitorData")
-                if (competitor.getCompetitionId().value == COMPETITION_ID) {
+                if (tCompetitorData.getCompetitionId().value == COMPETITION_ID) {
                     val competitorData = TCompetitorDataToCompetitorData(tCompetitorData)
                     if (competitorData != null) {
                         res.add(competitorData)

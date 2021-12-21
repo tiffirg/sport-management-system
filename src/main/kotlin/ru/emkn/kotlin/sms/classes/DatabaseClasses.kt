@@ -189,6 +189,15 @@ class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
     var competitorId by TCompetitorsData.competitorId
     var isRemoved by TCompetitorsData.isRemoved
     var checkpointProtocol by TCheckpointProtocol via TCheckpointsProtocolsToCompetitorsData // many-to-many reference
+
+    fun getCompetitor(): TCompetitor {
+        return TCompetitor.findById(competitorId)
+            ?: throw IllegalStateException("CompetitorData without a competitor reference")
+    }
+
+    fun getCompetitionId() : EntityID<Int> {
+        return getCompetitor().getCompetitionId()
+    }
 }
 
 object TCheckpointsProtocolsToCompetitorsData : IntIdTable("CheckpointsProtocolsToCompetitorsData") {
