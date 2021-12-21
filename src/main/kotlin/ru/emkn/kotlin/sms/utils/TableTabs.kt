@@ -23,7 +23,7 @@ fun TableForStartProtocols(competitorsList: List<Pair<Int, Competitor>>, surface
         LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
             item {
                 Row(Modifier.background(Color.Gray)) {
-                    TableHeaderCell(text = "Competition Number", weight = columnWeight)
+                    TableHeaderCell(text = "Competitor Number", weight = columnWeight)
                     TableHeaderCell(text = "Start Time", weight = columnWeight)
                     TableHeaderCell(text = "Surname", weight = columnWeight)
                     TableHeaderCell(text = "Name", weight = columnWeight)
@@ -38,8 +38,8 @@ fun TableForStartProtocols(competitorsList: List<Pair<Int, Competitor>>, surface
                 Row(Modifier.fillMaxWidth()) {
                     TableHeaderCell(text = competitor.athleteNumber.toString(), weight = columnWeight)
                     TableHeaderCell(text = competitor.startTime.format(TimeFormatter), weight = columnWeight)
-                    TableHeaderCell(text = competitor.name, weight = columnWeight)
                     TableHeaderCell(text = competitor.surname, weight = columnWeight)
+                    TableHeaderCell(text = competitor.name, weight = columnWeight)
                     TableHeaderCell(text = competitor.birthYear.toString(), weight = columnWeight)
                     TableHeaderCell(text = competitor.rank.rankName ?: "", weight = columnWeight)
                     TableHeaderCell(text = competitor.group.groupName, weight = columnWeight)
@@ -98,7 +98,7 @@ fun TableForGroupSplitResults(resultsCompetitors: List<CompetitorSplitResultInGr
             item {
                 Row(Modifier.background(Color.Gray)) {
                     TableHeaderCell(text = "Place", weight = columnWeight)
-                    TableHeaderCell(text = "Competition Number", weight = columnWeight)
+                    TableHeaderCell(text = "Number", weight = columnWeight)
                     TableHeaderCell(text = "Surname", weight = columnWeight)
                     TableHeaderCell(text = "Name", weight = columnWeight)
                     TableHeaderCell(text = "Birth year", weight = columnWeight)

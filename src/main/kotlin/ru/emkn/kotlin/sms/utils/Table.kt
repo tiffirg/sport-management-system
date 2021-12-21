@@ -246,7 +246,7 @@ fun showCheckpoints(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
 
             item {
                 Row(Modifier.background(Color.Gray)) {
-                    TableHeaderCell(text = "Competition Number", weight = columnWeight)
+                    TableHeaderCell(text = "Competitor Number", weight = columnWeight)
                     TableHeaderCell(text = "Checkpoint", weight = columnWeight)
                     TableHeaderCell(text = "Time Measurement", weight = columnWeight)
                 }
