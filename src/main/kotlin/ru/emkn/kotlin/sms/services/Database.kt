@@ -41,6 +41,12 @@ interface DatabaseInterface {
     // получить сущность соревнования по названию
     fun getCompetition(title: String): TCompetition?
 
+    // получить CheckpointTime из соответствующей сущности в бд
+    fun tCheckpointProtocolToCheckpointTime(tCheckpointProtocol: TCheckpointProtocol): CheckpointTime
+
+    // получить CompetitorData из соответствующей сущности в бд
+    fun tCompetitorDataToCompetitorData(tCompetitorData: TCompetitorData): CompetitorData?
+
     // получить записи о всех чекпоинтах
     fun getCheckpoints(): List<CheckpointRecord>?
 
@@ -91,10 +97,13 @@ interface DatabaseInterface {
     // получение данных по всем участникам
     fun getCompetitorData(): List<CompetitorData>
 
+    // проверка наличия стартовых протоколов
     fun checkStartsProtocols(competitionId: Int): Boolean
 
+    // проверка наличия результатов групп
     fun checkResultsGroup(competitionId: Int): Boolean
 
+    // получить список команд с участниками из бд
     fun getTeamsWithAthletes(): List<Team>?
 
     // получить список команд из бд
@@ -203,7 +212,8 @@ class GeneralDatabase : DatabaseInterface {
         return res.ifEmpty { null }
     }
 
-    fun TCheckpointProtocoltoCheckpointTime(tCheckpointProtocol: TCheckpointProtocol): CheckpointTime {
+    // получить CheckpointTime из соответствующей сущности в бд
+    override fun tCheckpointProtocolToCheckpointTime(tCheckpointProtocol: TCheckpointProtocol): CheckpointTime {
         var checkpointTime: CheckpointTime? = null
         transaction {
             val checkpointId = tCheckpointProtocol.checkpointId
@@ -212,13 +222,14 @@ class GeneralDatabase : DatabaseInterface {
             checkpointTime = CheckpointTime(checkpoint, timeMeasurement)
         }
         if (checkpointTime == null) {
-            throw IllegalStateException("TCheckpointProtocolToCeckpointTime: no checkpoint for checkpoint protocol found")
+            throw IllegalStateException("TCheckpointProtocolToCheckpointTime: no checkpoint for checkpoint protocol found")
         } else {
             return checkpointTime!!
         }
     }
 
-    fun TCompetitorDataToCompetitorData(tCompetitorData: TCompetitorData): CompetitorData? {
+    // получить CompetitorData из соответствующей сущности в бд
+    override fun tCompetitorDataToCompetitorData(tCompetitorData: TCompetitorData): CompetitorData? {
         var competitorData: CompetitorData? = null
         transaction {
             val competitorId = tCompetitorData.competitorId
@@ -226,7 +237,7 @@ class GeneralDatabase : DatabaseInterface {
             val checkpointProtocols = tCompetitorData.checkpointProtocol.toList()
             val competitor = TCompetitor.findById(competitorId)
                 ?: return@transaction
-            val checkpointsList = checkpointProtocols.map { TCheckpointProtocoltoCheckpointTime(it) }
+            val checkpointsList = checkpointProtocols.map { tCheckpointProtocolToCheckpointTime(it) }
             competitorData = CompetitorData(competitorFromTCompetitor(competitor), checkpointsList, isRemoved)
         }
         return competitorData
@@ -238,7 +249,7 @@ class GeneralDatabase : DatabaseInterface {
         transaction {
             TCompetitorData.all().forEach { tCompetitorData ->
                 if (tCompetitorData.getCompetitionId().value == COMPETITION_ID) {
-                    val competitorData = TCompetitorDataToCompetitorData(tCompetitorData)
+                    val competitorData = tCompetitorDataToCompetitorData(tCompetitorData)
                     if (competitorData != null) {
                         res.add(competitorData)
                     }
@@ -527,10 +538,13 @@ class GeneralDatabase : DatabaseInterface {
         return result
     }
 
+    // проверка наличия стартовых протоколов
     override fun checkStartsProtocols(competitionId: Int): Boolean = getTeamsWithAthletes() != null
 
+    // проверка наличия результатов групп
     override fun checkResultsGroup(competitionId: Int): Boolean = getCheckpoints() != null
 
+    // получить список команд с участниками из бд
     override fun getTeamsWithAthletes(): List<Team>? {
         var teams: List<Team>? = null
         transaction {
