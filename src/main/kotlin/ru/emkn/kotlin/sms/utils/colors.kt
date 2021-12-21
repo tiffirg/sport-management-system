@@ -6,19 +6,16 @@ import androidx.compose.ui.graphics.Color
 
 val graySurface = Color(0xFF2A2A2A)
 val lightGray = Color(0xFFD3D3D3)
-val spotifyGreen = Color(0xFF1db954)
 val green700 = Color(0xff388e3c)
-val spotifyBlack = Color(0xff100c08)
-val darkGray = Color(0xFF565656)
-val spotifyGradient = listOf(spotifyGreen, Color.Yellow, spotifyGreen.copy(alpha = 0.8f))
+val appBlack = Color(0xff100c08)
 
 val DarkGreenColorPalette = darkColors(
     primary = green700,
     primaryVariant = green700,
     secondary = graySurface,
-    background = spotifyBlack,
-    surface = spotifyBlack,
-    onPrimary = spotifyBlack,
+    background = appBlack,
+    surface = appBlack,
+    onPrimary = appBlack,
     onSecondary = lightGray,
     onBackground = Color.White,
     onSurface = Color.White,
@@ -33,6 +30,6 @@ val LightGreenColorPalette = lightColors(
     surface = Color.White,
     onPrimary = Color.White,
     onSecondary = graySurface,
-    onBackground = spotifyBlack,
-    onSurface = spotifyBlack
+    onBackground = appBlack,
+    onSurface = appBlack
 )

@@ -1,9 +1,10 @@
+package ru.emkn.kotlin.sms.classes
+
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import ru.emkn.kotlin.sms.classes.DistanceType
 
 object TCompetitions : IntIdTable("competitions", "id") {
     private const val dateLength = 16
@@ -113,6 +114,7 @@ object TCheckpoints : IntIdTableWithCompetitionId("checkpoints") {
 
 class TCheckpoint(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpoint>(TCheckpoints)
+
     var competitionId by TCheckpoints.competitionId
     var checkpoint by TCheckpoints.checkpoint
 }
@@ -169,7 +171,7 @@ class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
             ?: throw IllegalStateException("Competitor $competitorNumber without an athlete reference")
     }
 
-    fun getCompetitionId() : EntityID<Int> {
+    fun getCompetitionId(): EntityID<Int> {
         return getTAthlete().competitionId
     }
 }
@@ -186,6 +188,7 @@ object TCompetitorsData : IntIdTable("competitorsData") {
 
 class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCompetitorData>(TCompetitorsData)
+
     var competitorId by TCompetitorsData.competitorId
     var isRemoved by TCompetitorsData.isRemoved
     var checkpointProtocol by TCheckpointProtocol via TCheckpointsProtocolsToCompetitorsData // many-to-many reference
@@ -195,7 +198,7 @@ class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
             ?: throw IllegalStateException("CompetitorData without a competitor reference")
     }
 
-    fun getCompetitionId() : EntityID<Int> {
+    fun getCompetitionId(): EntityID<Int> {
         return getTCompetitor().getCompetitionId()
     }
 }
@@ -217,6 +220,7 @@ object TCheckpointsProtocolsToCompetitorsData : IntIdTable("CheckpointsProtocols
 
 class TCheckpointProtocolToCompetitorData(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpointProtocolToCompetitorData>(TCheckpointsProtocolsToCompetitorsData)
+
     var checkpointProtocolId by TCheckpointsProtocolsToCompetitorsData.checkpointProtocolId
     var competitorDataId by TCheckpointsProtocolsToCompetitorsData.competitorDataId
 }
@@ -236,6 +240,7 @@ object TCheckpointsProtocols : IntIdTable("checkpointsProtocols") {
 
 class TCheckpointProtocol(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<TCheckpointProtocol>(TCheckpointsProtocols)
+
     var competitorId by TCheckpointsProtocols.competitorId
     var checkpointId by TCheckpointsProtocols.checkpointId
     var timeMeasurement by TCheckpointsProtocols.timeMeasurement

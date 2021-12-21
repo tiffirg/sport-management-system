@@ -31,6 +31,7 @@ import ru.emkn.kotlin.sms.COMPETITION_ID
 import ru.emkn.kotlin.sms.DB
 import ru.emkn.kotlin.sms.classes.CompetitorResultInGroup
 import ru.emkn.kotlin.sms.classes.CompetitorResultInTeam
+import ru.emkn.kotlin.sms.classes.CompetitorSplitResultInGroup
 import ru.emkn.kotlin.sms.services.CommandsHandler
 import ru.emkn.kotlin.sms.utils.*
 import ru.emkn.kotlin.sms.utils.TypeItemTab.*
@@ -294,9 +295,12 @@ fun ContentGroupResults(state: ApplicationWindowState) {
         CurrentTabStatus("Not Data")
     } else {
         state.stage = Stage.RESULTS
-        val results = CommandsHandler.generateResults(DB.getCompetitorData())
+        val competitorDataList = DB.getCompetitorData()
+        val results = CommandsHandler.generateResults(competitorDataList)
         val resultsCompetitors: List<CompetitorResultInGroup> = results.flatMap { it.results }
         DB.setRemovedValues(resultsCompetitors)
+        val splitResults = CommandsHandler.generateSplitResults(competitorDataList)
+        val splitResultsCompetitors: List<CompetitorSplitResultInGroup> = splitResults.flatMap { it.results }
         val buttonText = remember { mutableStateOf("SPLITS") }
         val buttonSplitState = remember { mutableStateOf(false) }
         val surfaceGradient =
@@ -313,8 +317,7 @@ fun ContentGroupResults(state: ApplicationWindowState) {
                                     buttonSplitState.value = !buttonSplitState.value
                                     if (buttonSplitState.value) {
                                         buttonText.value = "RESULTS"
-                                    }
-                                    else {
+                                    } else {
                                         buttonText.value = "SPLITS"
                                     }
                                 }) {
@@ -325,7 +328,12 @@ fun ContentGroupResults(state: ApplicationWindowState) {
                     )
                 },
                 content = {
-                    TableForGroupResults(resultsCompetitors, surfaceGradient)
+                    if (buttonSplitState.value) {
+                        TableForGroupSplitResults(splitResultsCompetitors, surfaceGradient)
+                    } else {
+                        TableForGroupResults(resultsCompetitors, surfaceGradient)
+
+                    }
                 }
             )
         }
@@ -335,23 +343,23 @@ fun ContentGroupResults(state: ApplicationWindowState) {
 @Composable
 fun ContentTeamResults(state: ApplicationWindowState) {
     if (state.stage == Stage.RESULTS) {
-//        val results = CommandsHandler.generateTeamsResults(teamsList)
-//        val resultsCompetitors: List<CompetitorResultInTeam> = results.flatMap { it.data }
-//        val surfaceGradient =
-//            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
-//        Column(Modifier.background(surfaceGradient)) {
-//            Scaffold(
-//                Modifier.background(surfaceGradient),
-//                topBar = {
-//                    TopAppBar(
-//                        title = { Text(text = "Team Results") }
-//                    )
-//                },
-//                content = {
-//                    TableForTeamResults(resultsCompetitors, surfaceGradient)
-//                }
-//            )
-//        }
+        val results = CommandsHandler.generateTeamsResults(CommandsHandler.generateResults(DB.getCompetitorData()))
+        val resultsCompetitors: List<CompetitorResultInTeam> = results.flatMap { it.data }
+        val surfaceGradient =
+            Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
+        Column(Modifier.background(surfaceGradient)) {
+            Scaffold(
+                Modifier.background(surfaceGradient),
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = "Team Results") }
+                    )
+                },
+                content = {
+                    TableForTeamResults(resultsCompetitors, surfaceGradient)
+                }
+            )
+        }
     }
 }
 
