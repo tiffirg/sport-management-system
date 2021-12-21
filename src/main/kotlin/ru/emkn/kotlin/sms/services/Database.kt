@@ -105,6 +105,7 @@ interface DatabaseInterface {
 }
 
 class GeneralDatabase : DatabaseInterface {
+
     private val dbPath = "database/competitions"
     private val db: Database
 
@@ -164,23 +165,15 @@ class GeneralDatabase : DatabaseInterface {
     }
 
     private fun athleteFromTAthlete(tAthlete: TAthlete) = Athlete(
-        tAthlete.surname, tAthlete.name, tAthlete.birthYear,
+        surname = tAthlete.surname, name = tAthlete.name, tAthlete.birthYear,
         Group(TGroup.find { TGroups.id eq tAthlete.groupId }.first().group),
         Rank(TRank.find { TRanks.id eq tAthlete.rankId }.first().rank),
         TTeam.find { TTeams.id eq tAthlete.teamId }.first().team
     )
 
     private fun competitorFromTCompetitor(tCompetitor: TCompetitor): Competitor {
-        var athlete: Athlete? = null
-        transaction {
-            val tAthlete = TAthlete.findById(tCompetitor.athleteId) ?: return@transaction
-            athlete = athleteFromTAthlete(tAthlete)
-        }
-        if (athlete != null) {
-            return Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete!!)
-        } else {
-            throw IllegalStateException("competitorFromTCompetitor: no athlete found for ${tCompetitor.competitorNumber}")
-        }
+        val athlete = athleteFromTAthlete(tCompetitor.getTAthlete())
+        return Competitor(tCompetitor.competitorNumber, LocalTime.parse(tCompetitor.startTime), athlete)
     }
 
     // получить сущность соревнования по названию
@@ -203,13 +196,12 @@ class GeneralDatabase : DatabaseInterface {
                     val checkpointString = TCheckpoint.findById(tCheckpointProtocol.checkpointId)?.checkpoint
                         ?: throw IllegalStateException("getCheckpoints: no such checkpoint in the database")
                     val timeMeasurement = tCheckpointProtocol.timeMeasurement
-                    val competitorData =
+                    val tCompetitorData =
                         TCompetitorData.all().find { it.checkpointProtocol.contains(tCheckpointProtocol) }
                             ?: throw IllegalStateException("getCheckpoints: no such competitorData in the database")
-                    val competitor = TCompetitor.findById(competitorData.competitorId)
-                        ?: throw IllegalStateException("getCheckpoints: no such competitor in the database")
+                    val tCompetitor = tCompetitorData.getTCompetitor()
                     val record = CheckpointRecord(
-                        competitor.competitorNumber,
+                        tCompetitor.competitorNumber,
                         checkpointString,
                         LocalTime.parse(timeMeasurement, TimeFormatter)
                     )
@@ -319,7 +311,7 @@ class GeneralDatabase : DatabaseInterface {
         val result = mutableListOf<Pair<Int, Competitor>>()
         transaction {
             val competition = TCompetition.findById(COMPETITION_ID)
-                ?: throw IllegalStateException("getCompetitors: no such competitor")
+                ?: throw IllegalStateException("getCompetitors: no such competition")
             TCompetitor.all().forEach { tCompetitor ->
                 val tCompetitorCompetitionId = tCompetitor.getCompetitionId()
                 if (tCompetitorCompetitionId == competition.id) {
@@ -693,11 +685,9 @@ class GeneralDatabase : DatabaseInterface {
         transaction {
             val competition = TCompetition.findById(COMPETITION_ID)
                 ?: return@transaction
-            TCompetitor.all().forEach { competitor ->
-                val athlete = TAthlete.findById(competitor.athleteId)
-                    ?: return@transaction
-                if (athlete.competitionId == competition.id) {
-                    competitor.delete()
+            TCompetitor.all().forEach { tCompetitor ->
+                if (tCompetitor.getCompetitionId() == competition.id) {
+                    tCompetitor.delete()
                 }
                 result = true
             }
