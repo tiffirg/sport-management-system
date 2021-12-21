@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import ru.emkn.kotlin.sms.*
 import ru.emkn.kotlin.sms.classes.*
-import ru.emkn.kotlin.sms.gui.ApplicationState
 import ru.emkn.kotlin.sms.gui.ApplicationWindowState
 import ru.emkn.kotlin.sms.gui.CurrentTabStatus
 import ru.emkn.kotlin.sms.gui.Stage
@@ -63,10 +62,9 @@ fun showGroups(addButtonState: MutableState<Boolean>, surfaceGradient: Brush) {
                 }
             }
             items(GROUP_DISTANCES.toList()) {
-                val (group, distance) = it
                 Row(Modifier.fillMaxWidth()) {
-                    TableCell(text = group, weight = columnWeight)
-                    TableCell(text = distance, weight = columnWeight)
+                    TableCell(text = it.first, weight = columnWeight)
+                    TableCell(text = it.second, weight = columnWeight)
                 }
             }
         }
@@ -107,8 +105,7 @@ fun showDistances(addButtonState: MutableState<Boolean>, surfaceGradient: Brush)
                     TableHeaderCell(text = "Checkpoints", weight = checkpointsColumnWeight)
                 }
             }
-            items(DISTANCE_CRITERIA.toList()) {
-                val (distance, criteria) = it
+            items(DISTANCE_CRITERIA.toList()) { (distance, criteria) ->
                 Row(Modifier.fillMaxWidth()) {
                     TableCell(text = distance, weight = distanceColumnWeight)
                     TableCell(text = criteria.distanceType.name, weight = columnWeight)
@@ -198,7 +195,7 @@ fun showCompetitors(addButtonState: MutableState<Boolean>, surfaceGradient: Brus
                     TableHeaderCell(text = "Team", weight = columnWeight)
                 }
             }
-            items(competitors) { (id, competitor) ->
+            items(competitors) { (_, competitor) ->
                 Row(Modifier.fillMaxWidth()) {
                     TableCell(text = competitor.surname, weight = columnWeight)
                     TableCell(text = competitor.name, weight = columnWeight)

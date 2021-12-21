@@ -17,7 +17,7 @@ enum class Stage {
 }
 
 class ApplicationWindowState(
-    private val application: ApplicationState
+    application: ApplicationState
 ) {
     private var configPath: Path? = null
 
@@ -68,7 +68,7 @@ class ApplicationWindowState(
         }
     }
 
-    suspend fun openWarningDialog() {
+    private suspend fun openWarningDialog() {
         val result = stateOpenWarningDialog.awaitResult()
         if (result) {
             openFileDialog()

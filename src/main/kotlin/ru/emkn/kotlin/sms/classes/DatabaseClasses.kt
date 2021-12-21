@@ -1,9 +1,10 @@
+package ru.emkn.kotlin.sms.classes
+
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import ru.emkn.kotlin.sms.classes.DistanceType
 
 object TCompetitions : IntIdTable("competitions", "id") {
     private const val dateLength = 16
