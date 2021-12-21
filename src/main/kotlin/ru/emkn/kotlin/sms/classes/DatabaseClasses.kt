@@ -163,6 +163,15 @@ class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
     var athleteId by TCompetitors.athleteId
     var competitorNumber by TCompetitors.competitorNumber
     var startTime by TCompetitors.startTime
+
+    fun getAthlete(): TAthlete {
+        return TAthlete.findById(athleteId)
+            ?: throw IllegalStateException("Competitor $competitorNumber without an athlete reference")
+    }
+
+    fun getCompetitionId() : EntityID<Int> {
+        return getAthlete().competitionId
+    }
 }
 
 object TCompetitorsData : IntIdTable("competitorsData") {
