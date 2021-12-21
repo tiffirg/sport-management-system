@@ -59,7 +59,7 @@ fun TableForGroupResults(resultsCompetitors: List<CompetitorResultInGroup>, surf
             item {
                 Row(Modifier.background(Color.Gray)) {
                     TableHeaderCell(text = "Place", weight = columnWeight)
-                    TableHeaderCell(text = "Competition Number", weight = columnWeight)
+                    TableHeaderCell(text = "Number", weight = columnWeight)
                     TableHeaderCell(text = "Surname", weight = columnWeight)
                     TableHeaderCell(text = "Name", weight = columnWeight)
                     TableHeaderCell(text = "Birth year", weight = columnWeight)
@@ -107,7 +107,7 @@ fun TableForGroupSplitResults(resultsCompetitors: List<CompetitorSplitResultInGr
                     TableHeaderCell(text = "Team", weight = columnWeight)
                     TableHeaderCell(text = "Result", weight = columnWeight)
                     TableHeaderCell(text = "Backlog", weight = columnWeight)
-                    TableHeaderCell(text = "Checkpoints", weight = columnWeight)
+                    TableHeaderCell(text = "Checkpoints", weight = checkpointsColumnWeight)
                 }
             }
             items(competitors) { res ->
@@ -122,7 +122,7 @@ fun TableForGroupSplitResults(resultsCompetitors: List<CompetitorSplitResultInGr
                     TableHeaderCell(text = res.competitorResultInGroup.competitor.teamName, weight = columnWeight)
                     TableHeaderCell(text = res.competitorResultInGroup.result?.toResultFormat() ?: "removed", weight = columnWeight)
                     TableHeaderCell(text = res.competitorResultInGroup.backlog.toBacklogFormat(), weight = columnWeight)
-                    TableHeaderCell(text = res.splits?.joinToString { "${it.checkpoint} ${it.duration.toResultFormat() }" } ?: " ", weight = columnWeight)
+                    TableHeaderCell(text = res.splits?.joinToString { "${it.checkpoint} ${it.duration.toResultFormat() }" } ?: " ", weight = checkpointsColumnWeight)
                 }
             }
         }
