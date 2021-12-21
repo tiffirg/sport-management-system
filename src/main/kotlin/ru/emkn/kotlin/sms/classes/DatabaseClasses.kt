@@ -164,13 +164,13 @@ class TCompetitor(id: EntityID<Int>) : IntEntity(id) {
     var competitorNumber by TCompetitors.competitorNumber
     var startTime by TCompetitors.startTime
 
-    fun getAthlete(): TAthlete {
+    fun getTAthlete(): TAthlete {
         return TAthlete.findById(athleteId)
             ?: throw IllegalStateException("Competitor $competitorNumber without an athlete reference")
     }
 
     fun getCompetitionId() : EntityID<Int> {
-        return getAthlete().competitionId
+        return getTAthlete().competitionId
     }
 }
 
@@ -190,13 +190,13 @@ class TCompetitorData(id: EntityID<Int>) : IntEntity(id) {
     var isRemoved by TCompetitorsData.isRemoved
     var checkpointProtocol by TCheckpointProtocol via TCheckpointsProtocolsToCompetitorsData // many-to-many reference
 
-    fun getCompetitor(): TCompetitor {
+    fun getTCompetitor(): TCompetitor {
         return TCompetitor.findById(competitorId)
             ?: throw IllegalStateException("CompetitorData without a competitor reference")
     }
 
     fun getCompetitionId() : EntityID<Int> {
-        return getCompetitor().getCompetitionId()
+        return getTCompetitor().getCompetitionId()
     }
 }
 
