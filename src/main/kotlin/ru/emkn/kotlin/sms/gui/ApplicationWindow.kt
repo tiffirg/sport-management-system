@@ -294,7 +294,7 @@ fun ContentGroupResults(state: ApplicationWindowState) {
         state.stage = Stage.RESULTS
 //        val results = CommandsHandler.generateResults(teamsList)
 //        DB.insertCompetitions(startProtocols)
-        val buttonText = remember { mutableStateOf("Results") }
+        val buttonText = remember { mutableStateOf("SPLITS") }
         val buttonSplitState = remember { mutableStateOf(false) }
         val surfaceGradient =
             Brush.horizontalGradient(colors = listOf(MaterialTheme.colors.secondary, MaterialTheme.colors.surface))
@@ -307,8 +307,15 @@ fun ContentGroupResults(state: ApplicationWindowState) {
                         actions = {
                             Row(horizontalArrangement = Arrangement.End) {
                                 Button(modifier = Modifier.padding(10.dp), onClick = {
+                                    buttonSplitState.value = !buttonSplitState.value
+                                    if (buttonSplitState.value) {
+                                        buttonText.value = "RESULTS"
+                                    }
+                                    else {
+                                        buttonText.value = "SPLITS"
+                                    }
                                 }) {
-                                    Text("SPLITS")
+                                    Text(buttonText.value)
                                 }
                             }
                         }
