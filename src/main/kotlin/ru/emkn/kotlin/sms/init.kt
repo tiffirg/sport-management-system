@@ -99,10 +99,13 @@ fun initConfig(pathConfig: String) {
         EVENT_SPORT = config.eventSport
         RANK_NAMES = config.ranks
         GROUP_NAMES = config.groups.mapTo(mutableListOf()) { it.group }
-        GROUP_DISTANCES = config.groups.associateTo(mutableMapOf()) { groupData -> Pair(groupData.group, groupData.distance) }
-        DISTANCE_CRITERIA = config.criteria.associateTo(mutableMapOf()) {
-            criteriaData ->
-            Pair(criteriaData.distance, getCriteriaByType(criteriaData.type, criteriaData.count, criteriaData.checkpoints))
+        GROUP_DISTANCES =
+            config.groups.associateTo(mutableMapOf()) { groupData -> Pair(groupData.group, groupData.distance) }
+        DISTANCE_CRITERIA = config.criteria.associateTo(mutableMapOf()) { criteriaData ->
+            Pair(
+                criteriaData.distance,
+                getCriteriaByType(criteriaData.type, criteriaData.count, criteriaData.checkpoints)
+            )
         }
         CHECKPOINTS_LIST = config.checkpoints
     } catch (e: Exception) {

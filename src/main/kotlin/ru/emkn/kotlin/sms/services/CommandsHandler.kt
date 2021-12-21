@@ -2,8 +2,8 @@ package ru.emkn.kotlin.sms.services
 
 import ru.emkn.kotlin.sms.DISTANCE_CRITERIA
 import ru.emkn.kotlin.sms.EVENT_TIME
-import ru.emkn.kotlin.sms.classes.*
 import ru.emkn.kotlin.sms.LOGGER
+import ru.emkn.kotlin.sms.classes.*
 import java.time.Duration
 
 object CommandsHandler {
@@ -95,10 +95,10 @@ object CommandsHandler {
                     null, null, null
                 )
             } else {
-            CompetitorResultInGroup(
-                competitorData.competitor,
-                result, index + 1, null
-            )
+                CompetitorResultInGroup(
+                    competitorData.competitor,
+                    result, index + 1, null
+                )
             }
         }
 
@@ -195,8 +195,8 @@ object CommandsHandler {
             val sortedTeamResults = teamResults.sortedBy { it.competitor.athleteNumber }
             val data = sortedTeamResults.map { competitorResultInGroup ->
                 val competitor = competitorResultInGroup.competitor
-                val score =  scoresByCompetitor[competitor]
-                assert(score != null) {"scoresByCompetitor contains information about all competitors"}
+                val score = scoresByCompetitor[competitor]
+                assert(score != null) { "scoresByCompetitor contains information about all competitors" }
                 CompetitorResultInTeam(
                     competitor, competitorResultInGroup.place,
                     score!!

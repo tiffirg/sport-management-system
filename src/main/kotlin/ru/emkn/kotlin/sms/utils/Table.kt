@@ -37,7 +37,7 @@ fun TableForItemInformationList(
             TypeItemInformationList.ITEM_DISTANCES -> showDistances(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_TEAMS -> showTeams(addButtonState, surfaceGradient)
             TypeItemInformationList.ITEM_COMPETITORS -> showCompetitors(addButtonState, surfaceGradient)
-            TypeItemInformationList.ITEM_CHECKPOINTS -> when(state.stage) {
+            TypeItemInformationList.ITEM_CHECKPOINTS -> when (state.stage) {
                 Stage.START_PROTOCOLS, Stage.RESULTS -> showCheckpoints(addButtonState, surfaceGradient)
                 else -> CurrentTabStatus("It is required to fill in data by columns: Team, Competitors")
             }

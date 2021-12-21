@@ -317,8 +317,7 @@ fun ContentGroupResults(state: ApplicationWindowState) {
                                     buttonSplitState.value = !buttonSplitState.value
                                     if (buttonSplitState.value) {
                                         buttonText.value = "RESULTS"
-                                    }
-                                    else {
+                                    } else {
                                         buttonText.value = "SPLITS"
                                     }
                                 }) {
@@ -331,8 +330,7 @@ fun ContentGroupResults(state: ApplicationWindowState) {
                 content = {
                     if (buttonSplitState.value) {
                         TableForGroupSplitResults(splitResultsCompetitors, surfaceGradient)
-                    }
-                    else {
+                    } else {
                         TableForGroupResults(resultsCompetitors, surfaceGradient)
 
                     }

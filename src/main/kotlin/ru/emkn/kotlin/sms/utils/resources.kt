@@ -2,10 +2,8 @@ package ru.emkn.kotlin.sms.utils
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.vector.ImageVector
-import ru.emkn.kotlin.sms.gui.ApplicationWindowState
 
 fun getAppResources(): AppResources {
     return AppResources("Application \"Competition\" for Desktop")

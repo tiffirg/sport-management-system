@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import ru.emkn.kotlin.sms.DB
 import ru.emkn.kotlin.sms.TimeFormatter
 import ru.emkn.kotlin.sms.classes.*
 
@@ -80,7 +79,10 @@ fun TableForGroupResults(resultsCompetitors: List<CompetitorResultInGroup>, surf
                     TableHeaderCell(text = resultsCompetitor.competitor.rank.rankName ?: "-", weight = columnWeight)
                     TableHeaderCell(text = resultsCompetitor.competitor.group.groupName, weight = columnWeight)
                     TableHeaderCell(text = resultsCompetitor.competitor.teamName, weight = columnWeight)
-                    TableHeaderCell(text = resultsCompetitor.result?.toResultFormat() ?: "removed", weight = columnWeight)
+                    TableHeaderCell(
+                        text = resultsCompetitor.result?.toResultFormat() ?: "removed",
+                        weight = columnWeight
+                    )
                     TableHeaderCell(text = resultsCompetitor.backlog.toBacklogFormat(), weight = columnWeight)
                 }
             }
@@ -108,11 +110,24 @@ fun TableForGroupSplitResults(resultsCompetitors: List<CompetitorSplitResultInGr
             items(competitors) { res ->
                 Row(Modifier.fillMaxWidth()) {
                     TableHeaderCell(text = res.competitorResultInGroup.place?.toString() ?: "-", weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.competitor.athleteNumber.toString(), weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.competitor.rank.rankName ?: "-", weight = columnWeight)
-                    TableHeaderCell(text = res.competitorResultInGroup.competitor.group.groupName, weight = columnWeight)
+                    TableHeaderCell(
+                        text = res.competitorResultInGroup.competitor.athleteNumber.toString(),
+                        weight = columnWeight
+                    )
+                    TableHeaderCell(
+                        text = res.competitorResultInGroup.competitor.rank.rankName ?: "-",
+                        weight = columnWeight
+                    )
+                    TableHeaderCell(
+                        text = res.competitorResultInGroup.competitor.group.groupName,
+                        weight = columnWeight
+                    )
                     TableHeaderCell(text = res.competitorResultInGroup.competitor.teamName, weight = columnWeight)
-                    TableHeaderCell(text = res.splits?.joinToString("; ") { "${it.checkpoint}|${it.duration.toResultFormat().split(":").drop(1).joinToString(":") }" } ?: " ", weight = checkpointsColumnWeight)
+                    TableHeaderCell(text = res.splits?.joinToString("; ") {
+                        "${it.checkpoint}|${
+                            it.duration.toResultFormat().split(":").drop(1).joinToString(":")
+                        }"
+                    } ?: " ", weight = checkpointsColumnWeight)
                 }
             }
         }

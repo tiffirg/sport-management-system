@@ -44,8 +44,7 @@ class ApplicationWindowState(
                     DB.checkResultsGroup(competitionDb.id.value) -> Stage.RESULTS
                     else -> Stage.CONFIG
                 }
-            }
-            else {
+            } else {
                 COMPETITION_ID = DB.insertConfigData().id.value
             }
 
@@ -56,7 +55,7 @@ class ApplicationWindowState(
             openWarningDialog()
         }
     }
-    
+
     suspend fun openFileDialog() {
         val path = stateOpenFileDialog.awaitResult()
         if (path != null) {
@@ -68,6 +67,7 @@ class ApplicationWindowState(
 
         }
     }
+
     suspend fun openWarningDialog() {
         val result = stateOpenWarningDialog.awaitResult()
         if (result) {

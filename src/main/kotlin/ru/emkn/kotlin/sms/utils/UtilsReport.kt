@@ -3,11 +3,11 @@ package ru.emkn.kotlin.sms.utils
 import ru.emkn.kotlin.sms.classes.Competitor
 
 // Config
-class InvalidConfigException(pathConfig: String): Exception("$pathConfig: No such config")
+class InvalidConfigException(pathConfig: String) : Exception("$pathConfig: No such config")
 
-class InvalidFormatConfigException(pathConfig: String): Exception("$pathConfig: Invalid config format")
+class InvalidFormatConfigException(pathConfig: String) : Exception("$pathConfig: Invalid config format")
 
-class InvalidConfigData(message: String): Exception("Config data is invalid: $message")
+class InvalidConfigData(message: String) : Exception("Config data is invalid: $message")
 
 // Commands
 class MissCommandException : Exception("Command is missing, use `protocolStart`, `resultsAthlete`, `resultsTeam`")
@@ -15,9 +15,11 @@ class MissCommandException : Exception("Command is missing, use `protocolStart`,
 // Data
 class InvalidFileException(path: String) : Exception("$path: No such file or directory")
 
-class IncorrectProtocolStartException(pathProtocolStart: String) : Exception("$pathProtocolStart: Invalid start protocol format")
+class IncorrectProtocolStartException(pathProtocolStart: String) :
+    Exception("$pathProtocolStart: Invalid start protocol format")
 
-class IncorrectResultsGroupException(pathResultsGroup: String) : Exception("$pathResultsGroup: Invalid results group format")
+class IncorrectResultsGroupException(pathResultsGroup: String) :
+    Exception("$pathResultsGroup: Invalid results group format")
 
 class InvalidFileCheckpointException(fileCheckpoint: String) : Exception("$fileCheckpoint: Invalid checkpoint data")
 
@@ -43,9 +45,10 @@ fun messageAboutMissAthleteRequest(team: String, request: String) = "'$team' $re
 
 fun messageAboutCancelCompetition() = "Cancellation of the competition"
 
-fun messageAboutMissAthleteCheckpointData(checkpoint: String, unitData: String) = "`$checkpoint` $unitData: Incorrect checkpoint format"
+fun messageAboutMissAthleteCheckpointData(checkpoint: String, unitData: String) =
+    "`$checkpoint` $unitData: Incorrect checkpoint format"
 
-fun messageAboutIncorrectDataCheckpointOfAthlete(athlete: Competitor, message: String? = null) : String {
+fun messageAboutIncorrectDataCheckpointOfAthlete(athlete: Competitor, message: String? = null): String {
     var res = "Incorrect data on the checkpoint of the $athlete"
     if (message != null) {
         res += ":$message"
